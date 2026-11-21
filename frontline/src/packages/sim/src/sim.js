@@ -159,6 +159,8 @@ const SLOT_ARRAYS = [];
 // Float64Array instead of as arguments / return values, which V8 boxes (allocates)
 // when the callee is not inlined. Not state.
 const SA_X = 0, SA_Y = 1, SA_Z = 2, SB_X = 3, SB_Y = 4, SB_Z = 5; // segment A->B
+/** Co-op lag compensation: ticks of recent positions kept (0.8 s), and the speed bound that widens the cells searched. */
+const LAG_K = 16, LAG_MAX_SPEED = 80;
 const S_TERR = 6; // terrainSeg() result: fraction, or Infinity
 const S_RAYT = 7; // raySeg() result: fraction of the first entity hit
 const S_DIRX = 8, S_DIRZ = 9, S_ALIGN = 10; // turnToward() in / out
@@ -375,6 +377,22 @@ class Sim {
     pShooter = new Int32Array(1024); // shooter entity id (never hit by its own shot)
     pSeen = new Uint8Array(1024); // bit k: team k had detected the shooter at launch (backstab rule)
     pPilot = new Int32Array(1024); // pilot id of the seat / pilot that fired (0 = AI or no pilot): hit-marker attribution
+    /**
+     * Co-op lag compensation (21 Nov, after Ace of the Airways' co-op lessons: "are a guest's hits judged where the
+     * guest saw them?"). A guest sees the other entities about one round trip plus its render delay in the past, so a
+     * shot on a moving target that the guest landed missed on the host. lagTicks (set by the host's worker from each
+     * guest's ping): pilot id -> ticks; the shots of that pilot (hitscan rays and projectiles, on foot or from a seat)
+     * meet the other teams' entities where they stood that many ticks ago (a ring of recent positions, LAG_K ticks).
+     * The host still applies every hit by its own rules (alive, team, range, damage), and the rewind is capped, so a
+     * guest gains nothing it did not see. Not state: derived each tick, empty after a checkpoint (shots then use the
+     * present positions until the ring fills again).
+     */
+    lagTicks = null;
+    rayLag = 0;
+    histX = null;
+    histY = null;
+    histZ = null;
+    histE = null;
     pTgt = new Int32Array(1024); // ruling 108: entity id a homing projectile steers toward (0 = none)
     /** Ruling 108: target entity id for the next launch() of a homing weapon (fire / fireAimed set it; launchShot clears it). Scratch. */
     launchTgt = 0;
@@ -5323,6 +5341,7 @@ class Sim {
         let tp = clk ? clk() : 0;
         this.tick++;
         const tick = this.tick;
+        this.recordHist();
         const serial0 = this.events.next; // QA1 bug 1: progression scans this step's events only
         if (this.orderEvents.length)
             this.orderEvents = [];
@@ -7001,7 +7020,8 @@ class Sim {
         const ax = q[SA_X], ay = q[SA_Y], az = q[SA_Z], bz = q[SB_Z];
         const d = this.d, g = this.fine, cs = g.cellSize;
         const hitR = d.constants.projectileHitRadius;
-        const margin = this.maxRadius + hitR + this.moveMargin;
+        const lag = this.rayLag, K = LAG_K, hk = lag > 0 ? (((this.tick - lag) % K) + K) % K : 0;
+        const margin = this.maxRadius + hitR + this.moveMargin + lag * d.dt * LAG_MAX_SPEED; // a rewound entity may sit outside its present cell
         const dx = q[SB_X] - ax, dy = q[SB_Y] - ay, dz = bz - az;
         const a = dx * dx + dy * dy + dz * dz;
         if (a < 1e-12)
@@ -7046,7 +7066,16 @@ class Sim {
                     if (skip !== 0 && (d.tAir[ot] ? (skip & 1) !== 0 : (skip & 2) !== 0))
                         continue;
                     const rr = d.tRadius[ot] + (own ? 0 : hitR);
-                    const fx = ax - this.x[o], fy = ay - (this.y[o] + d.tRadius[ot]), fz = az - this.z[o];
+                    let ox = this.x[o], oy = this.y[o], oz = this.z[o];
+                    if (lag > 0 && !own) { // co-op lag compensation: where the guest saw it
+                        const hi = o * K + hk;
+                        if (this.histE[hi] === this.eid[o]) {
+                            ox = this.histX[hi];
+                            oy = this.histY[hi];
+                            oz = this.histZ[hi];
+                        }
+                    }
+                    const fx = ax - ox, fy = ay - (oy + d.tRadius[ot]), fz = az - oz;
                     const cc = fx * fx + fy * fy + fz * fz - rr * rr;
                     let t;
                     if (cc <= 0)
@@ -7080,6 +7109,33 @@ class Sim {
         }
         this.raySlot = best;
         q[S_RAYT] = bestT;
+    }
+    /** Lag compensation: the ring of positions at the start of each tick (only while some pilot has a lag). */
+    recordHist() {
+        if (this.lagTicks === null || this.lagTicks.size === 0)
+            return;
+        const K = LAG_K, n = this.cap * K;
+        if (this.histX === null || this.histX.length !== n) {
+            this.histX = new Float32Array(n);
+            this.histY = new Float32Array(n);
+            this.histZ = new Float32Array(n);
+            this.histE = new Int32Array(n).fill(-1);
+        }
+        const k = this.tick % K, hx = this.histX, hy = this.histY, hz = this.histZ, he = this.histE;
+        for (let s = 0; s < this.hi; s++) {
+            const i = s * K + k;
+            hx[i] = this.x[s];
+            hy[i] = this.y[s];
+            hz[i] = this.z[s];
+            he[i] = this.alive[s] ? this.eid[s] : -1;
+        }
+    }
+    /** The rewind for pilot pid's shots (ticks, 0: none). */
+    lagOf(pid) {
+        if (this.lagTicks === null || pid === 0)
+            return 0;
+        const l = this.lagTicks.get(pid < 0 ? -pid : pid) ?? 0;
+        return l > 0 && this.histX !== null ? Math.min(LAG_K - 1, l) : 0;
     }
     /** raySeg: the shot was stopped by a shield bubble (raySlot -1, sc[S_RAYT] where it met the dome). */
     rayDome = false;
@@ -9133,7 +9189,9 @@ class Sim {
             q[SB_X] = bx;
             q[SB_Y] = by;
             q[SB_Z] = bz;
+            this.rayLag = this.hitCtl ? this.lagOf(this.hitPilot) : 0; // co-op lag compensation (a guest's aimed ray)
             this.raySeg(shooterId, team, d.wSkip[w]);
+            this.rayLag = 0;
             this.terrainSeg();
             const tgh = q[S_TERR], rt = q[S_RAYT], hit = this.raySlot;
             this.logShot(w, team, tgh < rt && tgh <= 1 ? -1 : hit, tgh < rt && tgh <= 1 ? tgh : hit >= 0 || this.rayDome ? rt : 1);
@@ -9408,7 +9466,9 @@ class Sim {
             q[SB_X] = bx;
             q[SB_Y] = by;
             q[SB_Z] = bz;
+            this.rayLag = this.hitCtl ? this.lagOf(this.hitPilot) : 0; // co-op lag compensation (a guest's aimed ray)
             this.raySeg(shooterId, team, skip);
+            this.rayLag = 0;
             this.terrainSeg();
             const tgh = q[S_TERR], rt = q[S_RAYT], hit = this.raySlot;
             this.logShot(w, team, tgh < rt && tgh <= 1 ? -1 : hit, tgh < rt && tgh <= 1 ? tgh : hit >= 0 || this.rayDome ? rt : 1);
@@ -10242,7 +10302,9 @@ class Sim {
             q[SB_Y] = by;
             q[SB_Z] = bz;
             const w = this.pWeapon[i], team = this.pTeam[i];
+            this.rayLag = this.pPilot[i] < 0 ? this.lagOf(-this.pPilot[i]) : 0; // a player's aimed shot (negative pPilot)
             this.raySeg(this.pShooter[i], team, d.wSkip[w]);
+            this.rayLag = 0;
             this.terrainSeg();
             const tg = q[S_TERR], rt = q[S_RAYT], hit = this.raySlot;
             // 0: flying, 1: entity hit, 2: ground hit, 3: shell landed at its aim point, 4: expired / left the map

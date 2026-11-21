@@ -31,6 +31,7 @@ const c7b_ts_5 = require("./c7b.js");
 const u1_loadout_ts_1 = require("./u1-loadout.js");
 const progression_ts_1 = require("../../sim/src/progression.js");
 const keys_ts_1 = require("./keys.js");
+const pad_ts_1 = require("./pad.js");
 const c8_ts_1 = require("./c8.js");
 const objectives_ts_1 = require("../../sim/src/objectives.js");
 const predict_ts_1 = require("../../sim/src/predict.js");
@@ -10269,12 +10270,98 @@ function drawFields(now, edges) {
 // ------------------------------------------------------------------ frame
 let lastFrame = performance.now();
 let propsDrawn = false;
+// ------------------------------------------------------------------ controller (designer 21 Nov: pad.ts)
+/** The controller: its buttons press the game's own keys and mouse buttons; the right stick turns the view here. */
+const pad = new pad_ts_1.Pad({
+    key: (code, key, down) => { try {
+        window.dispatchEvent(new KeyboardEvent(down ? "keydown" : "keyup", { code, key, bubbles: true, cancelable: true }));
+    }
+    catch { /* no KeyboardEvent */ } },
+    mouse: (button, down) => { try {
+        (down ? canvas : window).dispatchEvent(new MouseEvent(down ? "mousedown" : "mouseup", { button, bubbles: true, cancelable: true }));
+    }
+    catch { /* no MouseEvent */ } },
+    wheel: (dir) => { try {
+        canvas.dispatchEvent(new WheelEvent("wheel", { deltaY: dir * 100, bubbles: true, cancelable: true }));
+    }
+    catch { /* no WheelEvent */ } },
+    onMenu: () => {
+        if (!started && document.body.dataset.mode === "start" && !$("startBtn").disabled) { // the start screen: Menu deploys
+            $("startBtn").click();
+            return true;
+        }
+        return false;
+    },
+    needGesture: () => !snd.ctx || snd.state !== "running",
+    notify: (t, k) => notify(t, k),
+    activeChanged: (on) => { document.body.classList.toggle("pad", on); },
+});
+const padStats = { looks: 0 };
+// the controller's buttons and settings in the controls panel (start card CONTROLS); settings kept in localStorage
+try {
+    const st = JSON.parse(localStorage.getItem("ironfall.pad") ?? "{}");
+    if (st.dz >= 0.05 && st.dz <= 0.6)
+        pad.deadzone = st.dz;
+    if (st.look >= 0.8 && st.look <= 6)
+        pad.lookSpeed = st.look;
+    pad.invertY = !!st.inv;
+}
+catch { /* no storage */ }
+{
+    const host = document.querySelector("#ctlPanel .ctlIn");
+    if (host) {
+        const NAMES = ["A", "B", "X", "Y", "LB", "RB", "LT", "RT", "View", "Menu", "L3", "R3", "D-pad ↑", "D-pad ↓", "D-pad ←", "D-pad →"];
+        const rows = pad_ts_1.PAD_BINDINGS.map((b) => `<div class="eg"><b>${b.mod ? "View + " : b.lb ? "LB + " : ""}${NAMES[b.b]}</b><span>${b.what.replace(/^View \+ [^:]+: /, "")}</span></div>`).join("");
+        const box = document.createElement("div");
+        box.className = "padCtl";
+        box.innerHTML = `<div class="stH" style="margin-top:14px">Controller</div><div class="padNote">Xbox or PlayStation layout (PlayStation: Cross = A, Circle = B, Square = X, Triangle = Y). Left stick moves, right stick looks. Plug it in and press a button; the page notices it.</div>
+<div class="padSet"><label>Dead zone <input id="padDz" type="range" min="5" max="60" value="${Math.round(pad.deadzone * 100)}"> <span id="padDzV">${pad.deadzone.toFixed(2)}</span></label>
+<label>Look speed <input id="padLook" type="range" min="8" max="60" value="${Math.round(pad.lookSpeed * 10)}"></label>
+<label><input id="padInv" type="checkbox" ${pad.invertY ? "checked" : ""}> invert look up / down</label> <span id="padLive" class="padNote"></span></div>
+<div class="padGrid">${rows}</div>`;
+        host.appendChild(box);
+        const save = () => { try {
+            localStorage.setItem("ironfall.pad", JSON.stringify({ dz: pad.deadzone, look: pad.lookSpeed, inv: pad.invertY }));
+        }
+        catch { /* no storage */ } };
+        $("padDz").addEventListener("input", (e) => { pad.deadzone = Number(e.target.value) / 100; $("padDzV").textContent = pad.deadzone.toFixed(2); save(); });
+        $("padLook").addEventListener("input", (e) => { pad.lookSpeed = Number(e.target.value) / 10; save(); });
+        $("padInv").addEventListener("change", (e) => { pad.invertY = e.target.checked; save(); });
+        // live readout of the pad (Ace of the Airways: show the raw axes so a drifting stick is visible)
+        setInterval(() => { const el = $("padLive"); if (!el || document.getElementById("ctlPanel")?.hidden)
+            return; el.textContent = pad.connected ? `${pad.id.slice(0, 32)} · move ${pad.move.x.toFixed(2)}, ${pad.move.y.toFixed(2)} · look ${pad.look.x.toFixed(2)}, ${pad.look.y.toFixed(2)}${pad.stats.ignoredAxes ? ` · ${pad.stats.ignoredAxes} parked axes ignored` : ""}` : "no controller seen yet"; }, 200);
+    }
+}
+function padFrame(now, dt) {
+    pad.poll(now);
+    if (!pad.connected)
+        return;
+    const lx = pad.look.x, ly = pad.look.y;
+    if ((lx === 0 && ly === 0) || !started || pauseOn || matchLocked() || panelOpen())
+        return;
+    padStats.looks++;
+    if (wheel.open) { // the quick-command wheel: the stick points at an option
+        wheelMove(lx * 900 * dt, ly * 900 * dt);
+        return;
+    }
+    if (mode === "fp") {
+        const k = pad.lookSpeed * dt * (scoped || gunZoom ? fovDeg / 62 : 1);
+        camYaw += lx * k;
+        camPitch = (0, math_ts_1.clamp)(camPitch - ly * k * 0.75, onFoot() ? -1.45 : -0.55, onFoot() ? 1.45 : 0.45);
+    }
+    else if (mode === "cmd")
+        cmd.rot += lx * 1.6 * dt; // the command view: the right stick turns the map
+}
+for (const ev of ["mousemove", "mousedown", "keydown"])
+    window.addEventListener(ev, (e) => { if (e.isTrusted)
+        pad.otherInput(); }, true);
 function frame(now) {
     const t0 = performance.now();
     const frameDt = Math.min(0.1, (now - lastFrame) / 1000);
     frameGapAcc += now - lastFrame;
     lastFrame = now;
     try {
+        padFrame(now, frameDt);
         if (holdT !== null)
             transT = holdT; // test aid: transition frozen (mid-blend screenshots)
         else if (transT < 1) {
@@ -12876,6 +12963,7 @@ G.__ironfall = {
         return {
             ready, started, gotFirst, tick: lastTick, mode, transitioning: transT < 1, lastTransition, scenario: { ...config },
             camera: { eye: [...eye], target: [...target], yaw: camYaw, pitch: camPitch, fov: fovDeg, cmd: { ...cmd } },
+            pad: { connected: pad.connected, active: pad.active, presses: pad.stats.presses, looks: padStats.looks, ignoredAxes: pad.stats.ignoredAxes, keys: [...keys].filter((k) => /^Key[WASD]$|Shift/.test(k)) },
             // the player's pilot from the snapshot (fractions converted to values) and the body it is (pilot entity or vehicle) as drawn
             player: me ? {
                 pilotId, state: STATE_NAME[me.state], entity: me.entity, seat: me.seat, seatName: veh ? seatLabel(veh.type, me.seat) : null, vehicleType: veh ? cd.typeIds[veh.type] : null,

@@ -1,0 +1,37 @@
+// Controller input (pad.js): rest point learning, a parked axis, the dead zone, button bindings (Ace of the Airways' pad lessons).
+const { load, makeRequire } = require("../srcmap.js");
+const { SRC } = load(require("path").join(__dirname, "../../frontline")); const req = makeRequire(SRC);
+const { Pad } = req("packages/client/src/pad.js");
+const check = (k, ok, v) => console.log(`CHECK ${ok ? "PASS" : "FAIL"} ${k}${v !== undefined ? " " + JSON.stringify(v) : ""}`);
+const ev = [];
+const gp = { id: "fake", connected: true, mapping: "standard", axes: [0.08, -0.06, 0, 0, -1], buttons: Array.from({ length: 17 }, () => ({ pressed: false, value: 0 })) };
+Object.defineProperty(globalThis, "navigator", { value: { getGamepads: () => [gp] }, configurable: true });
+const pad = new Pad({ key: (c, k, d) => ev.push((d ? "+" : "-") + c), mouse: (b, d) => ev.push((d ? "+" : "-") + "M" + b), wheel: (d) => ev.push("W" + d), notify: () => { } });
+let t = 0; const run = (ms) => { for (let i = 0; i < ms / 16; i++) pad.poll((t += 16)); };
+run(3500); // learning: a stick resting a little off centre, axis 4 parked at -1
+check("a stick resting off centre reads 0 (rest point learnt, never moved)", pad.move.x === 0 && pad.move.y === 0, pad.move);
+check("an axis parked at -1 is ignored", pad.stats.ignoredAxes === 1, pad.stats.ignoredAxes);
+gp.axes[0] = 0.08 + 0.15; run(100);
+check("inside the 0.21 dead zone: no movement", pad.move.x === 0, pad.move);
+gp.axes[0] = 0.08 + 0.9; run(100);
+check("full right: D held", ev.includes("+KeyD"), ev.slice(-3));
+gp.axes[0] = 0.08; run(100);
+check("back to rest: D released", ev.includes("-KeyD"));
+const press = (i, on) => { gp.buttons[i] = { pressed: on, value: on ? 1 : 0 }; run(50); };
+ev.length = 0; press(7, true); press(7, false);
+check("RT fires (LMB down / up)", ev.join() === "+M0,-M0", ev);
+ev.length = 0; press(8, true); press(2, true); press(2, false); press(8, false);
+check("View + X: next seat (X), no Tab", ev.join() === "+KeyX,-KeyX", ev);
+ev.length = 0; press(8, true); press(8, false);
+check("View tapped alone: Tab", ev.join() === "+Tab,-Tab", ev);
+ev.length = 0; press(4, true); press(12, true); press(12, false); press(4, false);
+check("LB + D-pad up: the call code (Z held, ArrowUp)", ev.join() === "+KeyZ,+ArrowUp,-ArrowUp,-KeyZ", ev);
+ev.length = 0; press(12, true); press(12, false);
+check("D-pad up alone: call a ride (V)", ev.join() === "+KeyV,-KeyV", ev);
+ev.length = 0; press(5, true); press(5, false); press(15, true); press(15, false);
+check("RB grenade, D-pad right next weapon", ev.join() === "+KeyG,-KeyG,W1", ev);
+ev.length = 0; gp.axes[1] = -0.06 - 1; run(50); press(10, true); press(10, false); gp.axes[1] = -0.06; run(50);
+check("L3 sprint stays on until the stick is let go", ev.join() === "+KeyW,+ShiftLeft,-KeyW,-ShiftLeft" || ev.join() === "+KeyW,+ShiftLeft,-ShiftLeft,-KeyW", ev);
+gp.axes[2] = 1; run(50);
+check("right stick: look (curved, after the dead zone)", pad.look.x > 0.9, pad.look);
+process.exit(0);

@@ -48,6 +48,7 @@ if (role === "host") {
     mp = new Mp({ ice: [] }, { send: (m) => W(m), status: () => { }, notify: (t) => result("notify", t), roster: () => { }, ping: () => { }, startHosting: async () => hostPilot, welcomeInfo: () => ({ terrainSeed: 7, simSeed: 11, difficulty: "normal", cfg: { units: 60, scenario: "default", battle: "frontline" } }) });
     mp.role = "host"; mp.mySlot = 0; mp.pid = "hostpid"; mp.name = "Host"; mp.code = "test";
     mp.roster = [{ slot: 0, pid: "hostpid", name: "Host", online: true, host: true, pilotId: 0 }];
+    setInterval(() => mp.sendLags(), 1000); // onHosting starts this timer in the game
     setInterval(() => { for (const m of toPage.splice(0)) {
         if (m.t === "ready") { ready = true; readyN++; hostPilot = m.pilotId; mp.roster[0].pilotId = m.pilotId; if (readyN === 2) mp.rejoinAll(); }
         else if (m.t === "gjoined" || m.t === "gsnap" || m.t === "gout" || m.t === "export") mp.fromWorker(m);
@@ -80,6 +81,8 @@ if (role === "host") {
             const d = eh && eg ? Math.hypot(eh.x - eg.x, eh.z - eg.z) : -1;
             check("players do not start inside each other (> 2 m apart)", d > 2, { metres: Math.round(d * 10) / 10 });
             check("no validation refusals", mp.refused === 0, { refused: mp.refused });
+            const lt = s.lagTicks?.get(g.id);
+            check("the host judges the guest's shots with its lag (ping 12 ms: about 4 ticks)", lt >= 3 && lt <= 6, { lagTicks: lt });
             check("guest's resource priority reached the team", s.fkit.priority[0] === "gas", s.fkit.priority[0]);
             check("guest's lane request reached the team", s.fkit.requests[0].some((r) => r.lane === 0), s.fkit.requests[0].map((r) => r.lane));
         }

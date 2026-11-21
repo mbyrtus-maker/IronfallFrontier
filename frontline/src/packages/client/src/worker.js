@@ -109,11 +109,34 @@ function guestJoin(slot) {
     guests.set(slot, { slot, pilotId, enc: guestEncoder(s), viewer: { x: e ? e.x : startPos().x, z: e ? e.z : startPos().z }, viewerSet: false, ctl: null, ctlDirty: true, ctlPlace: "", every, n: every, orders: [], snaps: [] });
     ctx.postMessage({ t: "gjoined", slot, pilotId });
 }
+/**
+ * Co-op lag compensation (21 Nov): how far in the past a guest sees the battle, in ticks: the round trip (the snapshot
+ * travels half of it, the guest's shot input the other half), the guest's render delay (RENDER_DELAY 3 ticks) and on
+ * average half a snapshot interval. The sim rewinds the other teams' entities by that much for the guest's shots.
+ */
+const GUEST_RENDER_TICKS = 3, LAG_CAP_TICKS = 15;
+function guestLags(lags) {
+    const s = sim;
+    if (!s || !Array.isArray(lags))
+        return;
+    const tickMs = s.d.dt * 1000;
+    for (const [slot, ms] of lags) {
+        const g = guests.get(slot);
+        if (!g || !(ms >= 0))
+            continue;
+        const ticks = Math.min(LAG_CAP_TICKS, Math.round(ms / tickMs + GUEST_RENDER_TICKS + g.every / 2));
+        if (!s.lagTicks)
+            s.lagTicks = new Map();
+        s.lagTicks.set(g.pilotId, ticks);
+        g.lag = ticks;
+    }
+}
 function guestLeave(slot) {
     const g = guests.get(slot);
     if (!g)
         return;
     guests.delete(slot);
+    sim?.lagTicks?.delete(g.pilotId);
     // C7b item 2: the sim's leave input (w2f coopLeave, mode 0): the pilot passes to the AI (seated it stays as AI crew,
     // on foot it walks home; the vehicle it drove joins a battle group, w3b); PLAYER_LEFT to every viewer. The player
     // count, and with it the enemy scaling, drops. A returning player joins again through the drop pod.
@@ -966,6 +989,9 @@ ctx.onmessage = (ev) => {
                 break;
             case "gleave":
                 guestLeave(m.slot);
+                break;
+            case "glag": // co-op lag compensation: guest slot -> round trip ms (the host page's link pings)
+                guestLags(m.lags);
                 break;
             case "g":
                 guestMsg(m.slot, m.m);

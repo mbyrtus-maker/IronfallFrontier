@@ -47,6 +47,8 @@ node tools/render/render_kind.js scout /tmp/scout.png "" '[[35,20]]'            
 node tools/render/zfight.js core factory                                             # lists flickering (coplanar) faces in models
 node tools/coop/coop_test.js host 47123 & node tools/coop/coop_test.js guest 47123   # two-process co-op test (real worker + Mp glue over a local socket); CHECK lines
 node tools/coop/handover_test.js                                                     # a host handover's checkpoint continues the Frontline match identically
+node tools/coop/lagcomp_test.js                                                      # a guest's shot is judged where the guest saw the target
+node tools/coop/pad_test.js                                                          # controller: rest point, parked axes, dead zone, button bindings
 ```
 
 ## Audio

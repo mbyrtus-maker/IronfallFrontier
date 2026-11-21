@@ -236,7 +236,20 @@ class Mp {
         }
         clearInterval(this.ckTimer);
         this.ckTimer = setInterval(() => this.checkpoint(), netcore_ts_1.CHECKPOINT_SECONDS * 1000);
+        clearInterval(this.lagTimer);
+        this.lagTimer = setInterval(() => this.sendLags(), 1000);
         this.pushRoster();
+    }
+    lagTimer = 0;
+    /** Host: each guest's round trip (ms) to the sim, once a second: its shots are judged where it saw the targets (lag compensation). */
+    sendLags() {
+        if (this.role !== "host" || this.slots.size === 0)
+            return;
+        const lags = [];
+        for (const [L, slot] of this.slots)
+            if (L.open)
+                lags.push([slot, Math.max(0, Math.min(1000, Math.round(L.ping)))]);
+        this.hooks.send({ t: "glag", lags });
     }
     checkpoint() {
         if (this.role !== "host" || this.slots.size === 0)
@@ -524,6 +537,7 @@ class Mp {
     }
     stop() {
         clearInterval(this.ckTimer);
+        clearInterval(this.lagTimer);
         this.session?.stop();
         this.session = null;
         this.role = "off";
