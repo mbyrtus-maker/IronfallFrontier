@@ -45,6 +45,8 @@ python3 tools/smoke.py "http://localhost:8123/index.html?frontline=1" /tmp/smoke
 node tools/tests/t_gunners.js                                                        # headless sim tests, one behaviour each
 node tools/render/render_kind.js scout /tmp/scout.png "" '[[35,20]]'                 # renders a model offline
 node tools/render/zfight.js core factory                                             # lists flickering (coplanar) faces in models
+node tools/coop/coop_test.js host 47123 & node tools/coop/coop_test.js guest 47123   # two-process co-op test (real worker + Mp glue over a local socket); CHECK lines
+node tools/coop/handover_test.js                                                     # a host handover's checkpoint continues the Frontline match identically
 ```
 
 ## Audio

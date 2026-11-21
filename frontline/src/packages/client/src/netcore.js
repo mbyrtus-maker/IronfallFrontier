@@ -318,6 +318,50 @@ function validateGuestMsg(raw) {
             const x = fin(m.x, -MAP, MAP), z = fin(m.z, -MAP, MAP), kind = str(m.kind, 16);
             return x === null || z === null || !kind ? null : { t: "ping", x, z, kind };
         }
+        // Frontline (21 Nov, Ace of the Airways co-op lessons: "every action a player can take must reach the host"): the
+        // kit, the respawn lane, giving up while downed, the laser cell swap, lane requests and the resource priority
+        // were page -> worker messages the guest's port dropped, so a guest played the default kit and could not choose
+        case "flKit": {
+            const k = m.kit;
+            if (!k || typeof k !== "object")
+                return null;
+            const kit = { role: str(k.role, 32), gun: str(k.gun, 32), grenade: str(k.grenade, 32), armour: str(k.armour, 32), laser: !!k.laser };
+            if (!kit.role || !kit.gun || !kit.grenade || !kit.armour)
+                return null;
+            if (k.slot3 !== undefined) {
+                const s3 = str(k.slot3, 32);
+                if (!s3)
+                    return null;
+                kit.slot3 = s3;
+            }
+            if (k.calls !== undefined) {
+                if (!Array.isArray(k.calls) || k.calls.length > 8)
+                    return null;
+                const c = k.calls.map((x) => str(x, 32));
+                if (!c.every((x) => !!x))
+                    return null;
+                kit.calls = c;
+            }
+            return { t: "flKit", kit };
+        }
+        case "flLane": {
+            const lane = int(m.lane, 0, 3);
+            return lane === null ? null : { t: "flLane", lane };
+        }
+        case "flRequest": {
+            const lane = int(m.lane, 0, 3);
+            return lane === null ? null : { t: "flRequest", lane };
+        }
+        case "flPriority": {
+            const p = str(m.p, 16);
+            return p ? { t: "flPriority", p } : null;
+        }
+        case "flSwap": {
+            const mount = m.mount === undefined ? -1 : int(m.mount, -1, 11);
+            return mount === null ? null : { t: "flSwap", mount };
+        }
+        case "flGiveUp":
+            return { t: "flGiveUp" };
         case "query": {
             const reqId = int(m.reqId, 0, ID), l = ids(m.ids, 64);
             return reqId === null || !l ? null : { t: "query", reqId, ids: l };

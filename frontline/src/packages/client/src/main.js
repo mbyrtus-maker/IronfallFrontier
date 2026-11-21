@@ -935,6 +935,10 @@ function onMatchOver(m, now) {
 function restartMatch() {
     if (!started)
         return;
+    if (mp.role === "guest") { // the host runs the battle: only the host starts a new one (21 Nov)
+        notify("The host starts the next match.", "info");
+        return;
+    }
     snd.ui("click");
     $("matchOver").style.display = "none";
     if (mode !== "fp")
@@ -949,7 +953,8 @@ function restartMatch() {
     readyWaiters.push(() => {
         started = true;
         document.body.dataset.mode = mode;
-        send({ t: "pause", on: document.hidden });
+        mp.rejoinAll(); // co-op: the guests join the new match (the new sim starts without them)
+        send({ t: "pause", on: (document.hidden && !mp.shared()) });
         notify(`NEW MATCH · seed ${simSeed} · enemy commander: ${runningDifficulty.toUpperCase()}`, "info");
     });
     sendInit();
@@ -973,7 +978,8 @@ function updateMatchOver() {
         $("moTitle").textContent = s.title;
         $("moCause").textContent = why && why !== s.cause && matchEnd.m.reason !== objectives_ts_1.MR_CORE ? `${why} · ${s.cause}` : s.cause; // C8 (QA4 bug 30): a Core kill is said once
         $("moStats").innerHTML = s.lines.map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join("");
-        $("againSub").textContent = `same scenario · new seed · enemy ${difficulty.toUpperCase()}`;
+        $("againSub").textContent = mp.role === "guest" ? "the host starts the next match" : `same scenario · new seed · enemy ${difficulty.toUpperCase()}`;
+        $("againBtn").disabled = mp.role === "guest";
         el.style.display = "flex";
     }
 }
@@ -1727,6 +1733,8 @@ const cineStats = { started: 0, ended: 0, skipped: 0, lastT: 0, shots: new Set()
 function cineWanted() {
     if (cineDone || !isFrontline() || config.scenario !== "default")
         return false;
+    if (mp.role === "guest") // 21 Nov (co-op lessons): a guest joins a battle already running on the host; no intro to sit through
+        return false;
     try {
         if (new URLSearchParams(location.search).get("intro") === "0")
             return false;
@@ -1829,7 +1837,8 @@ function cineCamera(now, fpEye, fpTarget) {
     // snapshot with the whole map revealed has arrived (the paused world stays drawn as it was)
     if (!cine.paused && (cine.Ereal || now - cine.t0 > 1500)) {
         cine.paused = true;
-        send({ t: "pause", on: true });
+        if (!mp.shared()) // with squadmates online the battle is theirs too: it runs on (21 Nov co-op lessons)
+            send({ t: "pause", on: true });
     }
     let t = cineTime(now);
     cineCores();
@@ -1938,7 +1947,7 @@ function cineEnd(skipped) {
     document.body.classList.remove("cine");
     document.body.style.removeProperty("--cine-lb");
     send({ t: "cineReveal", on: false });
-    send({ t: "pause", on: pauseOn || document.hidden }); // the match starts now
+    send({ t: "pause", on: (pauseOn && !mp.shared()) || (document.hidden && !mp.shared()) }); // the match starts now (co-op: the pause menu does not stop a shared battle)
     keys.clear();
     if (c.src && c.gain && snd.ctx)
         try {
@@ -2806,7 +2815,7 @@ function setPause(on) {
             lockPointer();
     }
     // N1: with guests in the room the pause menu does not stop the shared battle (a hidden tab still does)
-    send({ t: "pause", on: (on && !mp.shared()) || document.hidden });
+    send({ t: "pause", on: (on && !mp.shared()) || (document.hidden && !mp.shared()) });
     $("pause").style.display = on ? "flex" : "none";
     snd.ui("click");
 }
@@ -3552,7 +3561,7 @@ canvas.addEventListener("wheel", (e) => {
         e.preventDefault();
     }
 }, { passive: false });
-document.addEventListener("visibilitychange", () => send({ t: "pause", on: document.hidden || !started || (pauseOn && !mp.shared()) }));
+document.addEventListener("visibilitychange", () => send({ t: "pause", on: (document.hidden && !mp.shared()) || !started || (pauseOn && !mp.shared()) }));
 // start overlay: deploy (URL options), the 300-unit battle, the showcase; sound settings
 function sameConfig(a, b) { return a.units === b.units && a.scenario === b.scenario && a.showcaseFire === b.showcaseFire && a.battle === b.battle; }
 function startWith(c) {
@@ -3566,7 +3575,7 @@ function startWith(c) {
         started = true;
         $("start").style.display = "none";
         document.body.dataset.mode = mode;
-        send({ t: "pause", on: document.hidden });
+        send({ t: "pause", on: (document.hidden && !mp.shared()) });
         if (cineWanted())
             cineStart();
         else
@@ -10555,11 +10564,21 @@ const mp = new mp_ts_1.Mp(NETCFG, {
     },
     status: mpStatus,
     roster: (r, slot) => { roster = r; mySlotNow = slot; showRoster(); if (mp.role === "host" && started)
-        send({ t: "pause", on: (pauseOn && !mp.shared()) || document.hidden }); },
+        send({ t: "pause", on: (pauseOn && !mp.shared()) || (document.hidden && !mp.shared()) }); },
     ping: (name, x, z, kind) => { if (isFrontline() && mp.role === "host")
         send({ t: "flPing", x, z, kind, who: 1000 + (roster.find((r) => r.name === name)?.slot ?? 0) }); pings.push({ name, x, z, kind, until: performance.now() + 8000 }); if (pings.length > 8)
         pings.shift(); notify(`${name}: ${kind === "help" ? "NEED HELP" : kind === "attack" ? "ATTACK HERE" : kind === "defend" ? "DEFEND HERE" : "LOOK HERE"} (${Math.round(x)}, ${Math.round(z)})`, "info"); snd.ui("click"); },
     notify: (t, k) => notify(t, k),
+    // 21 Nov (co-op lessons): the host's Play again reaches the guests: a fresh client state on the new match's pilot
+    guestRestart: (w) => {
+        resetClientState();
+        pilotId = w.pilotId;
+        simSeed = w.simSeed;
+        $("matchOver").style.display = "none";
+        if (mode !== "fp")
+            setMode("fp");
+        notify(`NEW MATCH · the host started it · enemy commander: ${String(w.difficulty ?? runningDifficulty).toUpperCase()}`, "info");
+    },
 });
 {
     const nameEl = $("mpName"), codeEl = $("mpCode");

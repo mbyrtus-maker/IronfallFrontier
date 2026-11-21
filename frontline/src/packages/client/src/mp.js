@@ -70,9 +70,23 @@ class RemotePort {
             case "act":
             case "order":
             case "query":
+            // Frontline: the player's kit, respawn lane, give-up, cell swap, lane request and resource priority (21 Nov)
+            case "flLane":
+            case "flGiveUp":
+            case "flSwap":
+            case "flRequest":
+            case "flPriority":
+                this.link?.sendR({ t: "g", m });
+                break;
+            case "flKit": // kept: resent after a new match or a host handover (the new sim starts with the default kit)
+                this.kit = m.kit;
                 this.link?.sendR({ t: "g", m });
                 break;
             case "init":
+                if (m.kit) { // Frontline: the kit picked on the start card goes to the host with the join (it was dropped)
+                    this.kit = m.kit;
+                    this.link?.sendR({ t: "g", m: { t: "flKit", kit: m.kit } });
+                }
                 setTimeout(() => this.deliver({ t: "ready", pilotId: this.pilotId, typeIds: [], scenario: m.scenario, units: m.units, seed: m.seed, difficulty: m.difficulty }), 0);
                 break;
             case "stats":
@@ -97,10 +111,23 @@ class RemotePort {
             t: "snap", tick: f.tick, snaps: f.snaps.map((s) => s.buffer), aimIds: f.aimIds, aimYaw: f.aimYaw, deaths: f.deaths,
             host: { pilotId: f.pilotId, shots: 0, controlled: f.controlled, epoch: f.epoch },
             perf: { tickMsMean: 0, tickMsMax: 0, ticksPerSec: 0, snapBytesPerSec: 0, entities: 0, projectiles: 0 }, wave: 0, secondsToWave: 0,
+            fl: this.fl, // Frontline HUD state (pods, own locks, pings, waves, AI pilots) from the host's "flside" (21 Nov)
         };
         this.deliver(m);
     }
-    reply(m) { this.deliver(m); }
+    /** The latest Frontline HUD state for this guest (the host's "flside" side channel). */
+    fl = null;
+    flFrames = 0;
+    /** The guest's Frontline kit (start card), resent to each new sim. */
+    kit = null;
+    reply(m) {
+        if (m && m.t === "flside") {
+            this.fl = m.fl;
+            this.flFrames++;
+            return;
+        }
+        this.deliver(m);
+    }
     terminate() { clearInterval(this.timer); this.link = null; }
 }
 exports.RemotePort = RemotePort;
@@ -130,6 +157,7 @@ class Mp {
     cfg;
     hooks;
     retry = 0;
+    restarting = false;
     constructor(cfg, hooks) { this.cfg = cfg; this.hooks = hooks; }
     status(t, bad = false) { this.lastStatus = t; this.hooks.status(t, bad); }
     get active() { return this.role !== "off"; }
@@ -216,6 +244,23 @@ class Mp {
         this.ckReq = 1e9 + Math.floor(Math.random() * 1e6);
         this.hooks.send({ t: "export", reqId: this.ckReq });
     }
+    /** Host: each slot's join payload (C7a profile), sent again when a new match starts. */
+    c7aBy = new Map();
+    /**
+     * Host: Play again started a new sim (21 Nov, Ace of the Airways lessons: "does a retry inherit state?"); the new
+     * sim had no guests (init clears them) and the guests sat on the old match's last frame. Every guest still online
+     * joins the new sim (restart, then the usual join: welcome with the new pilot, a keyframe, a checkpoint).
+     */
+    rejoinAll() {
+        if (this.role !== "host")
+            return;
+        for (const [L, slot] of this.slots)
+            if (L.open) {
+                L.sendR({ t: "restart" });
+                this.hooks.send({ t: "c7aGuest", slot, payload: this.c7aBy.get(slot) ?? null });
+                this.hooks.send({ t: "gjoin", slot });
+            }
+    }
     linkOf(slot) { for (const [L, s] of this.slots)
         if (s === slot && L.open)
             return L; return null; }
@@ -271,6 +316,7 @@ class Mp {
             r.name = name;
             r.online = true;
             r.host = false;
+            this.c7aBy.set(slot, msg.c7a ?? null);
             this.hooks.send({ t: "c7aGuest", slot, payload: msg.c7a ?? null }); // C7a hook: validated in the worker
             this.hooks.send({ t: "gjoin", slot });
             return;
@@ -400,6 +446,12 @@ class Mp {
                 else if (this.port) {
                     this.port.link = L;
                     this.port.pilotId = w.pilotId;
+                    if (this.port.kit) // a new sim (handover or a new match) starts with the default kit: send ours again
+                        L.sendR({ t: "g", m: { t: "flKit", kit: this.port.kit } });
+                    if (this.restarting) {
+                        this.restarting = false;
+                        this.hooks.guestRestart?.(w);
+                    }
                 }
                 this.status(`In “${this.code}” as player ${w.slot + 1}.`);
                 this.hooks.roster(this.roster, this.mySlot, this.role);
@@ -413,6 +465,9 @@ class Mp {
                         this.ckTick = tick;
                     } });
                 }
+                break;
+            case "restart": // the host pressed Play again: the next welcome starts the new match here
+                this.restarting = true;
                 break;
             case "roster":
                 this.roster = msg.roster ?? [];

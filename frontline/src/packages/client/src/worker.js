@@ -22,6 +22,8 @@ const c9_host_ts_1 = require("./c9-host.js");
 const reserve_ts_1 = require("../../sim/src/reserve.js");
 const c7aHost = new c7a_host_ts_1.C7aHost(); // C7a hook
 const ctx = self;
+/** Test hook (tools/coop/coop_test.js): the running sim. */
+exports.__sim = () => sim;
 let sim = null;
 let scen = null;
 let enc = null;
@@ -171,6 +173,39 @@ function guestMsg(slot, m) {
             ctx.postMessage({ t: "gout", slot, m: { t: "query", reqId: m.reqId, units: queryUnits(m.ids) } });
             break;
         case "ping": break; // pings are relayed by the page
+        // Frontline (21 Nov, Ace of the Airways co-op lessons): the guest's own kit, lane, give-up and cell swap act on the
+        // guest's pilot and player slot (they were the host's only); lane requests and the priority are the team's
+        case "flKit":
+            if (s.fkit && m.kit && (!g.kitSet || flAtCore(s, g.pilotId))) { // the first kit (with the join) at once; later ones at the Core
+                if (s.fkit.setKit(s, g.slot, m.kit))
+                    g.kitSet = true;
+            }
+            break;
+        case "flLane":
+            if (s.fkit)
+                s.fkit.laneOf.set(g.pilotId, Math.max(0, Math.min(3, m.lane)));
+            break;
+        case "flGiveUp":
+            if (s.kit)
+                (0, pilotkit_ts_1.kitGiveUp)(s, g.pilotId);
+            break;
+        case "flSwap": {
+            const p = s.fkit ? s.pilot(g.pilotId) : undefined;
+            if (p) {
+                const q = s.idToSlot.get(p.state === 1 ? p.entity : p.vehicle);
+                if (q !== undefined)
+                    s.fkit.swapCell(s, q, p.state === 1 ? m.mount : -1);
+            }
+            break;
+        }
+        case "flRequest":
+            if (s.fkit)
+                s.fkit.requestLane(s, 0, m.lane, g.pilotId);
+            break;
+        case "flPriority":
+            if (s.fkit)
+                s.fkit.setPriority(0, m.p);
+            break;
     }
 }
 function guestSnapshots() {
@@ -188,6 +223,10 @@ function guestSnapshots() {
         const frame = (0, netcore_ts_1.encodeSnapFrame)({ tick: s.tick, epoch: g.enc.epoch, pilotId: g.pilotId, controlled: vs !== undefined && (s.ctlOn[vs] === 1 || s.ctlMask[vs] !== 0), snaps: g.snaps.splice(0), aimIds: new Int32Array(0), aimYaw: new Float32Array(0), deaths: new Float32Array(0) });
         const buf = frame.buffer;
         ctx.postMessage({ t: "gsnap", slot: g.slot, frame: buf }, [buf]);
+        // Frontline HUD state (21 Nov: it rode only on the host's own snapshot message, so guests had no wave timer, pod
+        // markers, missile locks, pings or AI pilot list): to each guest, reliably, at about 4 Hz
+        if (s.fkit && (g.flN = ((g.flN ?? 0) + 1) % 5) === 0)
+            ctx.postMessage({ t: "gout", slot: g.slot, m: { t: "flside", fl: flSide(s, g.pilotId) } });
     }
 }
 function newEncoder(s) {
@@ -470,7 +509,7 @@ function postSnap(snaps) {
         t: "snap", tick: s.tick, snaps, aimIds, aimYaw, deaths: d, host: hostInfo(),
         perf: { tickMsMean: recent.length ? sum / (recent.length / 2) : 0, tickMsMax: max, ticksPerSec: recent.length / 2, snapBytesPerSec: bytes, entities: s.nLive, projectiles: s.pN },
         wave: scen.wave, secondsToWave: scen.ticksToWave * s.d.dt,
-        fl: s.fkit ? { pods: s.fkit.pods.map((q) => [q.x, q.z, q.team, q.left]), locks: flLocks(s), pings: s.fkit.pingsOf(s, 0).map((q) => [Math.round(q.x), Math.round(q.z), q.kind, q.who, Math.ceil((q.until - s.tick) / s.d.constants.tickRate)]), wave: flWave(s), bots: s.fkit.bots ? s.fkit.bots.status(s).map((q) => [q.id, q.name, q.team, q.role, q.lane, q.state, q.mode, q.eid, q.hp, q.deaths, q.down, q.rev]) : [] } : null, // Frontline: resupply pods on the ground, the own vehicle's missile locks
+        fl: s.fkit ? flSide(s, scen.pilotId) : null,
     };
     ctx.postMessage(msg, [...snaps, aimIds.buffer, aimYaw.buffer, d.buffer]);
 }
@@ -875,8 +914,8 @@ ctx.onmessage = (ev) => {
                     (0, pilotkit_ts_1.kitGiveUp)(sim, scen.pilotId);
                 break;
             case "flLane": // Frontline: the lane the Mule takes the pilot to after a respawn
-                if (sim && sim.fkit && Number.isInteger(m.lane))
-                    sim.fkit.lane = Math.max(0, Math.min(3, m.lane)); // 3: respawn at the Core, no Mule
+                if (sim && sim.fkit && Number.isInteger(m.lane)) // 3: respawn at the Core, no Mule; per pilot (21 Nov: one lane for every player)
+                    sim.fkit.laneOf.set(scen.pilotId, Math.max(0, Math.min(3, m.lane)));
                 break;
             case "flKit": // Frontline: the player changed the kit (start card)
                 if (sim && sim.fkit && m.kit && flAtCore(sim, scen.pilotId))
@@ -979,8 +1018,13 @@ function flWave(s) {
     return { phase: L.phase(s), bleeding: F.bleeding, held, cores, toFast: toS(P.fastTicks), toPush: toS(P.pushTicks), toBleed: toS(P.bleedTicks), toSudden: toS(P.suddenTicks),
         next: Math.max(0, Math.ceil((L.lastWave[0] + L.waveTicksNow(s) - s.tick) * dt)), focus, left: req.length ? Math.ceil((Math.max(...req.map((r) => r.until)) - s.tick) * dt) : 0, prio: F.priority[0], lanes: L.counts(s, 0) };
 }
+/** Frontline HUD state for player pilot pilotId: resupply pods, its vehicle's missile locks, team 0's pings, the wave
+ *  state and the AI pilots (the host's own snapshot message carries it; guests get it as "flside"). */
+function flSide(s, pilotId) {
+    return { pods: s.fkit.pods.map((q) => [q.x, q.z, q.team, q.left]), locks: flLocks(s, pilotId), pings: s.fkit.pingsOf(s, 0).map((q) => [Math.round(q.x), Math.round(q.z), q.kind, q.who, Math.ceil((q.until - s.tick) / s.d.constants.tickRate)]), wave: flWave(s), bots: s.fkit.bots ? s.fkit.bots.status(s).map((q) => [q.id, q.name, q.team, q.role, q.lane, q.state, q.mode, q.eid, q.hp, q.deaths, q.down, q.rev]) : [] };
+}
 /** Frontline: the missile locks of the vehicle the player's pilot sits in (entity ids). */
-function flLocks(s) {
-    const p = s.pilot(scen.pilotId);
+function flLocks(s, pilotId = scen.pilotId) {
+    const p = s.pilot(pilotId);
     return p && p.state === 0 && p.vehicle ? s.fkit.lockedOf(p.vehicle) : [];
 }
