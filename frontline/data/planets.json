@@ -1,0 +1,71 @@
+[
+  {
+    "id": "halcyon",
+    "name": "Halcyon",
+    "gravity": 1.0,
+    "atmosphere": "normal",
+    "atmosphereLabel": "Normal",
+    "character": "Temperate hills; the baseline and tutorial world",
+    "economyQuirk": "Balanced ore and gas",
+    "look": "olive and slate",
+    "hazard": null
+  },
+  {
+    "id": "rust",
+    "name": "Rust",
+    "gravity": 0.44,
+    "atmosphere": "thin",
+    "atmosphereLabel": "Thin, dust storms",
+    "character": "Canyons and mesas; long jumps, long shots",
+    "economyQuirk": "Ore rich, gas poor; mass drivers allowed",
+    "look": "ochre under a pink sky",
+    "hazard": {
+      "name": "Dust storms that blind radar",
+      "weather": "dust-storm"
+    }
+  },
+  {
+    "id": "pale",
+    "name": "Pale",
+    "gravity": 0.24,
+    "atmosphere": "none",
+    "atmosphereLabel": "None",
+    "character": "Airless cratered moon; no aircraft at all",
+    "economyQuirk": "Ore only on the surface, gas from 2 deep vents",
+    "look": "grey on black",
+    "deepGasVents": 2,
+    "hazard": {
+      "name": "Solar flares that drop shields",
+      "weather": "solar-flare"
+    }
+  },
+  {
+    "id": "brume",
+    "name": "Brume",
+    "gravity": 0.22,
+    "atmosphere": "dense",
+    "atmosphereLabel": "Very dense",
+    "character": "Low-gravity haze world; aircraft everywhere, short sight lines",
+    "economyQuirk": "Gas rich; every vent has 3 geysers",
+    "look": "teal haze",
+    "geysersPerVent": 3,
+    "hazard": {
+      "name": "Methane fog banks that ignite",
+      "weather": "fog-bank"
+    }
+  },
+  {
+    "id": "cinder",
+    "name": "Cinder",
+    "gravity": 1.5,
+    "atmosphere": "dense",
+    "atmosphereLabel": "Dense, hot",
+    "character": "Volcanic heavy world; slow, brutal, close range",
+    "economyQuirk": "Rich ore, but haulers carry less",
+    "look": "black and orange",
+    "hazard": {
+      "name": "Lava flows that reroute haulers",
+      "weather": null
+    }
+  }
+]

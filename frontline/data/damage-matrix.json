@@ -1,0 +1,47 @@
+{
+  "kinetic": {
+    "infantry": 1.5,
+    "bike": 1.5,
+    "light": 1.25,
+    "medium": 1.0,
+    "heavy": 0.5,
+    "air": 0.75,
+    "structure": 0.5
+  },
+  "explosive": {
+    "infantry": 1.0,
+    "bike": 1.0,
+    "light": 1.0,
+    "medium": 1.0,
+    "heavy": 1.75,
+    "air": 1.0,
+    "structure": 1.75
+  },
+  "energy": {
+    "infantry": 1.0,
+    "bike": 1.0,
+    "light": 1.5,
+    "medium": 1.0,
+    "heavy": 1.0,
+    "air": 1.5,
+    "structure": 0.5
+  },
+  "flak": {
+    "infantry": 0.25,
+    "bike": 0.25,
+    "light": 0.25,
+    "medium": 0.25,
+    "heavy": 0.25,
+    "air": 3.3,
+    "structure": 0.25
+  },
+  "laser": {
+    "infantry": 1.0,
+    "bike": 1.0,
+    "light": 1.0,
+    "medium": 1.0,
+    "heavy": 1.0,
+    "air": 1.0,
+    "structure": 1.0
+  }
+}

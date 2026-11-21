@@ -1,0 +1,1273 @@
+{
+  "tickRate": 20,
+  "snapshotRate": 10,
+  "fullSimRadius": 600,
+  "standardGravity": 9.80665,
+  "rearDamageBonus": 0.5,
+  "rearArcDegrees": 90,
+  "fixedWeaponArcDegrees": 20,
+  "detectionIntervalTicks": 5,
+  "targetingIntervalTicks": 10,
+  "structureSignature": 1.5,
+  "projectileHitRadius": 2,
+  "projectileSpread": 0,
+  "maxProjectileSeconds": 120,
+  "combat": {
+    "aimErrorSpeedFactor": 1.5,
+    "aimErrorReferenceSpeed": 40,
+    "armedTargetsFirst": true,
+    "turretAimToleranceDegrees": 3,
+    "structureLeadFraction": 0.8,
+    "aiSmallTargetSpreadMultiplier": 6,
+    "aiSmallTargetLeadFraction": 0.5,
+    "aiHomingLocksSmallTargets": false,
+    "aiSmallTargetReactionSeconds": {
+      "easy": 2.5,
+      "normal": 1.5,
+      "hard": 1.0
+    },
+    "playerSightMetres": 500,
+    "aiHeatCeiling": 0.8,
+    "aiHeatResume": 0.25
+  },
+  "vehicleShield": {
+    "rechargeDelaySeconds": 5,
+    "rechargeFractionPerSecond": 0.05
+  },
+  "airAltitude": 60,
+  "aircraftRearmSeconds": 20,
+  "unitRadius": {
+    "infantry": 0.8,
+    "bike": 1.6,
+    "light": 2.5,
+    "medium": 2.5,
+    "heavy": 4,
+    "air": 7,
+    "structure": 7
+  },
+  "arrivalRadius": 3,
+  "formationMaxSpread": 120,
+  "engageRangeFraction": 0.92,
+  "farSnapshotDivisor": 4,
+  "terrainCellSize": 64,
+  "terrainAmplitude": 40,
+  "terrainSmoothPasses": 3,
+  "shieldMultiplier": {
+    "kinetic": 1,
+    "explosive": 1,
+    "energy": 1.5,
+    "flak": 1,
+    "laser": 1
+  },
+  "friendlyFire": {
+    "direct": 0.5,
+    "explosive": 1
+  },
+  "gravityThresholds": {
+    "lowBelow": 0.45,
+    "highAbove": 1.2
+  },
+  "haulerLoadModifier": {
+    "low": 1.5,
+    "high": 0.7
+  },
+  "gravityHandling": {
+    "high": {
+      "hoverTopSpeedMultiplier": 0.9
+    }
+  },
+  "hover": {
+    "stopSpeed": 0.3,
+    "overspeedRatio": 1.1,
+    "overspeedBrakeFraction": 0.15,
+    "aiAccelMultiplier": 1.25,
+    "aiBrakeDistanceFactor": 0.9,
+    "jumpCooldownSeconds": 2.5,
+    "jumpClearMetres": 1.5,
+    "bounce": 0.25
+  },
+  "atmosphereRules": {
+    "none": {
+      "aircraftAllowed": false,
+      "aircraftPayloadMultiplier": 0,
+      "soundCarries": false
+    },
+    "thin": {
+      "aircraftAllowed": true,
+      "aircraftPayloadMultiplier": 0.5,
+      "reducedLift": true,
+      "soundCarries": true
+    },
+    "normal": {
+      "aircraftAllowed": true,
+      "aircraftPayloadMultiplier": 1,
+      "soundCarries": true
+    },
+    "dense": {
+      "aircraftAllowed": true,
+      "aircraftPayloadMultiplier": 1,
+      "cheapFlight": true,
+      "tightTurns": true,
+      "fogVisualRangeMetres": 200,
+      "soundCarries": true
+    }
+  },
+  "hazardsFromCampaignMission": 2,
+  "economy": {
+    "oreDepositRange": [
+      3000,
+      8000
+    ],
+    "sellRefundFraction": 0.5,
+    "capturedStructureHealthFraction": 0.5,
+    "harvesterRoundTripSeconds": 45,
+    "structurePowerDrawRange": [
+      0,
+      4
+    ],
+    "underpoweredProductionSpeed": 0.5,
+    "underpoweredTurretFireRate": 0.5,
+    "haulerHandOffBeyondPoints": 1,
+    "pipeline": {
+      "cost": {
+        "ore": 0,
+        "gas": 0
+      },
+      "builtBy": "constructor",
+      "segmentPerAdjacentPointPair": true,
+      "suppliedRoutesOnly": true,
+      "segmentHp": 440
+    },
+    "personalShareRefillPerSecond": 2,
+    "startingStock": {
+      "ore": 1000,
+      "gas": 400
+    },
+    "mining": {
+      "harvesterLoadSeconds": 20,
+      "harvesterUnloadSeconds": 5,
+      "dropOffReachMetres": 6,
+      "queue": {
+        "gapMetres": 2,
+        "joinMetres": 20,
+        "exitMetres": 14,
+        "exitSeconds": 6,
+        "dockArriveMetres": 3.5
+      },
+      "baseStorage": {
+        "ore": 2000,
+        "gas": 600
+      }
+    }
+  },
+  "production": {
+    "queueLength": 5,
+    "reserveSize": {
+      "small": 12,
+      "medium": 24,
+      "large": 40
+    },
+    "dropSeconds": 5,
+    "recallSeconds": 10,
+    "buildTimeRange": [
+      15,
+      60
+    ],
+    "aiSquadSizeRange": [
+      2,
+      5
+    ],
+    "cancelRefund": 1,
+    "hijackedCpCost": 0,
+    "unitBuildSecondsByTier": {
+      "1": 12,
+      "2": 20,
+      "3": 35
+    },
+    "rollOutGapMetres": 3,
+    "squadsPerBarracks": 4
+  },
+  "pilotReserve": {
+    "size": {
+      "small": 9999,
+      "medium": 9999,
+      "large": 9999
+    },
+    "playerScale": {
+      "1": 1,
+      "2": 1,
+      "3": 1.1,
+      "4": 1.2
+    },
+    "difficultyScale": {
+      "easy": 0.75,
+      "normal": 1,
+      "hard": 1.25
+    },
+    "crewRadiusMetres": 150,
+    "autoCrewSeconds": 1,
+    "citadelPilots": 6
+  },
+  "transport": {
+    "orbitalDrop": {
+      "requiresBuilding": "launch-pad-uplink",
+      "tier": 3,
+      "unitsPerDrop": 1,
+      "cooldownSeconds": 240,
+      "extraGasCost": 50,
+      "anywhereInCallInZone": true
+    },
+    "infantryCarriers": [
+      "carrier",
+      "mule"
+    ],
+    "unloadIntervalSeconds": 0.5,
+    "unloadRadiusMetres": 15,
+    "liftReachMetres": 6,
+    "slingHangMetres": 4,
+    "ferry": {
+      "minDistanceMetres": 700,
+      "chance": 0.25,
+      "cooldownSeconds": 90
+    }
+  },
+  "commandView": {
+    "transitionSeconds": 0.4,
+    "autopilotAccuracy": 0.6,
+    "hullDamageAlarm": true,
+    "orderOverrideGraceSeconds": 3,
+    "tiltDegrees": 55,
+    "battleGroupMaxUnits": 20,
+    "groupFormations": [
+      "line",
+      "wedge",
+      "column"
+    ],
+    "groupReinforceBelowFraction": 0.5,
+    "zoomMinMetres": 50
+  },
+  "crew": {
+    "aiGunnerAccuracy": 0.6,
+    "gunnerSlideSeconds": 2,
+    "xpSharedEvenly": true,
+    "ejectHoldSeconds": 0.5,
+    "criticalWindowSeconds": 1.5,
+    "criticalWindowArmourClasses": [
+      "light",
+      "medium",
+      "heavy",
+      "air"
+    ],
+    "carrierPassengerSurviveChance": 0.5,
+    "aiGunnerDispersionMultiplier": 1.5,
+    "aiEjectChance": 0.5,
+    "ejectLaunchSpeed": 15,
+    "enterRangeMetres": 3,
+    "exitGapMetres": 1.5,
+    "pickupStopGapMetres": 2,
+    "aircraftSettleSeconds": 4,
+    "aircraftPadLandGapMetres": 8,
+    "pilotHitZone": {
+      "bike": {
+        "forwardMetres": -0.1,
+        "upMetres": 0.4,
+        "radiusMetres": 0.5,
+        "exposedArcDegrees": 360,
+        "openSeat": true,
+        "gunnerZone": {
+          "forwardMetres": -1,
+          "upMetres": 0.45,
+          "radiusMetres": 0.5
+        }
+      },
+      "light": {
+        "forwardMetres": 0.1,
+        "upMetres": 0.4,
+        "radiusMetres": 0.32,
+        "exposedArcDegrees": 100,
+        "exposedFromAboveDegrees": 60
+      },
+      "medium": {
+        "forwardMetres": 0.3,
+        "upMetres": 0.55,
+        "radiusMetres": 0.32,
+        "exposedArcDegrees": 100,
+        "exposedFromAboveDegrees": 60
+      },
+      "heavy": {
+        "forwardMetres": 0,
+        "upMetres": -0.05,
+        "radiusMetres": 0.35,
+        "exposedArcDegrees": 70,
+        "exposedFromAboveDegrees": 60
+      },
+      "air": {
+        "forwardMetres": 2.2,
+        "upMetres": 0.2,
+        "radiusMetres": 0.55,
+        "exposedArcDegrees": 140
+      }
+    },
+    "riderShotWeaponClasses": [
+      "small-arms",
+      "precision-rifle"
+    ]
+  },
+  "pilot": {
+    "aiReviveRangeMetres": 60,
+    "idleProneSeconds": 15,
+    "shieldRegenDelaySeconds": 5,
+    "shieldRegenPerSecond": 10,
+    "jetpackBurnSecondsHalcyon": 3,
+    "downedSeconds": 30,
+    "reviveSeconds": 4,
+    "reviveHealthFraction": 0.5,
+    "respawnSeconds": 20,
+    "deathPenaltySeconds": 5,
+    "respawnMaxSeconds": 45,
+    "deathPenaltyResetSeconds": 180,
+    "hackVehicleSeconds": 5,
+    "aiReboardRadiusMetres": 40,
+    "hackBuildingDisableSeconds": 60,
+    "demoChargeCount": 2,
+    "demoChargeFuseSeconds": 5,
+    "redeploySeconds": 60,
+    "energy": {
+      "max": 100,
+      "refillRadiusMetres": 25,
+      "refillPerSecond": 25
+    },
+    "jumpSpeed": 4.5,
+    "sprintSpeedMultiplier": 1.5,
+    "crouchSpeedMultiplier": 0.5,
+    "stance": {
+      "proneSpeedMultiplier": 0.2,
+      "crouchedAccuracyMultiplier": 0.7,
+      "proneAccuracyMultiplier": 0.45,
+      "toProneSeconds": 0.6,
+      "upFromProneSeconds": 1.2
+    },
+    "playerHealthMultiplier": 2,
+    "playerDispersionMultiplier": 0.25,
+    "playerDispersionKeep": [
+      "scatter-gun"
+    ],
+    "moveAcceleration": 40,
+    "moveDeceleration": 60,
+    "jetpack": {
+      "thrustAcceleration": 15,
+      "maxRiseSpeed": 6,
+      "freeBurnRechargePerSecond": 0.5,
+      "energyPerSecond": 10,
+      "brakedDescentSpeed": 8
+    },
+    "fallDamage": {
+      "safeSpeed": 23,
+      "perMetrePerSecond": 10,
+      "hopMarginFraction": 0.1
+    },
+    "repairTorch": {
+      "hullPerSecond": 75,
+      "energyPerSecond": 10,
+      "rangeMetres": 2
+    },
+    "hackTool": {
+      "energyPerSecond": 2.5
+    }
+  },
+  "stealth": {
+    "standardSensorRange": 200,
+    "pilotCrouchedSignature": 0.15,
+    "pilotProneSignature": 0.08,
+    "firingMultiplier": 3,
+    "firingSeconds": 4,
+    "boostMultiplier": 2,
+    "idleMultiplier": 0.5,
+    "airlessExtraReduction": 0.25,
+    "lostAfterSeconds": 6,
+    "muzzleRevealSeconds": 4,
+    "pointSensorHeightMetres": 8,
+    "backstabDamageBonus": 0.5,
+    "suspectedRangeMultiplier": 1.25,
+    "radarRangeMultiplier": 0.7,
+    "lowFlightAltitudeMetres": 8,
+    "lowFlightSignatureMultiplier": 0.5,
+    "lowFlightSpeedMultiplier": 0.8,
+    "cloak": {
+      "signatureMultiplier": 0.2,
+      "maxSeconds": 12,
+      "rechargeSeconds": 30,
+      "gasPerSecond": 2,
+      "revealMetres": 6
+    },
+    "baffledEngine": {
+      "signatureMultiplier": 0.7,
+      "topSpeedPenalty": 0.1
+    },
+    "decoyBeacon": {
+      "seconds": 20,
+      "perResupply": 1,
+      "fakeUnit": "lancer"
+    },
+    "vehicleSmokeSeconds": 15,
+    "scoutPing": {
+      "radius": 120,
+      "seconds": 5,
+      "cooldownSeconds": 20
+    },
+    "search": {
+      "radiusMetres": 500,
+      "maxPerTeam": 2,
+      "memorySeconds": 30
+    }
+  },
+  "objectives": {
+    "conquest": {
+      "pointFraction": 0.75,
+      "holdSeconds": 180
+    },
+    "extractionQuota": {
+      "ore": 5000,
+      "gas": 2000
+    },
+    "escort": {
+      "points": 4,
+      "leaderUnit": "forward-base-vehicle",
+      "convoyUnit": "hauler",
+      "convoyArriveFraction": 0.5,
+      "convoySpacingMetres": 18,
+      "deployAtEnd": true
+    },
+    "infiltration": {
+      "terminals": 3
+    },
+    "holdout": {
+      "waves": 10
+    },
+    "survive": {
+      "seconds": 900
+    },
+    "captureExtract": {
+      "seconds": 120
+    },
+    "secondariesPerMission": 2,
+    "primaryObjectivesPerMission": 1
+  },
+  "coop": {
+    "maxAiWingmen": 3,
+    "dropPodSeconds": 6,
+    "scaling": {
+      "1": {
+        "enemyIncome": 0.7,
+        "waveSize": 0.6,
+        "raidsAtOnce": 1
+      },
+      "2": {
+        "enemyIncome": 1,
+        "waveSize": 1,
+        "raidsAtOnce": 1
+      },
+      "3": {
+        "enemyIncome": 1.3,
+        "waveSize": 1.3,
+        "raidsAtOnce": 2
+      },
+      "4": {
+        "enemyIncome": 1.6,
+        "waveSize": 1.6,
+        "raidsAtOnce": 2
+      }
+    },
+    "difficultyLevels": 4
+  },
+  "campaign": {
+    "missionsPerPlanet": 3,
+    "missionMapSizes": [
+      "small",
+      "medium",
+      "large"
+    ]
+  },
+  "mapSizes": {
+    "small": {
+      "sizeKm": 2,
+      "strategicPoints": [
+        7,
+        9
+      ],
+      "citadelSites": [
+        2,
+        2
+      ],
+      "forwardSites": 2,
+      "missionMinutes": [
+        20,
+        30
+      ],
+      "players": [
+        1,
+        4
+      ],
+      "maxUnitsPerSide": 40,
+      "typicalEngagementPerSide": 15
+    },
+    "medium": {
+      "sizeKm": 4,
+      "strategicPoints": [
+        12,
+        16
+      ],
+      "citadelSites": [
+        3,
+        4
+      ],
+      "forwardSites": 4,
+      "missionMinutes": [
+        35,
+        50
+      ],
+      "players": [
+        1,
+        4
+      ],
+      "maxUnitsPerSide": 90,
+      "typicalEngagementPerSide": 30
+    },
+    "large": {
+      "sizeKm": 8,
+      "strategicPoints": [
+        20,
+        28
+      ],
+      "citadelSites": [
+        5,
+        7
+      ],
+      "forwardSites": 8,
+      "missionMinutes": [
+        60,
+        90
+      ],
+      "players": [
+        1,
+        4
+      ],
+      "maxUnitsPerSide": 150,
+      "typicalEngagementPerSide": 60,
+      "sectors": [
+        3,
+        4
+      ]
+    }
+  },
+  "missionUpgrades": {
+    "armourPlating": {
+      "gas": 150,
+      "damageTakenMultiplier": 0.9
+    },
+    "turretRange": {
+      "gas": 150,
+      "rangeMultiplier": 1.1
+    },
+    "fasterHarvesters": {
+      "gas": 100,
+      "speedMultiplier": 1.1
+    },
+    "largerReserve": {
+      "gas": 100,
+      "extraReserveSlots": 6
+    }
+  },
+  "techTiers": {
+    "1": {
+      "requires": [
+        "command-core"
+      ]
+    },
+    "2": {
+      "requires": [
+        "armoury"
+      ]
+    },
+    "3": {
+      "requires": [
+        "tech-lab"
+      ],
+      "suppliedPoints": 5
+    }
+  },
+  "network": {
+    "maxGuests": 3,
+    "hostBenchmarkSeconds": 5,
+    "hostUnitCaps": [
+      150,
+      100,
+      60
+    ],
+    "interpolationDelayMs": 100,
+    "hostSnapshotIntervalSeconds": 30,
+    "handoverMaxLossSeconds": 30,
+    "snapshotRateRange": [
+      10,
+      20
+    ],
+    "snapshotMaxBytes": 3800,
+    "snapshotNeverDeferRadiusMetres": 100
+  },
+  "performance": {
+    "targetFps": 60,
+    "minFps": 30,
+    "trianglesOnScreen": 250000,
+    "drawCallsMax": 200,
+    "activeUnitsMax": 300,
+    "structuresMax": 150,
+    "initialDownloadMB": 8,
+    "guestMemoryMB": 600,
+    "hostMemoryMB": 900,
+    "hostUploadKBpsPerGuest": 40,
+    "hostUploadKBpsThreeGuests": 120,
+    "hostSimCoreFraction": 0.5,
+    "tickBudgetMs": 25,
+    "lodTriangleFraction": 0.25,
+    "hudMinResolution": [
+      1280,
+      720
+    ],
+    "polygonBudgets": {
+      "pilot": [
+        400,
+        700
+      ],
+      "bike": [
+        600,
+        900
+      ],
+      "tankOrGunship": [
+        1500,
+        2500
+      ],
+      "siegePlatform": [
+        3000,
+        4000
+      ],
+      "building": [
+        800,
+        4000
+      ],
+      "props": [
+        20,
+        200
+      ]
+    }
+  },
+  "terrainMap": {
+    "nearCellMetres": 7,
+    "heightmapCellMetres": 8,
+    "detailLevels": [
+      3,
+      4
+    ]
+  },
+  "firstPlayable": {
+    "planet": "halcyon",
+    "mapSize": "small",
+    "strategicPoints": 7,
+    "players": 2,
+    "gasMining": false,
+    "buildings": [
+      "command-core",
+      "reactor",
+      "refinery",
+      "barracks",
+      "foundry",
+      "gun-tower"
+    ],
+    "units": [
+      "dart",
+      "lancer",
+      "trooper-squad",
+      "harvester"
+    ],
+    "pilotKit": [
+      "pilot-carbine",
+      "hack-tool",
+      "repair-torch"
+    ],
+    "objective": "conquest"
+  },
+  "quietModule": {
+    "enabledByDefault": false,
+    "units": [
+      "mote",
+      "shade",
+      "lens"
+    ],
+    "structures": [
+      "anchor"
+    ],
+    "disturbanceThresholds": [
+      0.33,
+      0.66,
+      1
+    ],
+    "incursionMaxSeconds": 240,
+    "disturbanceAfterAnchorKill": 0.5,
+    "ruinSitesPerMap": [
+      1,
+      4
+    ]
+  },
+  "orders": {
+    "thinkIntervalTicks": 5,
+    "formation": {
+      "spacingRadiusMultiple": 2,
+      "spacingGapMetres": 4,
+      "infantryJitterMetres": 1.5,
+      "catchUpMultiplier": 1.25,
+      "slotToleranceMetres": 3,
+      "aheadSpeedFactor": 0.6,
+      "stragglerWaitMetres": 12,
+      "slotLeadSeconds": 1
+    },
+    "guard": {
+      "stayMetres": 15,
+      "threatRadiusMetres": 150,
+      "leashMetres": 250
+    },
+    "defend": {
+      "radiusMetres": 200,
+      "leashMetres": 300
+    },
+    "follow": {
+      "distanceMetres": 12,
+      "slackMetres": 6
+    }
+  },
+  "unitAi": {
+    "friendlyDifficulty": "normal",
+    "difficulties": {
+      "easy": {
+        "dispersionMultiplier": 2.5,
+        "reactionSeconds": 1.0,
+        "scanSeconds": 1.0,
+        "pilotHijack": false
+      },
+      "normal": {
+        "dispersionMultiplier": 2.0,
+        "reactionSeconds": 0.05,
+        "scanSeconds": 0.5,
+        "pilotHijack": false
+      },
+      "hard": {
+        "dispersionMultiplier": 1.5,
+        "reactionSeconds": 0.05,
+        "scanSeconds": 0.25,
+        "pilotHijack": true
+      }
+    },
+    "focusFireWeight": 0.5,
+    "longGunRangeMetres": 400,
+    "holdRangeFraction": 0.85,
+    "kiteMinSpeed": 30,
+    "kiteMarginMetres": 20,
+    "leashMetres": 250,
+    "coverThinkSeconds": 2,
+    "coverSearchMetres": 60,
+    "pilotHijackRadiusMetres": 60
+  },
+  "battleGroups": {
+    "maxGroups": 9,
+    "maxUnits": 20,
+    "maxPatrolPoints": 8,
+    "thinkSeconds": 1,
+    "retreatHullFraction": 0.3,
+    "returnHullFraction": 0.9,
+    "holdRadiusMetres": 40,
+    "escortRadiusMetres": 60,
+    "reinforceBelowFraction": 0.5,
+    "adoptRadiusMetres": 200,
+    "reinforceCooldownSeconds": 30,
+    "autoDefendRadiusMetres": 300
+  },
+  "enemyAi": {
+    "defaultDifficulty": "normal",
+    "difficulties": {
+      "easy": {
+        "decisionSeconds": 4,
+        "squadSize": 3,
+        "attackThreshold": 2080,
+        "homeGuardSquads": 1,
+        "coreTowers": 2,
+        "towersPerPoint": 0,
+        "lullScale": 1.5,
+        "incomeMultiplier": 1,
+        "huntPilots": false,
+        "buildLists": {
+          "1": [
+            "trooper-squad",
+            "trooper-squad",
+            "lancer"
+          ],
+          "2": [
+            "sapper-team",
+            "carrier",
+            "dart",
+            "trooper-squad"
+          ],
+          "3": []
+        },
+        "saveForCounters": false,
+        "saveForListItem": true,
+        "ferryChance": 0.15,
+        "ferryCooldownSeconds": 180,
+        "ferryMinDistanceMetres": 700
+      },
+      "normal": {
+        "decisionSeconds": 2,
+        "squadSize": 4,
+        "attackThreshold": 1300,
+        "homeGuardSquads": 0,
+        "coreTowers": 2,
+        "towersPerPoint": 1,
+        "lullScale": 1,
+        "incomeMultiplier": 1,
+        "huntPilots": false,
+        "ferryChance": 0.25,
+        "ferryCooldownSeconds": 90,
+        "ferryMinDistanceMetres": 500,
+        "saveForListItem": true
+      },
+      "hard": {
+        "decisionSeconds": 1,
+        "squadSize": 5,
+        "attackThreshold": 1690,
+        "homeGuardSquads": 1,
+        "coreTowers": 3,
+        "towersPerPoint": 2,
+        "lullScale": 0.6,
+        "incomeMultiplier": 1,
+        "huntPilots": true,
+        "buildLists": {
+          "1": [
+            "lancer",
+            "lancer"
+          ],
+          "2": [
+            "bastion",
+            "hammer",
+            "salvo",
+            "flak",
+            "carrier",
+            "bastion",
+            "sapper-team",
+            "wasp"
+          ],
+          "3": [
+            "strider",
+            "bastion",
+            "strider",
+            "hammer"
+          ]
+        },
+        "saveForCounters": true,
+        "saveForListItem": true,
+        "ferryChance": 0.6,
+        "ferryCooldownSeconds": 45,
+        "ferryMinDistanceMetres": 400
+      }
+    },
+    "buildList": [
+      "lancer",
+      "lancer",
+      "hammer",
+      "lancer",
+      "bastion",
+      "flak"
+    ],
+    "tierBuildListsEnabled": true,
+    "tierBuildLists": {
+      "1": [
+        "lancer",
+        "lancer",
+        "dart",
+        "trooper-squad"
+      ],
+      "2": [
+        "bastion",
+        "lancer",
+        "bastion",
+        "flak",
+        "hammer",
+        "bastion",
+        "sapper-team",
+        "wasp",
+        "carrier"
+      ],
+      "3": [
+        "strider",
+        "bastion",
+        "strider",
+        "bastion"
+      ]
+    },
+    "counters": [
+      {
+        "seen": "air",
+        "minSeen": 1,
+        "units": [
+          "flak",
+          "strider"
+        ],
+        "perSeen": 1
+      },
+      {
+        "seen": "tower",
+        "minSeen": 2,
+        "units": [
+          "hammer",
+          "strider"
+        ],
+        "perSeen": 0.5
+      },
+      {
+        "seen": "heavy",
+        "minSeen": 2,
+        "units": [
+          "bastion",
+          "salvo",
+          "sapper-team",
+          "wasp"
+        ],
+        "perSeen": 1
+      },
+      {
+        "seen": "infantry",
+        "minSeen": 3,
+        "units": [
+          "lancer"
+        ],
+        "perSeen": 0.5
+      }
+    ],
+    "systems": {
+      "reactorBelowPower": 0,
+      "forwardBasesWanted": 1,
+      "repairBaysWanted": 1,
+      "airliftMinDistanceMetres": 700,
+      "airStrikeRadiusMetres": 600,
+      "airReturnHullFraction": 0.4
+    },
+    "baseBuildOrder": {
+      "production": [
+        "barracks",
+        "foundry"
+      ],
+      "tech": [
+        "armoury",
+        "air-pad",
+        "tech-lab"
+      ]
+    },
+    "fallbackUnits": [
+      "trooper-squad"
+    ],
+    "harvestersWanted": 7,
+    "maxQueuedPerBuilding": 1,
+    "defendSquads": 1,
+    "constructorsWanted": 1,
+    "storageFullFraction": 0.9,
+    "homeGuardRadiusMetres": 150,
+    "maxStorageBuildings": 2,
+    "pilots": {
+      "ceilingOrePerPilot": 120,
+      "reservePilots": 2,
+      "lastCrews": 4,
+      "huntRadiusMetres": 250,
+      "crewOrderSeconds": 5,
+      "citadelValueMetres": 600
+    },
+    "maxBarracks": 3,
+    "director": {
+      "decisionSeconds": 10,
+      "buildUpSeconds": 360,
+      "probeSeconds": 120,
+      "pressureSeconds": 240,
+      "lullSeconds": 120,
+      "phaseJitterFraction": 0.35,
+      "waveGrowth": 0.35,
+      "maxWaveBudgetFraction": 0.8,
+      "commitFraction": 0.5,
+      "commitWaveFraction": 0.6,
+      "spentFraction": 0.3,
+      "raidDefenderMetres": 300,
+      "raidDefenceRadiusMetres": 150,
+      "retreatHullFraction": 0.3
+    },
+    "waves": {
+      "rallyFraction": 0.5,
+      "minRallyFraction": 0.25,
+      "rallyClearanceMetres": 300,
+      "rallyRadiusMetres": 150,
+      "gatherFraction": 0.8,
+      "formation": "wedge",
+      "coreRadiusMetres": 450,
+      "pointAttackFraction": 1,
+      "counterWindowSeconds": 30,
+      "counterRadiusMetres": 600,
+      "counterMinHits": 4,
+      "counterForceRatio": 1.2,
+      "rebuildFraction": 0.6,
+      "rebuildMaxSeconds": 180,
+      "pushGroupSize": 10
+    }
+  },
+  "construction": {
+    "builtBy": "constructor",
+    "reachMetres": 10,
+    "startHullFraction": 0.1,
+    "cancelRefund": 1,
+    "slotRingFraction": 0.6,
+    "spacingMetres": 4,
+    "decayAfterSeconds": 30,
+    "decayRefund": 0.5
+  },
+  "pathfinding": {
+    "cellMetres": 8,
+    "structureClearanceMetres": 2,
+    "expansionsPerTick": 20000,
+    "maxExpansionsPerSearch": 40000,
+    "repathCells": 2,
+    "waypointReachMetres": 6,
+    "pathCacheEntries": 64,
+    "pocketProbeCells": 1500,
+    "pocketCheckAfterExpansions": 400
+  },
+  "frontline": {
+    "roles": {
+      "sniper": {
+        "name": "Sniper",
+        "weapon": "pilot-long-rifle"
+      },
+      "assault": {
+        "name": "Assault",
+        "weapon": "heavy-machine-gun"
+      },
+      "heavy": {
+        "name": "Heavy",
+        "weapon": "rocket-tube"
+      },
+      "medic": {
+        "name": "Medic",
+        "weapon": "medic-gun"
+      }
+    },
+    "guns": {
+      "carbine": {
+        "name": "Carbine",
+        "kinetic": "pilot-carbine",
+        "laser": "pulse-carbine"
+      },
+      "dual": {
+        "name": "Dual machine pistols",
+        "kinetic": "machine-pistol-dual",
+        "laser": "pulse-pistol-dual"
+      },
+      "shotgun": {
+        "name": "Shotgun",
+        "kinetic": "shotgun",
+        "laser": "scatter-laser"
+      },
+      "marksman": {
+        "name": "Marksman rifle",
+        "kinetic": "marksman-rifle",
+        "laser": "beam-marksman"
+      },
+      "launcher": {
+        "name": "Grenade launcher",
+        "kinetic": "grenade-launcher",
+        "laser": "plasma-launcher"
+      }
+    },
+    "grenades": {
+      "area": {
+        "name": "Area grenade",
+        "weapon": "grenade-aoe"
+      },
+      "he": {
+        "name": "High-explosive grenade",
+        "weapon": "grenade-he"
+      },
+      "sticky": {
+        "name": "Sticky grenade",
+        "weapon": "grenade-sticky"
+      },
+      "seeker": {
+        "name": "Seeker grenade",
+        "weapon": "grenade-seeker"
+      }
+    },
+    "armour": {
+      "light": {
+        "name": "Light",
+        "damageMul": 1.0,
+        "speedMul": 1.15,
+        "jumpMul": 1.3
+      },
+      "medium": {
+        "name": "Medium",
+        "damageMul": 0.75,
+        "speedMul": 1.0,
+        "jumpMul": 1.0
+      },
+      "heavy": {
+        "name": "Heavy",
+        "damageMul": 0.5,
+        "speedMul": 0.78,
+        "jumpMul": 0.65
+      }
+    },
+    "healing": {
+      "medic-gun": {
+        "healPerShot": 12,
+        "reviveShots": 8
+      }
+    },
+    "smallArms": [
+      "pilot-carbine",
+      "machine-pistol-dual",
+      "shotgun",
+      "marksman-rifle",
+      "pulse-pistol-dual",
+      "scatter-laser",
+      "beam-marksman",
+      "heavy-machine-gun",
+      "pulse-carbine"
+    ],
+    "smallArmsHullMul": {
+      "light": 0.25,
+      "medium": 0.25,
+      "heavy": 0,
+      "structure": 0,
+      "air": 0.25
+    },
+    "heatCells": 4,
+    "refillRadiusMetres": 30,
+    "refillSeconds": 8,
+    "defaultKit": {
+      "role": "assault",
+      "gun": "carbine",
+      "laser": false,
+      "grenade": "he",
+      "armour": "medium",
+      "slot3": "rocket-tube",
+      "calls": [
+        "precision-strike",
+        "resupply-pod",
+        "sentry-gun",
+        "tank-drop"
+      ]
+    },
+    "canopyNeedsShieldDown": true,
+    "slot3": {
+      "heavy-grenade-launcher": "Grenade launcher",
+      "rocket-tube": "Anti-tank rocket launcher",
+      "flak-gun": "Anti-air flak gun",
+      "pilot-laser-cannon": "Laser cannon",
+      "guided-missile-launcher": "Guided missile launcher",
+      "silo-targeter": "Missile silo"
+    },
+    "slot3Empty": "slot3-empty",
+    "slot3RechargeSeconds": { "guided-missile-launcher": 60, "rocket-tube": 75, "heavy-grenade-launcher": 120, "flak-gun": 180, "pilot-laser-cannon": 180, "silo-targeter": 180 },
+    "frontlineCalls": [
+      "sentry-gun",
+      "precision-strike",
+      "barrage",
+      "reinforcements",
+      "resupply-pod",
+      "tank-drop",
+      "gunship-drop",
+      "mech-drop"
+    ],
+    "laserGuns": [
+      "pulse-carbine",
+      "pulse-pistol-dual",
+      "scatter-laser",
+      "beam-marksman",
+      "plasma-launcher",
+      "pilot-laser-cannon"
+    ],
+    "silo": {
+      "structure": "silo",
+      "lockSeconds": 3,
+      "flightSeconds": 8,
+      "radiusMetres": 40,
+      "damage": 2600,
+      "reloadSeconds": 600
+    },
+    "jetEnergyMul": 2.5,
+    "podNeedFraction": 0.6,
+    "vehicleThirdFire": [
+      "mech-arc-lance"
+    ],
+    "lockOn": {
+      "weapons": [
+        "mech-missile-pods"
+      ],
+      "max": 4,
+      "lockSeconds": 0.35,
+      "coneDegrees": 14,
+      "salvoGapSeconds": 0.15
+    },
+    "heli": {
+      "startDescentSpeed": 2,
+      "descentAccel": 4,
+      "maxDescentSpeed": 24,
+      "safeLandingSpeed": 9,
+      "wreckLandingSpeed": 18,
+      "damagePerSpeed": 220
+    },
+    "aiSpend": {
+      "storageAtFraction": 0.8,
+      "maxStorageBuildings": 3,
+      "extraProducersAtFraction": 0.6,
+      "producers": {
+        "foundry": 3,
+        "barracks": 2
+      }
+    },
+    "aiPilots": {
+      "allies": 3,
+      "enemies": 4,
+      "byDifficulty": {
+        "easy": {
+          "allies": 3,
+          "enemies": 3
+        },
+        "normal": {
+          "allies": 3,
+          "enemies": 4
+        },
+        "hard": {
+          "allies": 2,
+          "enemies": 4
+        }
+      }
+    },
+    "pace": {
+      "fasterWavesAfterMinutes": 8,
+      "lateWaveSeconds": 30,
+      "pushAfterMinutes": 14,
+      "suddenDeathAfterMinutes": 22,
+      "suddenDeathCoreDamageMul": 2,
+      "gasExchangeAbove": 0.6,
+      "gasToOre": 0.5,
+      "gasExchangePer5s": 120,
+      "coreBleedAfterMinutes": 16,
+      "coreBleedPerPointPer5s": 0.004
+    },
+    "pelletFalloff": {
+      "fullMetres": 20,
+      "minMul": 0.4
+    }
+  }
+}

@@ -1,0 +1,587 @@
+{
+  "pilotRank": {
+    "max": 30,
+    "licenceTokensPerRank": 1,
+    "milestones": [
+      {
+        "rank": 10,
+        "unlocks": "vehicle-mod-slot-2"
+      },
+      {
+        "rank": 15,
+        "unlocks": "pilot-gear-slot-2"
+      },
+      {
+        "rank": 20,
+        "unlocks": "vehicle-mod-slot-3"
+      }
+    ],
+    "lowRankBonus": {
+      "belowRank": 10,
+      "xpBonus": 0.25
+    }
+  },
+  "battle": {
+    "grades": [
+      "bronze",
+      "silver",
+      "gold"
+    ],
+    "gradeFactors": [
+      "secondaries-completed",
+      "time-vs-par",
+      "points-held-at-end",
+      "vehicles-lost"
+    ],
+    "defeatXpFraction": 0.4,
+    "defeatSalvage": 0,
+    "firstGoldGrantsBlueprint": true
+  },
+  "currencies": [
+    {
+      "id": "pilot-xp",
+      "belongsTo": "pilot",
+      "spentOn": "rank"
+    },
+    {
+      "id": "mastery-xp",
+      "belongsTo": "pilot-per-item",
+      "spentOn": "item-level"
+    },
+    {
+      "id": "salvage",
+      "belongsTo": "squad",
+      "spentOn": "squad-tech-tree"
+    }
+  ],
+  "supportXpSameRateAsCombat": true,
+  "mastery": {
+    "levels": 5,
+    "flatStatCapPerItem": 0.1,
+    "vehicle": {
+      "1": "usable",
+      "2": "mod-choice-1",
+      "3": {
+        "hullBonus": 0.05,
+        "orSpeedBonus": 0.05
+      },
+      "4": "mod-choice-2",
+      "5": "signature-perk"
+    },
+    "weapon": {
+      "1": "usable",
+      "2": "attachment-choice-1",
+      "3": {
+        "damageBonus": 0.05,
+        "orAmmoBonus": 0.1
+      },
+      "4": "attachment-choice-2",
+      "5": "signature-perk"
+    },
+    "crewMasteryStacks": true
+  },
+  "unlockPools": {
+    "vehicleWeapons": [
+      "lancer-laser-cannon",
+      "rail-lance",
+      "wasp-rocket-pods",
+      "arc-projector",
+      "hammer-mortar",
+      "flak-gun",
+      "mine-layer"
+    ],
+    "pilotWeapons": [
+      "marksman-rifle",
+      "scatter-gun",
+      "rocket-tube"
+    ],
+    "pilotGear": [
+      "cloak-field",
+      "decoy-beacon",
+      "deployable-turret",
+      "grapple"
+    ]
+  },
+  "squadTech": {
+    "branches": [
+      {
+        "id": "industry",
+        "covers": [
+          "harvester-speed",
+          "storage",
+          "mass-driver"
+        ]
+      },
+      {
+        "id": "fortification",
+        "covers": [
+          "new-turret-types",
+          "fortification-level-3",
+          "shield-projector"
+        ]
+      },
+      {
+        "id": "army",
+        "covers": [
+          "tier-3-units",
+          "larger-reserve",
+          "garrison-bonus"
+        ]
+      }
+    ],
+    "ownedBy": "host",
+    "guestsKeepMatchingCredit": true
+  },
+  "xp": {
+    "objectivePrimary": 500,
+    "objectiveSecondary": 200,
+    "capture": 100,
+    "killByClass": {
+      "infantry": 10,
+      "bike": 25,
+      "light": 40,
+      "medium": 60,
+      "heavy": 100,
+      "air": 80,
+      "structure": 50
+    },
+    "revive": 50,
+    "structureBuilt": 40,
+    "repairPerHull": 0.1,
+    "haulPerOre": 0.05,
+    "victory": 300
+  },
+  "rankXp": {
+    "first": 1000,
+    "growthPerRank": 250
+  },
+  "masteryXpForLevel": [
+    0,
+    500,
+    1500,
+    3000,
+    6000
+  ],
+  "grading": {
+    "parSeconds": 1800,
+    "secondariesFraction": 0.5,
+    "pointsHeldFraction": 0.5,
+    "vehiclesLostAtMost": 5,
+    "silverFactors": 2,
+    "goldFactors": 4
+  },
+  "salvage": {
+    "bronze": 50,
+    "silver": 100,
+    "gold": 200,
+    "perSecondary": 25
+  },
+  "tokenCost": 1,
+  "startingUnlocks": {
+    "pilotWeapons": [],
+    "calls": [
+      "precision-strike",
+      "resupply-pod",
+      "sensor-sweep",
+      "sentry-gun",
+      "smoke-screen",
+      "shield-bubble",
+      "scout-drop"
+    ]
+  },
+  "missionUpgrades": [
+    "armour-plating",
+    "extended-turret-range",
+    "faster-harvesters",
+    "larger-reserve"
+  ],
+  "frontline": {
+    "_note": "Designer 19 Nov: all unlocks removed for now (a new unlock list comes later): every loadout option is open. The last list is kept under _shelved for reference.",
+    "bonusTokenRanks": [
+      5,
+      10,
+      15,
+      20,
+      25,
+      30
+    ],
+    "start": {},
+    "cost": {},
+    "_shelved": {
+      "start": {
+        "flGuns": [
+          "carbine"
+        ],
+        "flType": [
+          "kinetic"
+        ],
+        "flSlot2": [
+          "assault"
+        ],
+        "flGrenades": [
+          "he"
+        ],
+        "flArmour": [
+          "medium"
+        ],
+        "flSlot3": [
+          "rocket-tube"
+        ],
+        "flCalls": [
+          "precision-strike",
+          "resupply-pod",
+          "sentry-gun",
+          "tank-drop"
+        ]
+      },
+      "cost": {
+        "flGuns": {
+          "dual": 1,
+          "shotgun": 1,
+          "marksman": 2,
+          "launcher": 2
+        },
+        "flType": {
+          "laser": 2
+        },
+        "flSlot2": {
+          "medic": 1,
+          "sniper": 2,
+          "heavy": 2
+        },
+        "flGrenades": {
+          "area": 1,
+          "sticky": 1,
+          "seeker": 2
+        },
+        "flArmour": {
+          "light": 1,
+          "heavy": 1
+        },
+        "flSlot3": {
+          "heavy-grenade-launcher": 1,
+          "flak-gun": 1,
+          "pilot-laser-cannon": 2,
+          "guided-missile-launcher": 2,
+          "silo-targeter": 2
+        },
+        "flCalls": {
+          "reinforcements": 1,
+          "barrage": 2,
+          "gunship-drop": 2,
+          "mech-drop": 3
+        }
+      }
+    },
+    "planned": {
+      "_note": "Designer 19 Nov: the suggested unlocks (doc 'Ironfall Frontline: suggested unlocks'), listed in the game as coming soon. Nothing here is built or buyable yet.",
+      "groups": [
+        {
+          "name": "Call-downs",
+          "items": [
+            {
+              "name": "Smoke screen",
+              "what": "A wall of smoke that blocks sight lines",
+              "cost": 1
+            },
+            {
+              "name": "Sensor sweep",
+              "what": "Reveals enemies in an area for a few seconds",
+              "cost": 1
+            },
+            {
+              "name": "Scout drop",
+              "what": "A light scout vehicle beside you",
+              "cost": 1
+            },
+            {
+              "name": "Recon drone",
+              "what": "Circles and spots for your team",
+              "cost": 1
+            },
+            {
+              "name": "Shield bubble",
+              "what": "A dome that stops incoming fire",
+              "cost": 2
+            },
+            {
+              "name": "Minefield",
+              "what": "Seeds a lane with mines",
+              "cost": 2
+            },
+            {
+              "name": "EMP burst",
+              "what": "Stuns vehicles and turrets in an area",
+              "cost": 2
+            },
+            {
+              "name": "Strafing run",
+              "what": "An aircraft rakes a line with cannon fire",
+              "cost": 2
+            },
+            {
+              "name": "Bomb run",
+              "what": "A carpet of bombs along a line",
+              "cost": 3
+            },
+            {
+              "name": "Orbital lance",
+              "what": "A delayed, pin-point beam that one-shots a structure",
+              "cost": 3
+            },
+            {
+              "name": "Med beacon",
+              "what": "Heals and speeds revives in a radius for 20 s",
+              "cost": 1
+            },
+            {
+              "name": "Ammo cache",
+              "what": "Refills slot 3 rounds",
+              "cost": 1
+            }
+          ]
+        },
+        {
+          "name": "Pilot gear (a new Gear step, Q)",
+          "items": [
+            {
+              "name": "Grapple",
+              "what": "Zip to a ledge or a vehicle's roof",
+              "cost": 1
+            },
+            {
+              "name": "Decoy beacon",
+              "what": "A fake pilot signature that draws AI fire",
+              "cost": 1
+            },
+            {
+              "name": "Deployable turret",
+              "what": "A small auto-turret you place by hand",
+              "cost": 2
+            },
+            {
+              "name": "Cloak field",
+              "what": "Near-invisible for a few seconds",
+              "cost": 2
+            },
+            {
+              "name": "Jump-jet boost",
+              "what": "A one-shot vertical launch",
+              "cost": 1
+            },
+            {
+              "name": "Pulse scanner",
+              "what": "Pings enemies through walls",
+              "cost": 1
+            },
+            {
+              "name": "Ammo pack",
+              "what": "Refills your squad's primary ammo",
+              "cost": 1
+            },
+            {
+              "name": "Overcharge stim",
+              "what": "Faster movement and reloads for 6 s",
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "name": "Weapons",
+          "items": [
+            {
+              "name": "Anti-materiel rifle",
+              "what": "Slot 2 \u00b7 410 damage at 600 m",
+              "cost": 2
+            },
+            {
+              "name": "Pulse pistol",
+              "what": "Slot 1 \u00b7 a laser sidearm",
+              "cost": 1
+            },
+            {
+              "name": "Trooper rifle",
+              "what": "Slot 1 \u00b7 steady, mid-range",
+              "cost": 1
+            },
+            {
+              "name": "Demo charge",
+              "what": "Grenade \u00b7 1,320 damage placed by hand",
+              "cost": 2
+            },
+            {
+              "name": "Arc rifle",
+              "what": "Slot 1 \u00b7 chains an arc between enemies",
+              "cost": 2
+            },
+            {
+              "name": "Burst battle rifle",
+              "what": "Slot 1 \u00b7 three-round bursts",
+              "cost": 1
+            },
+            {
+              "name": "Lock-on sidearm",
+              "what": "Slot 2 \u00b7 auto-tracks in a short cone",
+              "cost": 2
+            },
+            {
+              "name": "Satchel charges",
+              "what": "Grenade \u00b7 thrown, set off by hand",
+              "cost": 1
+            },
+            {
+              "name": "Rail driver",
+              "what": "Slot 3 \u00b7 a charged shot that pierces a line",
+              "cost": 2
+            },
+            {
+              "name": "Mortar tube",
+              "what": "Slot 3 \u00b7 arcing fire onto a pinged spot",
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "name": "Vehicle drops",
+          "items": [
+            {
+              "name": "Wasp",
+              "what": "Light, fast attack aircraft",
+              "cost": 2
+            },
+            {
+              "name": "Hammer",
+              "what": "Heavy assault vehicle",
+              "cost": 2
+            },
+            {
+              "name": "Salvo",
+              "what": "Rocket artillery",
+              "cost": 2
+            },
+            {
+              "name": "Flak",
+              "what": "Mobile anti-air",
+              "cost": 1
+            },
+            {
+              "name": "Strider",
+              "what": "Walker",
+              "cost": 2
+            },
+            {
+              "name": "Lancer",
+              "what": "Laser tank",
+              "cost": 2
+            },
+            {
+              "name": "Carrier",
+              "what": "Troop carrier: your squad spawns at it",
+              "cost": 3
+            },
+            {
+              "name": "Mech variant",
+              "what": "Twin arc lances instead of the autocannon",
+              "cost": 1
+            },
+            {
+              "name": "Bastion variant",
+              "what": "Armour-piercing shells",
+              "cost": 1
+            },
+            {
+              "name": "Dart variant",
+              "what": "A heavy cannon instead of the minigun",
+              "cost": 1
+            }
+          ]
+        },
+        {
+          "name": "Passive perks (a new Perk step)",
+          "items": [
+            {
+              "name": "Field medic",
+              "what": "Revive 40% faster",
+              "cost": 1
+            },
+            {
+              "name": "Quick drop",
+              "what": "Slot 3 recharge 15% shorter",
+              "cost": 1
+            },
+            {
+              "name": "Scavenger",
+              "what": "Ammo from fallen enemies",
+              "cost": 1
+            },
+            {
+              "name": "Hard landing",
+              "what": "No fall damage; a stun on landing",
+              "cost": 1
+            },
+            {
+              "name": "Long fuse",
+              "what": "25% longer downed timer",
+              "cost": 1
+            },
+            {
+              "name": "Pilot's eye",
+              "what": "See enemy vehicle health",
+              "cost": 1
+            },
+            {
+              "name": "Hot-wire",
+              "what": "Hijack enemy vehicles 2 s faster",
+              "cost": 2
+            },
+            {
+              "name": "Ironclad",
+              "what": "Your vehicles take 10% less damage",
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "name": "Attachments and cosmetics",
+          "items": [
+            {
+              "name": "Extended magazine",
+              "what": "+30% rounds, slower reload",
+              "cost": 1
+            },
+            {
+              "name": "Holo sight",
+              "what": "A clearer reticle, slight zoom",
+              "cost": 1
+            },
+            {
+              "name": "Suppressor",
+              "what": "Your shots don't show on the enemy's map",
+              "cost": 1
+            },
+            {
+              "name": "Planet camo",
+              "what": "Armour paint per planet",
+              "cost": 1
+            },
+            {
+              "name": "Mech decals",
+              "what": "Unit and squad markings",
+              "cost": 1
+            },
+            {
+              "name": "Callsign plate",
+              "what": "Your callsign on the mech and Dart",
+              "cost": 1
+            },
+            {
+              "name": "Victory flourish",
+              "what": "A pose on the match-end screen",
+              "cost": 1
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,14 @@
+const { load, makeRequire } = require("../srcmap.js");
+const { SRC, DATA } = load(require("path").join(__dirname, "../..", "frontline")); const req = makeRequire(SRC);
+const data = req("data/load.mjs").loadDataSync((n) => DATA[n]);
+const S = req("packages/sim/src/index.js");
+const sc = req("packages/sim/fixtures/scenarios/frontline.json"), map = req("packages/sim/fixtures/maps/frontline-3.json");
+const sim = S.createScenarioSim(data, sc, map, { seed: 7, difficulty: "normal", players: 1 });
+const pid = sim.spawnPilot(0, 900, 2200, { player: 0 });
+const r = sim.spawnUnit("gunship", 0, 905, 2200), v = typeof r === "number" ? r : r.ids[0], vs = sim.idToSlot.get(v), ps = sim.idToSlot.get(sim.pilot(pid).entity);
+sim.flyAlt[vs] = 0; sim.airS[vs] = 0; sim.y[vs] = sim.y[ps]; sim.x[ps] = sim.x[vs] - 6; sim.z[ps] = sim.z[vs]; sim.stance[ps] = 0; sim.stanceT[ps] = 0;
+console.log(JSON.stringify(sim.enter(pid, v, 0, 0)), Array.from({ length: sim.mCount[vs] }, (_, m) => sim.d.weaponIds[sim.mWeapon[vs * 12 + m]]).join(","));
+const C = (o) => { sim.queuePilotControl(sim.tick + 1, pid, { move: 0, strafe: 0, aimYaw: 0, aimPitch: -0.3, ...o }, 0); sim.step(); };
+for (let i = 0; i < 60; i++) C({});
+const b = sim.stats.shots; for (let i = 0; i < 120; i++) C({ fire: 2 });
+console.log("rockets fired in 6 s", sim.stats.shots - b, "ammo", JSON.stringify(sim.s15State().ammo.get(v)));

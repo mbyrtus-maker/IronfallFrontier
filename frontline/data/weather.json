@@ -1,0 +1,126 @@
+{
+  "forecastWarningSeconds": 90,
+  "weather": [
+    {
+      "id": "clear",
+      "name": "Clear",
+      "planets": "all",
+      "durationSeconds": null,
+      "effects": {}
+    },
+    {
+      "id": "night",
+      "name": "Night",
+      "planets": "day-cycle",
+      "durationSeconds": null,
+      "dayCycleFraction": 0.5,
+      "effects": {
+        "visualDetectionMultiplier": 0.6,
+        "lightsAndFireStandOut": true
+      }
+    },
+    {
+      "id": "dust-storm",
+      "name": "Dust storm",
+      "planets": [
+        "rust",
+        "cinder"
+      ],
+      "durationSeconds": [
+        120,
+        240
+      ],
+      "effects": {
+        "detectionMultiplier": 0.5,
+        "sightMultiplier": 0.5,
+        "radarBlind": true,
+        "aircraftSpeedMultiplier": 0.7
+      }
+    },
+    {
+      "id": "fog-bank",
+      "name": "Fog bank",
+      "planets": [
+        "halcyon",
+        "brume"
+      ],
+      "durationSeconds": [
+        180,
+        300
+      ],
+      "drifts": true,
+      "effects": {
+        "sightRangeMetres": 100,
+        "radarAffected": false
+      }
+    },
+    {
+      "id": "electrical-storm",
+      "name": "Electrical storm",
+      "planets": [
+        "halcyon",
+        "brume"
+      ],
+      "durationSeconds": [
+        120,
+        180
+      ],
+      "effects": {
+        "lightningHitsTallest": true,
+        "shieldRechargeSlow": true,
+        "energyWeaponHeatBonus": 0.15,
+        "shieldRechargeMultiplier": 0.5
+      }
+    },
+    {
+      "id": "ash-fall",
+      "name": "Ash fall",
+      "planets": [
+        "cinder"
+      ],
+      "durationSeconds": [
+        120,
+        240
+      ],
+      "effects": {
+        "softGroundEverywhere": true,
+        "aircraftGrounded": true,
+        "crashLandSeconds": 3,
+        "crashLandHullFraction": 0.5,
+        "hidesSignaturesBelow": 0.5
+      }
+    },
+    {
+      "id": "solar-flare",
+      "name": "Solar flare",
+      "planets": [
+        "pale"
+      ],
+      "durationSeconds": [
+        60,
+        90
+      ],
+      "effects": {
+        "shieldsOffline": true,
+        "orbitalCallsUnavailable": true,
+        "pilotsOutsideDamagePerSecond": 1
+      }
+    },
+    {
+      "id": "methane-rain",
+      "name": "Methane rain",
+      "planets": [
+        "brume"
+      ],
+      "durationSeconds": [
+        120,
+        180
+      ],
+      "effects": {
+        "fireAndExplosiveDamageBonus": 0.25,
+        "fireSpreads": true,
+        "smokeDisperseMultiplier": 0.5
+      }
+    }
+  ]
+}

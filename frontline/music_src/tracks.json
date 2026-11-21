@@ -1,0 +1,13 @@
+{
+  "note": "Frontline music (designer 19 Nov). All tracks mastered together with the opening cinematic's music (tools/master_music.py): tonal balance tilted toward the intro, shared glue compression, -16.4 LUFS. Planet-tagged tracks come first on their planet; every track still plays in turn everywhere.",
+  "tracks": [
+    { "id": "battle-hymn", "title": "Battle Hymn II (epic version)", "file": "battle-hymn.mp3", "role": "menu", "credit": "oliver_dee" },
+    { "id": "cinematic-epic", "title": "Cinematic Epic", "file": "cinematic-epic.mp3", "role": "tension", "credit": "angelika728", "planets": ["halcyon"] },
+    { "id": "airforce", "title": "Fight Battle (Airforce / Navy)", "file": "airforce.mp3", "role": "tension", "credit": "maksymmalko", "planets": ["rust", "brume"] },
+    { "id": "war-drums", "title": "Battle Warrior Drums", "file": "war-drums.mp3", "role": "tension", "credit": "hitslab", "planets": ["cinder", "pale"] },
+    { "id": "epic-fight", "title": "Epic Fight", "file": "epic-fight.mp3", "role": "battle", "credit": "nastelbom", "planets": ["halcyon"] },
+    { "id": "cinematic-battle", "title": "Cinematic Battle", "file": "cinematic-battle.mp3", "role": "battle", "credit": "alexaa221", "planets": ["halcyon", "brume"] },
+    { "id": "soldier", "title": "Soldier", "file": "soldier.mp3", "role": "battle", "credit": "hitslab", "planets": ["rust"] },
+    { "id": "warrior-defense", "title": "Warrior Defense", "file": "warrior-defense.mp3", "role": "battle", "credit": "yevhenastafiev", "planets": ["pale", "cinder"] }
+  ]
+}

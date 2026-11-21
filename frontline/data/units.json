@@ -1,0 +1,1093 @@
+[
+  {
+    "id": "dart",
+    "name": "Dart Scout",
+    "category": "combat",
+    "armourClass": "light",
+    "tier": 1,
+    "cp": 1,
+    "cost": {
+      "ore": 50,
+      "gas": 10
+    },
+    "hp": 1000,
+    "shield": 1000,
+    "speed": 32,
+    "boost": {
+      "speed": 60,
+      "seconds": 3,
+      "rechargeSeconds": 8,
+      "minStartFraction": 0.25
+    },
+    "turnRate": 2.8,
+    "handling": {
+      "accel": 48,
+      "drag": 1.6,
+      "turn": 3,
+      "jump": 9
+    },
+    "signature": 0.4,
+    "sensorRange": 200,
+    "seats": [
+      {
+        "role": "driver",
+        "count": 1,
+        "weapon": "dart-gun",
+        "muzzles": [
+          [
+            2.9,
+            0.95,
+            0
+          ]
+        ],
+        "extraWeapons": [
+          "dart-shadower"
+        ], "extraMuzzles": [[1.25, 1.09, 0.62]]
+      }
+    ],
+    "weapons": [],
+    "squadSize": 1,
+    "producedAt": [
+      "foundry"
+    ],
+    "mainWeapon": "dart-gun",
+    "captureRateMultiplier": 1.5,
+    "notes": "Ruling 108 (designer 15 Nov): the bike became an enclosed hover scout like Battlezone's Razor: light armour, shield = hull, crew eject; minigun + homing Shadower missile; Shift boosts to 60 m/s for 3 s (8 s to refill).",
+    "moveClass": "bike"
+  },
+  {
+    "id": "lancer",
+    "name": "Lancer",
+    "category": "combat",
+    "armourClass": "light",
+    "tier": 1,
+    "cp": 2,
+    "cost": {
+      "ore": 150,
+      "gas": 25
+    },
+    "hp": 1000,
+    "shield": 1000,
+    "speed": 26,
+    "turnRate": 1.8,
+    "handling": {
+      "accel": 40,
+      "drag": 1.6,
+      "turn": 2.6,
+      "jump": 8.5
+    },
+    "signature": 1,
+    "sensorRange": 200,
+    "seats": [
+      {
+        "role": "driver",
+        "count": 1,
+        "weapon": "lancer-laser-cannon",
+        "extraWeapons": [
+          "lancer-rapid-laser"
+        ],
+        "muzzles": [
+          [
+            4.6,
+            1.62,
+            0
+          ]
+        ]
+      }
+    ],
+    "weapons": [],
+    "squadSize": 1,
+    "producedAt": [
+      "foundry"
+    ],
+    "mainWeapon": "lancer-laser-cannon"
+  },
+  {
+    "id": "trooper-squad",
+    "name": "Trooper squad",
+    "category": "combat",
+    "armourClass": "infantry",
+    "tier": 1,
+    "cp": 1,
+    "cost": {
+      "ore": 50,
+      "gas": 0
+    },
+    "hp": 100,
+    "shield": 0,
+    "speed": 5,
+    "turnRate": 4,
+    "signature": 0.5,
+    "sensorRange": 200,
+    "seats": [],
+    "weapons": [
+      "trooper-rifle"
+    ],
+    "squadSize": 5,
+    "producedAt": [
+      "barracks"
+    ],
+    "squadSpacing": 2,
+    "weaponMuzzle": [
+      0.9,
+      1.16,
+      0.14
+    ]
+  },
+  {
+    "id": "sapper-team",
+    "name": "Sapper team",
+    "category": "combat",
+    "armourClass": "infantry",
+    "tier": 2,
+    "cp": 1,
+    "cost": {
+      "ore": 80,
+      "gas": 10
+    },
+    "hp": 100,
+    "shield": 0,
+    "speed": 5,
+    "turnRate": 4,
+    "signature": 0.5,
+    "sensorRange": 200,
+    "seats": [],
+    "weapons": [
+      "sapper-rocket"
+    ],
+    "squadSize": 3,
+    "producedAt": [
+      "barracks"
+    ],
+    "squadSpacing": 10,
+    "kitWeapons": [
+      "sapper-demo-charge"
+    ],
+    "weaponMuzzle": [
+      0.9,
+      1.16,
+      0.14
+    ]
+  },
+  {
+    "id": "bastion",
+    "name": "Bastion",
+    "category": "combat",
+    "armourClass": "heavy",
+    "tier": 2,
+    "cp": 4,
+    "cost": {
+      "ore": 320,
+      "gas": 40
+    },
+    "hp": 1500,
+    "shield": 1500,
+    "speed": 20,
+    "turnRate": 1,
+    "crewArmoured": true,
+    "handling": {
+      "accel": 11,
+      "drag": 0.9,
+      "turn": 0.9,
+      "jump": 4.5
+    },
+    "signature": 1.5,
+    "sensorRange": 200,
+    "seats": [
+      {
+        "role": "driver",
+        "count": 1,
+        "weapon": "bastion-main-cannon",
+        "muzzles": [
+          [
+            7.43,
+            2.37,
+            0
+          ]
+        ]
+      },
+      {
+        "role": "gunner",
+        "count": 1,
+        "weapon": "bastion-turret-autocannon",
+        "altWeapons": [
+          "bastion-missile-pod"
+        ],
+        "muzzles": [
+          [
+            1.2,
+            3.02,
+            0.7
+          ]
+        ],
+        "hitZones": [
+          {
+            "forwardMetres": -0.4,
+            "upMetres": -0.6,
+            "rightMetres": 0.7,
+            "radiusMetres": 0.5,
+            "exposedArcDegrees": 240,
+            "exposedFromAboveDegrees": 45
+          }
+        ]
+      }
+    ],
+    "weapons": [],
+    "squadSize": 1,
+    "producedAt": [
+      "foundry"
+    ],
+    "mainWeapon": "bastion-main-cannon"
+  },
+  {
+    "id": "hammer",
+    "name": "Hammer",
+    "category": "combat",
+    "armourClass": "medium",
+    "tier": 2,
+    "cp": 3,
+    "cost": {
+      "ore": 260,
+      "gas": 30
+    },
+    "hp": 1500,
+    "shield": 1500,
+    "speed": 11,
+    "turnRate": 0.9,
+    "handling": {
+      "accel": 22,
+      "drag": 1.2,
+      "turn": 1.3,
+      "jump": 6.5
+    },
+    "signature": 1.5,
+    "sensorRange": 200,
+    "seats": [
+      {
+        "role": "driver",
+        "count": 1,
+        "weapon": "hammer-machine-gun",
+        "muzzles": [
+          [
+            1.4,
+            2,
+            0
+          ]
+        ]
+      },
+      {
+        "role": "gunner",
+        "count": 1,
+        "weapon": "hammer-mortar",
+        "muzzles": [
+          [
+            2.29,
+            5.19,
+            0
+          ]
+        ],
+        "hitZones": [
+          {
+            "forwardMetres": -0.6,
+            "upMetres": 0.6,
+            "radiusMetres": 0.5,
+            "exposedArcDegrees": 180,
+            "exposedArcCentreDegrees": 180,
+            "exposedFromAboveDegrees": 45
+          }
+        ]
+      }
+    ],
+    "weapons": [],
+    "squadSize": 1,
+    "producedAt": [
+      "foundry"
+    ],
+    "mainWeapon": "hammer-mortar",
+    "reserveDroppable": false
+  },
+  {
+    "id": "salvo",
+    "name": "Salvo",
+    "category": "combat",
+    "armourClass": "medium",
+    "tier": 2,
+    "cp": 3,
+    "cost": {
+      "ore": 240,
+      "gas": 40
+    },
+    "hp": 1250,
+    "shield": 1250,
+    "speed": 19,
+    "turnRate": 1.5,
+    "crewArmoured": true,
+    "handling": {
+      "accel": 22,
+      "drag": 1.2,
+      "turn": 1.5,
+      "jump": 6.5
+    },
+    "signature": 1.2,
+    "sensorRange": 200,
+    "seats": [
+      {
+        "role": "driver",
+        "count": 1,
+        "weapon": "salvo-missiles",
+        "extraWeapons": [
+          "salvo-minigun"
+        ],
+        "muzzles": [
+          [
+            1.6,
+            2.75,
+            0
+          ]
+        ]
+      }
+    ],
+    "weapons": [],
+    "squadSize": 1,
+    "producedAt": [
+      "foundry"
+    ],
+    "mainWeapon": "salvo-missiles",
+    "notes": "Ruling 108 (designer 15 Nov): rocket tank after Battlezone's Wolverine. Twin missile pods (a two-missile salvo, mild homing), a coaxial minigun on RMB."
+  },
+  {
+    "id": "flak",
+    "name": "Flak",
+    "category": "combat",
+    "armourClass": "medium",
+    "tier": 2,
+    "cp": 2,
+    "cost": {
+      "ore": 180,
+      "gas": 30
+    },
+    "hp": 1500,
+    "shield": 1500,
+    "speed": 15,
+    "turnRate": 1.2,
+    "handling": {
+      "accel": 22,
+      "drag": 1.2,
+      "turn": 1.5,
+      "jump": 6.5
+    },
+    "signature": 1.25,
+    "sensorRange": 200,
+    "seats": [
+      {
+        "role": "driver",
+        "count": 1,
+        "weapon": "flak-gun",
+        "muzzles": [
+          [
+            3.24,
+            3.91,
+            0
+          ]
+        ]
+      }
+    ],
+    "weapons": [],
+    "squadSize": 1,
+    "producedAt": [
+      "foundry"
+    ],
+    "mainWeapon": "flak-gun"
+  },
+  {
+    "id": "wasp",
+    "name": "Wasp",
+    "category": "combat",
+    "armourClass": "air",
+    "tier": 2,
+    "cp": 3,
+    "cost": {
+      "ore": 200,
+      "gas": 90
+    },
+    "hp": 1500,
+    "shield": 1500,
+    "speed": 40,
+    "turnRate": 1.5,
+    "signature": 1.5,
+    "sensorRange": 200,
+    "seats": [
+      {
+        "role": "driver",
+        "count": 1,
+        "weapon": "wasp-rocket-pods",
+        "muzzles": [
+          [
+            1.8,
+            7.449999999999999,
+            0
+          ]
+        ]
+      },
+      {
+        "role": "gunner",
+        "count": 1,
+        "weapon": "wasp-nose-cannon",
+        "muzzles": [
+          [
+            4.5,
+            7,
+            0
+          ]
+        ],
+        "hitZones": [
+          {
+            "forwardMetres": 1,
+            "upMetres": 0.9,
+            "radiusMetres": 0.6,
+            "exposedArcDegrees": 220
+          }
+        ]
+      }
+    ],
+    "weapons": [],
+    "squadSize": 1,
+    "producedAt": [
+      "air-pad"
+    ],
+    "mainWeapon": "wasp-rocket-pods"
+  },
+  {
+    "id": "carrier",
+    "name": "Carrier",
+    "category": "combat",
+    "armourClass": "medium",
+    "tier": 2,
+    "cp": 2,
+    "cost": {
+      "ore": 200,
+      "gas": 30
+    },
+    "hp": 1875,
+    "shield": 1875,
+    "speed": 11,
+    "turnRate": 1.1,
+    "crewArmoured": true,
+    "handling": {
+      "accel": 22,
+      "drag": 1.2,
+      "turn": 1.3,
+      "jump": 5.5
+    },
+    "signature": 1.5,
+    "sensorRange": 200,
+    "seats": [
+      {
+        "role": "driver",
+        "count": 1,
+        "weapon": "carrier-hull-gun",
+        "muzzles": [
+          [
+            5.57,
+            1.85,
+            0
+          ]
+        ]
+      },
+      {
+        "role": "gunner",
+        "count": 1,
+        "weapon": "carrier-roof-gun",
+        "muzzles": [
+          [
+            0.2,
+            2.35,
+            0
+          ]
+        ],
+        "hitZones": [
+          {
+            "forwardMetres": -0.5,
+            "upMetres": 0.7,
+            "radiusMetres": 0.5,
+            "exposedArcDegrees": 240,
+            "exposedFromAboveDegrees": 45
+          }
+        ]
+      },
+      {
+        "role": "passenger",
+        "count": 6,
+        "canFire": false
+      }
+    ],
+    "weapons": [],
+    "squadSize": 1,
+    "producedAt": [
+      "foundry"
+    ],
+    "mainWeapon": "carrier-hull-gun"
+  },
+  {
+    "id": "mule",
+    "name": "Mule",
+    "category": "combat",
+    "armourClass": "air",
+    "tier": 2,
+    "cp": 2,
+    "cost": {
+      "ore": 180,
+      "gas": 60
+    },
+    "hp": 1875,
+    "shield": 1875,
+    "speed": 30,
+    "turnRate": 1,
+    "signature": 2.5,
+    "sensorRange": 200,
+    "seats": [
+      {
+        "role": "driver",
+        "count": 1,
+        "weapon": "mule-chin-gun",
+        "muzzles": [
+          [
+            4.5,
+            7,
+            0
+          ]
+        ]
+      },
+      {
+        "role": "gunner",
+        "count": 2,
+        "weapon": "mule-door-gun",
+        "muzzles": [
+          [
+            0,
+            7.6,
+            0.95
+          ],
+          [
+            0,
+            7.6,
+            -0.95
+          ]
+        ],
+        "hitZones": [
+          {
+            "forwardMetres": -0.3,
+            "upMetres": 0.3,
+            "rightMetres": 0.9,
+            "radiusMetres": 0.6,
+            "exposedArcDegrees": 120,
+            "exposedArcCentreDegrees": 90
+          },
+          {
+            "forwardMetres": -0.3,
+            "upMetres": 0.3,
+            "rightMetres": -0.9,
+            "radiusMetres": 0.6,
+            "exposedArcDegrees": 120,
+            "exposedArcCentreDegrees": -90
+          }
+        ]
+      },
+      {
+        "role": "passenger",
+        "count": 6,
+        "canFire": true
+      }
+    ],
+    "weapons": [],
+    "squadSize": 1,
+    "producedAt": [
+      "air-pad"
+    ],
+    "mainWeapon": "mule-chin-gun",
+    "liftCapacity": {
+      "vehicles": 2,
+      "heavy": 1,
+      "cargo": 400
+    }
+  },
+  {
+    "id": "strider",
+    "name": "Strider",
+    "category": "combat",
+    "armourClass": "heavy",
+    "radiusMetres": 9,
+    "tier": 3,
+    "cp": 6,
+    "cost": {
+      "ore": 500,
+      "gas": 120
+    },
+    "hp": 3000,
+    "shield": 3000,
+    "speed": 8,
+    "turnRate": 0.4,
+    "crewArmoured": true,
+    "walker": {
+      "accel": 2.5,
+      "brake": 5,
+      "turn": 0.5,
+      "turnInPlaceDegrees": 35,
+      "reverseFraction": 0.5
+    },
+    "signature": 2.5,
+    "sensorRange": 200,
+    "seats": [
+      {
+        "role": "driver",
+        "count": 1,
+        "weapon": "strider-chin-guns",
+        "muzzles": [
+          [
+            10.35,
+            8.9,
+            0
+          ]
+        ],
+        "hitZones": [
+          {
+            "forwardMetres": 6.9,
+            "upMetres": 1.2,
+            "radiusMetres": 0.55,
+            "exposedArcDegrees": 150,
+            "exposedFromAboveDegrees": 60
+          }
+        ]
+      },
+      {
+        "role": "gunner",
+        "count": 1,
+        "weapon": "strider-siege-gun",
+        "muzzles": [
+          [
+            12.622,
+            14.6975,
+            0
+          ]
+        ],
+        "hitZones": [
+          {
+            "forwardMetres": 0.9,
+            "upMetres": 5.5,
+            "rightMetres": 0.9,
+            "radiusMetres": 0.6,
+            "exposedArcDegrees": 150,
+            "exposedFromAboveDegrees": 60
+          }
+        ]
+      },
+      {
+        "role": "gunner",
+        "count": 1,
+        "weapon": "strider-aa-turret",
+        "muzzles": [
+          [
+            0.6,
+            16.0,
+            0
+          ]
+        ],
+        "hitZones": [
+          {
+            "forwardMetres": -1.5,
+            "upMetres": 6.5,
+            "radiusMetres": 0.5,
+            "exposedArcDegrees": 240,
+            "exposedFromAboveDegrees": 45
+          }
+        ]
+      }
+    ],
+    "weapons": [],
+    "squadSize": 1,
+    "producedAt": [
+      "foundry"
+    ],
+    "mainWeapon": "strider-siege-gun",
+    "reserveDroppable": false
+  },
+  {
+    "id": "harvester",
+    "name": "Harvester",
+    "category": "economy",
+    "armourClass": "medium",
+    "tier": 1,
+    "cp": 1,
+    "cost": {
+      "ore": 100,
+      "gas": 0
+    },
+    "hp": 1500,
+    "shield": 1500,
+    "speed": 16,
+    "turnRate": 1.2,
+    "crewArmoured": true,
+    "handling": {
+      "accel": 14,
+      "drag": 1.2,
+      "turn": 1.2,
+      "jump": 0
+    },
+    "signature": 1,
+    "sensorRange": 200,
+    "seats": [
+      {
+        "role": "driver",
+        "count": 1,
+        "weapon": "mechanical-arm",
+        "muzzles": [
+          [
+            4.5,
+            1.05,
+            0
+          ]
+        ]
+      }
+    ],
+    "weapons": [],
+    "squadSize": 1,
+    "producedAt": [
+      "command-core",
+      "foundry"
+    ],
+    "cargoCapacity": {
+      "ore": 175
+    },
+    "harvestsDeposits": true
+  },
+  {
+    "id": "hauler",
+    "name": "Hauler",
+    "category": "economy",
+    "armourClass": "light",
+    "tier": 1,
+    "cp": 1,
+    "cost": {
+      "ore": 80,
+      "gas": 10
+    },
+    "hp": 2500,
+    "shield": 2500,
+    "speed": 13,
+    "turnRate": 1,
+    "handling": {
+      "accel": 16,
+      "drag": 1.2,
+      "turn": 1.2,
+      "jump": 0
+    },
+    "signature": 1,
+    "sensorRange": 200,
+    "seats": [
+      {
+        "role": "driver",
+        "count": 1,
+        "weapon": "ramming-plow",
+        "muzzles": [
+          [
+            4.5,
+            1.05,
+            0
+          ]
+        ]
+      }
+    ],
+    "weapons": [],
+    "squadSize": 1,
+    "producedAt": [
+      "foundry"
+    ],
+    "cargoCapacity": {
+      "ore": 300,
+      "gas": 200
+    }
+  },
+  {
+    "id": "constructor",
+    "name": "Constructor",
+    "category": "economy",
+    "armourClass": "medium",
+    "tier": 1,
+    "cp": 1,
+    "cost": {
+      "ore": 120,
+      "gas": 0
+    },
+    "speed": 16,
+    "turnRate": 1.1,
+    "handling": {
+      "accel": 16,
+      "drag": 1.2,
+      "turn": 1.2,
+      "jump": 0
+    },
+    "signature": 1,
+    "sensorRange": 200,
+    "seats": [
+      {
+        "role": "driver",
+        "count": 1,
+        "weapon": "mechanical-arm",
+        "muzzles": [
+          [
+            4.5,
+            1.05,
+            0
+          ]
+        ]
+      }
+    ],
+    "weapons": [],
+    "squadSize": 1,
+    "producedAt": [
+      "command-core",
+      "foundry"
+    ],
+    "hp": 1500,
+    "shield": 1500
+  },
+  {
+    "id": "forward-base-vehicle",
+    "name": "Forward Base Vehicle",
+    "category": "support",
+    "armourClass": "heavy",
+    "tier": 2,
+    "cp": 2,
+    "cost": {
+      "ore": 250,
+      "gas": 50
+    },
+    "hp": 2500,
+    "shield": 2500,
+    "speed": 13,
+    "turnRate": 0.8,
+    "handling": {
+      "accel": 8,
+      "drag": 0.9,
+      "turn": 0.8,
+      "jump": 0
+    },
+    "signature": 1.5,
+    "sensorRange": 200,
+    "seats": [
+      {
+        "role": "driver",
+        "count": 1,
+        "weapon": "ramming-plow",
+        "muzzles": [
+          [
+            4.5,
+            1.05,
+            0
+          ]
+        ]
+      }
+    ],
+    "weapons": [],
+    "squadSize": 1,
+    "producedAt": [
+      "foundry"
+    ]
+  },
+  {
+    "id": "pilot",
+    "name": "Pilot on foot",
+    "category": "pilot",
+    "armourClass": "infantry",
+    "tier": 0,
+    "cp": 0,
+    "cost": {
+      "ore": 0,
+      "gas": 0
+    },
+    "hp": 100,
+    "shield": 50,
+    "speed": 9,
+    "turnRate": 6,
+    "signature": 0.3,
+    "sensorRange": 200,
+    "seats": [],
+    "weapons": [
+      "pilot-carbine"
+    ],
+    "squadSize": 1,
+    "producedAt": [],
+    "kitWeapons": [
+      "pilot-long-rifle",
+      "slot3-empty",
+      "grenade-he"
+    ],
+    "weaponMuzzle": [
+      0.9,
+      1.16,
+      0.14
+    ]
+  },
+  {
+    "id": "mech",
+    "name": "Mech",
+    "category": "combat",
+    "armourClass": "heavy",
+    "radiusMetres": 3.0,
+    "tier": 3,
+    "cp": 4,
+    "cost": {
+      "ore": 400,
+      "gas": 80
+    },
+    "hp": 2600,
+    "shield": 1800,
+    "speed": 11,
+    "turnRate": 0.9,
+    "crewArmoured": true,
+    "walker": {
+      "accel": 4,
+      "brake": 8,
+      "turn": 1.1,
+      "turnInPlaceDegrees": 60,
+      "reverseFraction": 0.6,
+      "jump": 9
+    },
+    "signature": 1.6,
+    "sensorRange": 250,
+    "seats": [
+      {
+        "role": "driver",
+        "count": 1,
+        "weapon": "mech-autocannon",
+        "muzzles": [
+          [
+            3.6,
+            7.4,
+            2.6
+          ]
+        ],
+        "extraWeapons": [
+          "mech-missile-pods",
+          "mech-arc-lance"
+        ],
+        "hitZones": [
+          {
+            "forwardMetres": 1.5,
+            "upMetres": 0.2,
+            "radiusMetres": 0.35,
+            "exposedArcDegrees": 70,
+            "exposedFromAboveDegrees": 45
+          }
+        ]
+      }
+    ],
+    "weapons": [],
+    "squadSize": 1,
+    "producedAt": [],
+    "mainWeapon": "mech-autocannon",
+    "reserveDroppable": false,
+    "playerOnly": true,
+    "notes": "Frontline: the bipedal mech, a player-only call-down. LMB twin autocannon, RMB shoulder missile pods, R arc lance, Space jump jets."
+  },
+  {
+    "id": "gunship",
+    "name": "Gunship",
+    "category": "combat",
+    "armourClass": "air",
+    "tier": 2,
+    "cp": 3,
+    "cost": {
+      "ore": 220,
+      "gas": 90
+    },
+    "hp": 2000,
+    "shield": 1800,
+    "speed": 80,
+    "turnRate": 1.2,
+    "signature": 2.2,
+    "sensorRange": 250,
+    "seats": [
+      {
+        "role": "driver",
+        "count": 1,
+        "weapon": "gunship-twin-mg",
+        "muzzles": [
+          [
+            4.4,
+            0.25,
+            0.35
+          ],
+          [
+            4.4,
+            0.25,
+            -0.35
+          ]
+        ],
+        "extraWeapons": [
+          "gunship-rocket-pods"
+        ],
+        "extraMuzzles": [
+          [
+            -0.85,
+            0.9,
+            2.1
+          ]
+        ]
+      },
+      {
+        "role": "gunner",
+        "count": 2,
+        "weapon": "gunship-door-minigun",
+        "muzzles": [
+          [
+            0.4,
+            1.0,
+            1.85
+          ],
+          [
+            0.4,
+            1.0,
+            -1.85
+          ]
+        ],
+        "hitZones": [
+          {
+            "forwardMetres": 0.1,
+            "upMetres": 0.3,
+            "rightMetres": 1.0,
+            "radiusMetres": 0.6,
+            "exposedArcDegrees": 120,
+            "exposedArcCentreDegrees": 90
+          },
+          {
+            "forwardMetres": 0.1,
+            "upMetres": 0.3,
+            "rightMetres": -1.0,
+            "radiusMetres": 0.6,
+            "exposedArcDegrees": 120,
+            "exposedArcCentreDegrees": -90
+          }
+        ]
+      },
+      {
+        "role": "passenger",
+        "count": 2,
+        "canFire": true
+      }
+    ],
+    "weapons": [],
+    "squadSize": 1,
+    "producedAt": [],
+    "mainWeapon": "gunship-twin-mg",
+    "reserveDroppable": false,
+    "notes": "Frontline gunship call-down: rocket engines, helicopter handling; LMB twin-linked machine guns, RMB rocket pods (48 dumb-fire rockets), door miniguns for gunners.",
+    "handling": {
+      "accel": 16,
+      "drag": 2.2,
+      "turn": 1.3,
+      "jump": 0,
+      "air": true
+    }
+  }
+]

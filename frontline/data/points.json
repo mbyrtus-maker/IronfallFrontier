@@ -1,0 +1,222 @@
+{
+  "pointTypes": [
+    {
+      "id": "citadel-site",
+      "name": "Citadel site",
+      "buildSlots": 10,
+      "maxSlotsFortified": 13,
+      "maxFortificationLevel": 3,
+      "gives": "Standard base: full production and defence hub"
+    },
+    {
+      "id": "ore-field",
+      "name": "Ore field",
+      "buildSlots": 2,
+      "income": "ore",
+      "maxFortificationLevel": 3,
+      "gives": "Surface ore deposits"
+    },
+    {
+      "id": "gas-vent",
+      "name": "Gas vent",
+      "buildSlots": 2,
+      "income": "gas",
+      "geysers": [
+        1,
+        3
+      ],
+      "maxFortificationLevel": 3,
+      "gives": "1-3 geysers for extractors"
+    },
+    {
+      "id": "relay-ridge",
+      "name": "Relay ridge",
+      "buildSlots": 1,
+      "maxFortificationLevel": 3,
+      "gives": "Command uplink and radar over a wide radius"
+    },
+    {
+      "id": "chokepoint",
+      "name": "Chokepoint",
+      "buildSlots": 2,
+      "prebuilt": [
+        "bunker",
+        "gun-tower"
+      ],
+      "maxFortificationLevel": 3,
+      "gives": "Pre-built bunker and gun emplacements"
+    },
+    {
+      "id": "launch-pad",
+      "name": "Launch pad",
+      "buildSlots": 1,
+      "perMap": 1,
+      "maxFortificationLevel": 3,
+      "gives": "Off-world export and orbital call-ins"
+    }
+  ],
+  "controlNode": {
+    "sensorRange": 250,
+    "building": "control-node",
+    "citadelCommandSeat": true
+  },
+  "capture": {
+    "hackSeconds": 12,
+    "ringRadius": 40,
+    "requiresNoEnemiesInRing": true,
+    "enemyCaptureSameRules": true,
+    "decayRateMultiplier": 1,
+    "terminalReachMetres": 3
+  },
+  "supply": {
+    "cutOffShieldDecaySeconds": 90,
+    "cutOffFortificationLossSeconds": 90,
+    "cutOffKeeps": [
+      "turrets"
+    ],
+    "cutOffBlocks": [
+      "build",
+      "deploy",
+      "repair"
+    ]
+  },
+  "commandPoints": {
+    "base": 10,
+    "perSuppliedPoint": 4,
+    "perCitadelSite": 6,
+    "citadelAlsoCountsAsSuppliedPoint": true
+  },
+  "callInZoneRadius": 150,
+  "momentum": {
+    "fullMomentumReinforceCooldownMultiplier": 2,
+    "fullAfterSeconds": 120
+  },
+  "fortification": {
+    "levels": [
+      {
+        "level": 0,
+        "name": "Claimed",
+        "cost": {
+          "ore": 0,
+          "gas": 0
+        },
+        "captureSeconds": 30,
+        "adds": "Control node turret only"
+      },
+      {
+        "level": 1,
+        "name": "Barricaded",
+        "cost": {
+          "ore": 150,
+          "gas": 0
+        },
+        "captureSeconds": 45,
+        "extraDefenceOnlySlots": 1,
+        "adds": "Barricade walls across every approach; +1 defence-only build slot; enemy capture takes 45 s",
+        "barricadeWalls": true
+      },
+      {
+        "level": 2,
+        "name": "Fortified",
+        "cost": {
+          "ore": 300,
+          "gas": 50
+        },
+        "captureSeconds": 60,
+        "garrisonSlots": 2,
+        "minefieldApproaches": 1,
+        "controlNodeShield": 1100,
+        "adds": "Bunker with HMG + autocannon (holds 2 garrison squads); minefield on the nearest enemy approach; control node gets a 1100 shield; capture 60 s"
+      },
+      {
+        "level": 3,
+        "name": "Stronghold",
+        "cost": {
+          "ore": 500,
+          "gas": 150
+        },
+        "captureSeconds": 90,
+        "extraDefenceOnlySlots": 2,
+        "armouredControlNode": true,
+        "selfRepairPerSecond": 11,
+        "adds": "Bunker adds an anti-tank launcher; armoured control node (only siege guns and artillery do full damage); +2 defence-only slots; structures self-repair 11 hull/s; capture 90 s"
+      }
+    ],
+    "upgradeSecondsPerLevel": [
+      30,
+      60
+    ],
+    "upgradedBy": "constructor",
+    "hegemonyFortifyAfterSeconds": 300,
+    "armouredNodeDirectFraction": 0.25,
+    "layout": {
+      "wallBuilding": "barricade",
+      "wallSegmentsPerApproach": 3,
+      "bunkerBuilding": "bunker",
+      "minefieldCall": "minefield"
+    }
+  },
+  "garrison": {
+    "cpFraction": 0.5,
+    "armourBonus": 0.25,
+    "canReceiveAttackOrders": false,
+    "staysInPointRadius": true
+  },
+  "rapidReinforce": {
+    "dropSeconds": 2,
+    "cooldownSeconds": 120
+  },
+  "standardBase": {
+    "pointType": "citadel-site",
+    "limitPerSite": 1,
+    "producesUnits": true,
+    "extendsSupply": true,
+    "gives": [
+      "supply-source",
+      "command-points",
+      "respawn",
+      "full-rearm"
+    ]
+  },
+  "forwardBase": {
+    "vehicle": "forward-base-vehicle",
+    "coreBuilding": "field-depot",
+    "slots": 3,
+    "deploySeconds": 20,
+    "packUpSeconds": 60,
+    "maxFortificationLevel": 1,
+    "limits": {
+      "small": 2,
+      "medium": 4,
+      "large": 6
+    },
+    "unsuppliedRunSeconds": 180,
+    "defences": {
+      "turret": "fb-turret",
+      "turretCount": 2,
+      "turretRadiusMetres": 16,
+      "wall": "fb-barricade",
+      "wallSegments": 4,
+      "wallRadiusMetres": 32,
+      "unfoldSeconds": 4
+    },
+    "extendsSupply": false,
+    "mustBeInsideSupply": true,
+    "producesUnits": false,
+    "sites": [
+      "non-citadel-point",
+      "forward-site"
+    ],
+    "gives": [
+      "call-in-zone",
+      "respawn",
+      "rearm",
+      "repair",
+      "command-terminal"
+    ]
+  },
+  "commandCore": {
+    "capturable": false,
+    "disabledSeconds": 60
+  }
+}

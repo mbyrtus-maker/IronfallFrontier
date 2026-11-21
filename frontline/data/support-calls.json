@@ -1,0 +1,374 @@
+{
+  "loadoutSize": 4,
+  "startingLoadoutSlots": 4,
+  "freeAtRank1": 7,
+  "directionCodeLength": [
+    3,
+    5
+  ],
+  "costsSharedWallet": false,
+  "beaconsMerge": true,
+  "fullFriendlyFire": true,
+  "airCallsUseAircraftPayload": true,
+  "blockedBy": {
+    "air": "missile-battery",
+    "orbital": "relay-tower.jammer"
+  },
+  "calls": [
+    {
+      "id": "resupply-pod",
+      "name": "Resupply pod",
+      "category": "supply",
+      "requires": [],
+      "delaySeconds": 5,
+      "cooldownSeconds": 90,
+      "params": {
+        "pilotsResupplied": 4
+      }
+    },
+    {
+      "id": "scout-drop",
+      "name": "Scout Drop",
+      "category": "supply",
+      "requires": [],
+      "delaySeconds": 6,
+      "cooldownSeconds": 90,
+      "params": {
+        "deliversUnit": "dart"
+      }
+    },
+    {
+      "id": "heavy-weapon-pod",
+      "name": "Heavy weapon pod",
+      "category": "supply",
+      "requires": [],
+      "delaySeconds": 5,
+      "cooldownSeconds": 105,
+      "params": {
+        "weaponChoices": [
+          "rocket-tube",
+          "arc-lance",
+          "anti-materiel-rifle"
+        ]
+      }
+    },
+    {
+      "id": "vehicle-drop",
+      "name": "Vehicle drop",
+      "category": "supply",
+      "requires": [
+        "command-core"
+      ],
+      "delaySeconds": 8,
+      "cooldownSeconds": 120,
+      "params": {
+        "vehiclesFromReserve": 1
+      }
+    },
+    {
+      "id": "sentry-gun",
+      "name": "Sentry gun",
+      "category": "defensive",
+      "requires": [],
+      "delaySeconds": 4,
+      "cooldownSeconds": 120,
+      "params": {
+        "durationSeconds": 60,
+        "weapon": "sentry-turret-gun",
+        "rocketWeapon": "sentry-rocket-pod",
+        "deploySeconds": 1.5,
+        "hp": 880,
+        "mannable": true
+      }
+    },
+    {
+      "id": "minefield",
+      "name": "Minefield",
+      "category": "defensive",
+      "requires": [],
+      "delaySeconds": 4,
+      "cooldownSeconds": 90,
+      "params": {
+        "radius": 20,
+        "mines": 12,
+        "mineDamage": 500,
+        "damageType": "explosive",
+        "triggeredBy": "vehicles"
+      }
+    },
+    {
+      "id": "shield-bubble",
+      "name": "Shield bubble",
+      "category": "defensive",
+      "requires": [],
+      "delaySeconds": 3,
+      "cooldownSeconds": 90,
+      "params": {
+        "radius": 10,
+        "durationSeconds": 20,
+        "blocksShots": true,
+        "blocksUnits": false
+      }
+    },
+    {
+      "id": "smoke-screen",
+      "name": "Smoke screen",
+      "category": "defensive",
+      "requires": [],
+      "delaySeconds": 2,
+      "cooldownSeconds": 70,
+      "params": {
+        "lineLength": 40,
+        "durationSeconds": 15,
+        "breaksDetection": true
+      }
+    },
+    {
+      "id": "sensor-sweep",
+      "name": "Sensor sweep",
+      "category": "recon",
+      "requires": [],
+      "delaySeconds": 2,
+      "cooldownSeconds": 75,
+      "params": {
+        "radius": 200,
+        "durationSeconds": 10
+      }
+    },
+    {
+      "id": "precision-strike",
+      "name": "Precision strike",
+      "category": "orbital",
+      "requires": [],
+      "delaySeconds": 1,
+      "cooldownSeconds": 150,
+      "params": {
+        "damage": 1500,
+        "damageType": "explosive",
+        "radius": 8
+      }
+    },
+    {
+      "id": "barrage",
+      "name": "Barrage",
+      "category": "orbital",
+      "requires": [],
+      "delaySeconds": 6,
+      "cooldownSeconds": 240,
+      "params": {
+        "durationSeconds": 20,
+        "radius": 60,
+        "shellDamage": 120,
+        "shellsPerSecond": 2,
+        "shellSplashRadius": 6,
+        "damageType": "explosive"
+      }
+    },
+    {
+      "id": "emp-burst",
+      "name": "EMP burst",
+      "category": "orbital",
+      "requires": [
+        "relay-tower"
+      ],
+      "delaySeconds": 3,
+      "cooldownSeconds": 105,
+      "params": {
+        "radius": 40,
+        "durationSeconds": 8,
+        "affectsBothSides": true
+      }
+    },
+    {
+      "id": "strafing-run",
+      "name": "Strafing run",
+      "category": "air",
+      "requires": [
+        "atmosphere",
+        "air-pad"
+      ],
+      "delaySeconds": 3,
+      "cooldownSeconds": 60,
+      "usesBeforeRearm": 3,
+      "params": {
+        "rounds": 40,
+        "roundDamage": 40,
+        "damageType": "explosive",
+        "lineLength": 80
+      }
+    },
+    {
+      "id": "bomb-run",
+      "name": "Bomb run",
+      "category": "air",
+      "requires": [
+        "atmosphere",
+        "air-pad"
+      ],
+      "delaySeconds": 4,
+      "cooldownSeconds": 60,
+      "usesBeforeRearm": 2,
+      "params": {
+        "bombs": 6,
+        "bombDamage": 250,
+        "damageType": "explosive",
+        "lineLength": 80
+      }
+    },
+    {
+      "id": "recon-drone",
+      "name": "Recon drone",
+      "category": "recon",
+      "requires": [],
+      "delaySeconds": 3,
+      "cooldownSeconds": 90,
+      "params": {
+        "radius": 120,
+        "durationSeconds": 30
+      }
+    },
+    {
+      "id": "supply-drop",
+      "name": "Supply drop",
+      "category": "supply",
+      "requires": [
+        "relay-tower"
+      ],
+      "delaySeconds": 6,
+      "cooldownSeconds": 120,
+      "params": {
+        "radius": 20,
+        "hullRepairFraction": 0.5
+      }
+    },
+    {
+      "id": "rocket-tube-drop",
+      "name": "Rocket tube drop",
+      "category": "supply",
+      "requires": [],
+      "delaySeconds": 5,
+      "cooldownSeconds": 90,
+      "params": {
+        "weaponChoices": [
+          "rocket-tube"
+        ]
+      }
+    },
+    {
+      "id": "reinforcements",
+      "name": "Reinforcements",
+      "category": "supply",
+      "requires": [],
+      "delaySeconds": 2,
+      "cooldownSeconds": 180,
+      "params": {
+        "squads": [
+          "trooper-squad",
+          "sapper-team"
+        ]
+      }
+    },
+    {
+      "id": "tank-drop",
+      "name": "Tank drop",
+      "category": "supply",
+      "requires": [],
+      "delaySeconds": 10,
+      "cooldownSeconds": 300,
+      "params": {
+        "deliversUnit": "bastion"
+      }
+    },
+    {
+      "id": "gunship-drop",
+      "name": "Gunship",
+      "category": "supply",
+      "requires": [
+        "atmosphere"
+      ],
+      "delaySeconds": 12,
+      "cooldownSeconds": 360,
+      "params": {
+        "deliversUnit": "gunship"
+      }
+    },
+    {
+      "id": "slot3-drop",
+      "name": "Slot 3 weapon",
+      "category": "supply",
+      "requires": [],
+      "delaySeconds": 5,
+      "cooldownSeconds": 180,
+      "params": {
+        "weaponChoices": [
+          "heavy-grenade-launcher",
+          "rocket-tube",
+          "flak-gun",
+          "pilot-laser-cannon",
+          "guided-missile-launcher",
+          "silo-targeter"
+        ]
+      }
+    },
+    {
+      "id": "mech-drop",
+      "name": "Mech",
+      "category": "supply",
+      "requires": [],
+      "delaySeconds": 12,
+      "cooldownSeconds": 420,
+      "params": {
+        "deliversUnit": "mech"
+      }
+    }
+  ],
+  "sim": {
+    "fixedCalls": [
+      "slot3-drop"
+    ],
+    "defaultLoadout": [
+      "precision-strike",
+      "resupply-pod",
+      "sentry-gun",
+      "tank-drop"
+    ],
+    "throwRangeMetres": 40,
+    "designatorRangeMetres": 300,
+    "vehicleDropUnit": "lancer",
+    "strafeRoundRadiusMetres": 2,
+    "bombSplashRadiusMetres": 6,
+    "sentryProfile": "drop-pod-sentry",
+    "mineTriggerRadiusMetres": 3,
+    "smokeWidthMetres": 6,
+    "weaponPodLifetimeSeconds": 120,
+    "weaponPodPickupRadiusMetres": 5,
+    "beaconThrow": {
+      "speedMetresPerSecond": 21,
+      "inheritVelocity": 0.5,
+      "restitution": 0.3,
+      "impactFriction": 0.55,
+      "rollDecelMetresPerSecond2": 6,
+      "bounceMinMetresPerSecond": 2,
+      "maxBounces": 2,
+      "maxSeconds": 8,
+      "radiusMetres": 0.12,
+      "handHeightMetres": 1.45
+    },
+    "commanderCalls": {
+      "loadout": [
+        "precision-strike",
+        "barrage",
+        "sensor-sweep",
+        "sentry-gun"
+      ],
+      "intervalSeconds": {
+        "normal": 90,
+        "hard": 60
+      },
+      "clusterRadiusMetres": 15,
+      "strikeMinUnits": 3,
+      "barrageMinUnits": 6,
+      "sentryThreatRadiusMetres": 150
+    }
+  }
+}

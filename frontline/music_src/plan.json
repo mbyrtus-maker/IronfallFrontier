@@ -1,0 +1,11 @@
+[
+ {"id":"intro","src":"introMusic_original.mp3","dst":"/tmp/cin/intro_m.mp3","maxS":65,"fadeIn":0.05,"fadeOut":1.2},
+ {"id":"battle-hymn","src":"de0ab912-oliver_dee-battle-hymn-ii-epic-version-189998.mp3","dst":"/home/claude/out/music/battle-hymn.mp3"},
+ {"id":"epic-fight","src":"4e743097-nastelbom-epic-fight-436865.mp3","dst":"/home/claude/out/music/epic-fight.mp3"},
+ {"id":"airforce","src":"b2a29fd0-maksymmalko-fight-battle-airforce-navy-combat-music-259695.mp3","dst":"/home/claude/out/music/airforce.mp3"},
+ {"id":"cinematic-epic","src":"11b5549a-angelika728-cinematic-music-epic-music-270904.mp3","dst":"/home/claude/out/music/cinematic-epic.mp3"},
+ {"id":"cinematic-battle","src":"56c99332-alexaa221-cinematic-battle-music-271343.mp3","dst":"/home/claude/out/music/cinematic-battle.mp3"},
+ {"id":"soldier","src":"912e4cea-hitslab-soldier-soldier-warrior-fighting-music-277977.mp3","dst":"/home/claude/out/music/soldier.mp3"},
+ {"id":"warrior-defense","src":"402dc3cd-yevhenastafiev-warrior-defense-fighting-music-526084.mp3","dst":"/home/claude/out/music/warrior-defense.mp3"},
+ {"id":"war-drums","src":"ea4b5181-hitslab-battle-warrior-fighting-drums-430819.mp3","dst":"/home/claude/out/music/war-drums.mp3"}
+]

@@ -1,0 +1,13 @@
+const { load, makeRequire } = require("../srcmap.js");
+const { SRC, DATA } = load(require("path").join(__dirname, "../..", "frontline")); const req = makeRequire(SRC);
+const data = req("data/load.mjs").loadDataSync((n) => DATA[n]);
+const S = req("packages/sim/src/index.js");
+const sc = req("packages/sim/fixtures/scenarios/frontline.json"), map = req("packages/sim/fixtures/maps/frontline-3.json");
+const sim = S.createScenarioSim(data, sc, map, { seed: 7, difficulty: "normal", players: 1 });
+const pid = sim.spawnPilot(0, 447, 2576, { player: 0 });
+let dart = -1; for (let s = 0; s < sim.hi; s++) if (sim.alive[s] && sim.team[s] === 0 && sim.d.typeIds[sim.etype[s]] === "dart") dart = sim.eid[s];
+console.log("dart", dart, JSON.stringify(sim.enter(pid, dart, undefined, 0)), sim.pilot(pid).state);
+const ps = sim.idToSlot.get(sim.pilot(pid).entity), vs = sim.idToSlot.get(dart);
+console.log(sim.x[ps], sim.z[ps], sim.x[vs], sim.z[vs]);
+for (let i = 0; i < 10; i++) sim.step();
+console.log(sim.gap(ps, vs), sim.d.crew.enterRange, sim.y[ps], sim.y[vs], JSON.stringify(sim.enter(pid, dart, undefined, 0)), sim.pilot(pid).state);

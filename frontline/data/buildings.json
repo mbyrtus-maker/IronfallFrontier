@@ -1,0 +1,580 @@
+[
+  {
+    "id": "command-core",
+    "name": "Command Core",
+    "tier": 0,
+    "cost": {
+      "ore": 0,
+      "gas": 0
+    },
+    "power": 10,
+    "hp": 8800,
+    "shield": 3300,
+    "baseType": "standard",
+    "sensorRange": 300,
+    "buildTime": 20,
+    "effects": {
+      "onePerMission": true,
+      "supplySource": true,
+      "commandSeat": true,
+      "commandTerminal": true,
+      "pilotRespawnPoint": true,
+      "pilotEnergyRefill": true
+    },
+    "notes": "Deploys once on any citadel site; produces Constructors and Harvesters (units.producedAt)"
+  },
+  {
+    "id": "reactor",
+    "name": "Reactor",
+    "tier": 1,
+    "cost": {
+      "ore": 150,
+      "gas": 0
+    },
+    "power": 10,
+    "hp": 1320,
+    "shield": 0,
+    "baseType": "standard",
+    "sensorRange": 0,
+    "buildTime": 20,
+    "pointTypes": [
+      "citadel-site",
+      "ore-field",
+      "gas-vent",
+      "chokepoint"
+    ]
+  },
+  {
+    "id": "refinery",
+    "name": "Refinery",
+    "tier": 1,
+    "cost": {
+      "ore": 200,
+      "gas": 0
+    },
+    "power": -2,
+    "hp": 1760,
+    "shield": 0,
+    "baseType": "standard",
+    "sensorRange": 0,
+    "buildTime": 35,
+    "pointTypes": [
+      "citadel-site",
+      "ore-field"
+    ],
+    "effects": {
+      "oreDropOff": true,
+      "includesUnit": "harvester",
+      "docks": [
+        [-3, 6.3],
+        [3, 6.3]
+      ]
+    }
+  },
+  {
+    "id": "silo",
+    "name": "Silo",
+    "tier": 1,
+    "cost": {
+      "ore": 80,
+      "gas": 0
+    },
+    "power": 0,
+    "hp": 1100,
+    "shield": 0,
+    "baseType": "standard",
+    "sensorRange": 0,
+    "buildTime": 15,
+    "pointTypes": [
+      "citadel-site",
+      "ore-field"
+    ],
+    "effects": {
+      "oreStorage": 1000
+    }
+  },
+  {
+    "id": "gas-extractor",
+    "name": "Gas Extractor",
+    "tier": 1,
+    "cost": {
+      "ore": 150,
+      "gas": 0
+    },
+    "power": -2,
+    "hp": 880,
+    "shield": 0,
+    "baseType": "standard",
+    "sensorRange": 0,
+    "buildTime": 25,
+    "pointTypes": [
+      "gas-vent"
+    ],
+    "effects": {
+      "requiresGeyser": true,
+      "gasPerSecond": [
+        2,
+        6
+      ]
+    }
+  },
+  {
+    "id": "gas-tank",
+    "name": "Gas Tank",
+    "tier": 1,
+    "cost": {
+      "ore": 100,
+      "gas": 0
+    },
+    "power": 0,
+    "hp": 660,
+    "shield": 0,
+    "baseType": "any",
+    "sensorRange": 0,
+    "buildTime": 15,
+    "pointTypes": [
+      "citadel-site",
+      "gas-vent"
+    ],
+    "effects": {
+      "gasStorage": 600,
+      "explodesOnDestroy": true,
+      "blastDamage": 880,
+      "blastRadius": 15
+    }
+  },
+  {
+    "id": "barracks",
+    "name": "Barracks",
+    "tier": 1,
+    "cost": {
+      "ore": 150,
+      "gas": 0
+    },
+    "power": -1,
+    "hp": 1980,
+    "shield": 0,
+    "baseType": "standard",
+    "sensorRange": 0,
+    "buildTime": 30,
+    "effects": {
+      "pilotRespawnPoint": true,
+      "pilotKitResupply": true,
+      "pilotEnergyRefill": true
+    }
+  },
+  {
+    "id": "foundry",
+    "name": "Foundry",
+    "tier": 1,
+    "cost": {
+      "ore": 300,
+      "gas": 50
+    },
+    "power": -3,
+    "hp": 3300,
+    "shield": 0,
+    "baseType": "standard",
+    "sensorRange": 0,
+    "buildTime": 50,
+    "effects": {
+      "producesTiers": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "id": "gun-tower",
+    "name": "Gun Tower",
+    "tier": 1,
+    "cost": {
+      "ore": 120,
+      "gas": 0
+    },
+    "power": -1,
+    "hp": 2200,
+    "shield": 0,
+    "baseType": "any",
+    "sensorRange": 300,
+    "buildTime": 20,
+    "weapons": [
+      "gun-tower-autocannon"
+    ],
+    "defence": true,
+    "pointTypes": [
+      "citadel-site",
+      "ore-field",
+      "gas-vent",
+      "relay-ridge",
+      "chokepoint",
+      "launch-pad"
+    ],
+    "manned": {
+      "rangeMultiplier": 1.2,
+      "spreadMultiplier": 0.5
+    },
+    "muzzle": [
+      4.8,
+      9.3,
+      0
+    ]
+  },
+  {
+    "id": "relay-tower",
+    "name": "Relay Tower",
+    "tier": 1,
+    "cost": {
+      "ore": 150,
+      "gas": 30
+    },
+    "power": -2,
+    "hp": 1100,
+    "shield": 0,
+    "baseType": "any",
+    "sensorRange": 600,
+    "buildTime": 25,
+    "pointTypes": [
+      "citadel-site",
+      "relay-ridge"
+    ],
+    "effects": {
+      "commandUplink": true,
+      "radar": true,
+      "commandTerminal": true
+    },
+    "mods": {
+      "sensorMast": {
+        "sensorRangeMultiplier": 2
+      },
+      "jammer": {
+        "radarHideRadius": 150,
+        "power": -1
+      },
+      "weatherMast": {
+        "forecastSeconds": 300
+      }
+    }
+  },
+  {
+    "id": "armoury",
+    "name": "Armoury",
+    "tier": 2,
+    "cost": {
+      "ore": 250,
+      "gas": 100
+    },
+    "power": -2,
+    "hp": 2200,
+    "shield": 0,
+    "baseType": "standard",
+    "sensorRange": 0,
+    "buildTime": 40,
+    "effects": {
+      "weaponSwap": true,
+      "rearm": true
+    }
+  },
+  {
+    "id": "air-pad",
+    "name": "Air Pad",
+    "tier": 2,
+    "cost": {
+      "ore": 250,
+      "gas": 150
+    },
+    "power": -3,
+    "hp": 2200,
+    "shield": 0,
+    "baseType": "standard",
+    "sensorRange": 0,
+    "buildTime": 45,
+    "effects": {
+      "aerialRearm": true
+    }
+  },
+  {
+    "id": "repair-bay",
+    "name": "Repair Bay",
+    "tier": 2,
+    "cost": {
+      "ore": 200,
+      "gas": 50
+    },
+    "power": -2,
+    "hp": 1540,
+    "shield": 0,
+    "baseType": "any",
+    "sensorRange": 0,
+    "buildTime": 30,
+    "effects": {
+      "repairRadius": 40,
+      "repairPerSecond": 80
+    }
+  },
+  {
+    "id": "missile-battery",
+    "name": "Missile Battery",
+    "tier": 2,
+    "cost": {
+      "ore": 180,
+      "gas": 60
+    },
+    "power": -2,
+    "hp": 1980,
+    "shield": 0,
+    "baseType": "any",
+    "sensorRange": 300,
+    "buildTime": 30,
+    "weapons": [
+      "missile-battery-aa"
+    ],
+    "defence": true,
+    "pointTypes": [
+      "citadel-site",
+      "ore-field",
+      "gas-vent",
+      "relay-ridge",
+      "chokepoint",
+      "launch-pad"
+    ],
+    "muzzle": [
+      4.8,
+      9.3,
+      0
+    ]
+  },
+  {
+    "id": "shield-projector",
+    "name": "Shield Projector",
+    "tier": 2,
+    "cost": {
+      "ore": 200,
+      "gas": 150
+    },
+    "power": -4,
+    "hp": 1320,
+    "shield": 0,
+    "baseType": "standard",
+    "sensorRange": 0,
+    "buildTime": 40,
+    "defence": true,
+    "effects": {
+      "domeRadius": 60,
+      "domeShield": 6600,
+      "gasPerAbsorbedDamage": 0.05,
+      "domeGasFloor": 200
+    }
+  },
+  {
+    "id": "tech-lab",
+    "name": "Tech Lab",
+    "tier": 3,
+    "cost": {
+      "ore": 400,
+      "gas": 300
+    },
+    "power": -4,
+    "hp": 2640,
+    "shield": 0,
+    "baseType": "standard",
+    "sensorRange": 0,
+    "buildTime": 60,
+    "effects": {
+      "missionUpgrades": true
+    }
+  },
+  {
+    "id": "mass-driver",
+    "name": "Mass Driver",
+    "tier": 3,
+    "cost": {
+      "ore": 350,
+      "gas": 200
+    },
+    "power": -4,
+    "hp": 2200,
+    "shield": 0,
+    "baseType": "standard",
+    "sensorRange": 0,
+    "buildTime": 55,
+    "pointTypes": [
+      "citadel-site",
+      "ore-field"
+    ],
+    "effects": {
+      "podOre": 100,
+      "maxPlanetGravity": 0.45,
+      "pairsTwoPoints": true,
+      "podFlightSeconds": 0,
+      "docks": [
+        [0, 7]
+      ]
+    }
+  },
+  {
+    "id": "launch-pad-uplink",
+    "name": "Launch Pad uplink",
+    "tier": 3,
+    "cost": {
+      "ore": 300,
+      "gas": 300
+    },
+    "power": -3,
+    "hp": 2200,
+    "shield": 0,
+    "baseType": "standard",
+    "sensorRange": 0,
+    "buildTime": 60,
+    "pointTypes": [
+      "launch-pad"
+    ],
+    "effects": {
+      "export": true
+    }
+  },
+  {
+    "id": "field-depot",
+    "name": "Field Depot",
+    "tier": 2,
+    "cost": {
+      "ore": 0,
+      "gas": 0
+    },
+    "power": 0,
+    "hp": 1760,
+    "shield": 0,
+    "baseType": "forward",
+    "sensorRange": 0,
+    "buildTime": 40,
+    "effects": {
+      "forwardBaseCore": true,
+      "reserveSlots": 6,
+      "reinforceDelaySeconds": 2,
+      "restocksPilotGear": true,
+      "restocksSupportCalls": true,
+      "pilotEnergyRefill": true
+    },
+    "notes": "Not in the doc's building table; tier, cost, power, hp and build time are proposals"
+  },
+  {
+    "id": "control-node",
+    "name": "Control node",
+    "tier": 0,
+    "cost": {
+      "ore": 0,
+      "gas": 0
+    },
+    "power": 0,
+    "hp": 3300,
+    "shield": 0,
+    "baseType": "any",
+    "sensorRange": 0,
+    "buildTime": 1,
+    "weapons": [
+      "gun-tower-autocannon"
+    ],
+    "defence": true,
+    "effects": {
+      "pointStructure": true
+    },
+    "muzzle": [
+      4.8,
+      9.3,
+      0
+    ],
+    "notes": "Doc 6: every held point's control node turret; spawned by the sim at a point when it gets an owner (strongpoints.ts), never built by a Constructor. Sees through the point's sensor (points.controlNode.sensorRange)."
+  },
+  {
+    "id": "bunker",
+    "name": "Bunker",
+    "tier": 0,
+    "cost": {
+      "ore": 0,
+      "gas": 0
+    },
+    "power": 0,
+    "hp": 4400,
+    "shield": 0,
+    "baseType": "any",
+    "sensorRange": 350,
+    "buildTime": 1,
+    "effects": {
+      "pointStructure": true
+    },
+    "mounts": [
+      { "weapon": "bunker-hmg", "fromLevel": 0, "muzzle": [5.3, 1.9, 0] },
+      { "weapon": "bunker-autocannon", "fromLevel": 2, "muzzle": [5.2, 1.9, 1.4] },
+      { "weapon": "bunker-at-launcher", "fromLevel": 3, "muzzle": [5.2, 1.9, -1.4] }
+    ],
+    "notes": "Doc 6: a chokepoint's pre-built bunker and the fortification level 2 bunker; holds the point's garrison (fortification garrisonSlots). Placed by the sim, never built. B1: a friendly player pilot can climb in and fire its mounts (one gunner seat per mount); mounts are fitted by the point's fortification level (fromLevel). PROPOSED."
+  },
+  {
+    "id": "barricade",
+    "name": "Barricade wall",
+    "tier": 0,
+    "cost": {
+      "ore": 0,
+      "gas": 0
+    },
+    "power": 0,
+    "hp": 1760,
+    "shield": 0,
+    "baseType": "any",
+    "sensorRange": 0,
+    "buildTime": 1,
+    "effects": {
+      "pointStructure": true
+    },
+    "notes": "Doc 6: fortification level 1 barricade walls on the approaches; one segment. Placed by the sim from the point's links, never built."
+  },
+  {
+    "id": "drop-pod-sentry",
+    "name": "Drop pod sentry",
+    "tier": 0,
+    "cost": { "ore": 0, "gas": 0 },
+    "power": -1,
+    "hp": 880,
+    "shield": 0,
+    "baseType": "standard",
+    "sensorRange": 300,
+    "buildTime": 1,
+    "weapons": ["sentry-turret-gun", "sentry-rocket-pod"],
+    "muzzles": [[2.25, 5.0, 0], [0.97, 5.12, -1.08]],
+    "defence": true,
+    "effects": { "pointStructure": true },
+    "notes": "Ruling 130: the sentry-gun support call's body (supportCalls.sim.sentryProfile): an orbital drop capsule with a weapon head, twin rapid guns + rocket pod. Never built (point structure: placed by the sim)."
+  },
+  {
+    "id": "fb-turret",
+    "name": "Forward base turret",
+    "tier": 0,
+    "cost": { "ore": 0, "gas": 0 },
+    "power": 0,
+    "hp": 1100,
+    "shield": 0,
+    "baseType": "forward",
+    "sensorRange": 300,
+    "buildTime": 1,
+    "weapons": ["gun-tower-autocannon"],
+    "muzzle": [2.35, 3.95, 0],
+    "defence": true,
+    "effects": { "pointStructure": true },
+    "notes": "Ruling 132 (FB1): one of a forward base's own turrets, unfolded by the Field Depot as it deploys (points.forwardBase.defences); the Gun Tower's autocannon in a low armoured casing whose roof petals fold back and whose head rises. Never built. Hull PROPOSED."
+  },
+  {
+    "id": "fb-barricade",
+    "name": "Forward base barricade",
+    "tier": 0,
+    "cost": { "ore": 0, "gas": 0 },
+    "power": 0,
+    "hp": 1320,
+    "shield": 0,
+    "baseType": "forward",
+    "sensorRange": 0,
+    "buildTime": 1,
+    "effects": { "pointStructure": true },
+    "notes": "Ruling 132 (FB1): one fold-up armour barricade segment of a forward base's arc, facing the likeliest approach (points.forwardBase.defences). Never built. Hull PROPOSED."
+  }
+]

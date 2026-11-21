@@ -1,0 +1,213 @@
+{
+  "slopeLimitsDegrees": {
+    "bike": 45,
+    "light": 35,
+    "medium": 35,
+    "heavy": 30,
+    "infantry": 55,
+    "walker": 40
+  },
+  "jumpJetsIgnoreSlope": true,
+  "types": [
+    {
+      "id": "open-plain",
+      "name": "Open plain",
+      "cover": "none"
+    },
+    {
+      "id": "ridge",
+      "name": "Ridge and high ground",
+      "slowClimb": [
+        "heavy"
+      ],
+      "slowClimbSpeedMultiplier": 0.7,
+      "rangeBonusLookingDown": 0.2,
+      "sensorBonusLookingDown": 0.2,
+      "cover": "hull-down on crest"
+    },
+    {
+      "id": "canyon",
+      "name": "Canyon",
+      "channelsVehicles": true,
+      "blocksRadarFromOutside": true,
+      "cover": "ambush ground"
+    },
+    {
+      "id": "crater-field",
+      "name": "Crater field",
+      "bounceInLowGravity": true,
+      "cover": "hull-down on all sides"
+    },
+    {
+      "id": "soft-ground",
+      "name": "Soft ground (dust, ash, snow)",
+      "speedMultiplier": {
+        "infantry": 0.7
+      },
+      "raisesSignature": true,
+      "plumeSignatureMultiplier": 1.5
+    },
+    {
+      "id": "ice-glass-flats",
+      "name": "Ice and glass flats",
+      "lowGrip": true,
+      "gripMultiplier": 0.3,
+      "cover": "none"
+    },
+    {
+      "id": "liquid",
+      "name": "Liquid (lava, methane lakes, acid pools)",
+      "passableBy": [
+        "bike",
+        "light",
+        "medium",
+        "heavy",
+        "walker",
+        "air"
+      ],
+      "lavaDamagePerSecond": 20,
+      "lavaDamageAfterSeconds": 3,
+      "buildable": false
+    },
+    {
+      "id": "cliffs",
+      "name": "Cliffs",
+      "passableBy": [
+        "air"
+      ],
+      "passableWithJumpOrJetpack": true,
+      "fallDamageScalesWithGravity": true,
+      "buildable": false
+    },
+    {
+      "id": "rock-forest-ruins",
+      "name": "Rock forest and ruins",
+      "passableFreelyBy": [
+        "bike",
+        "infantry",
+        "walker"
+      ],
+      "breaksLineOfSight": true,
+      "vehicleSpeedMultiplier": 0.5,
+      "signatureMultiplier": 0.5
+    },
+    {
+      "id": "caves-tunnels",
+      "name": "Caves and tunnels",
+      "passableBy": [
+        "bike",
+        "infantry"
+      ],
+      "buildable": false
+    }
+  ],
+  "destructibles": [
+    "bridges",
+    "rock-arches",
+    "ice-shelves"
+  ],
+  "relief": {
+    "slopeSpeed": {
+      "fromDegrees": 8,
+      "multiplierAtLimit": 0.5
+    },
+    "highGround": {
+      "fromMetres": 15,
+      "fullMetres": 60,
+      "sightBonus": 0.2,
+      "rangeBonus": 0.1
+    },
+    "buildSlopeDegrees": 14,
+    "planets": {
+      "rust": {
+        "style": "mesa",
+        "seed": 211,
+        "floorMetres": 30,
+        "levels": {
+          "citadel-site": 45,
+          "ore-field": 8,
+          "gas-vent": 18,
+          "chokepoint": 38,
+          "relay-ridge": 100
+        },
+        "levelJitterMetres": 6,
+        "padMarginMetres": 30,
+        "corridorHalfWidthMetres": 58,
+        "passPinch": 0.62,
+        "wallBandMetres": 45,
+        "mountainMetres": [
+          70,
+          230
+        ],
+        "basinDepthMetres": 18
+      },
+      "pale": {
+        "style": "alpine",
+        "seed": 307,
+        "floorMetres": 40,
+        "levels": {
+          "citadel-site": 40,
+          "ore-field": 0,
+          "gas-vent": 12,
+          "chokepoint": 34,
+          "relay-ridge": 95
+        },
+        "levelJitterMetres": 6,
+        "padMarginMetres": 30,
+        "corridorHalfWidthMetres": 62,
+        "passPinch": 0.55,
+        "wallBandMetres": 70,
+        "mountainMetres": [
+          90,
+          380
+        ],
+        "basinDepthMetres": 14,
+        "snowAboveMetres": 210
+      },
+      "brume": {
+        "style": "highland",
+        "seed": 401,
+        "floorMetres": 60,
+        "levels": {
+          "citadel-site": 30,
+          "ore-field": 0,
+          "gas-vent": 6,
+          "chokepoint": 30,
+          "relay-ridge": 80
+        },
+        "levelJitterMetres": 5,
+        "padMarginMetres": 30,
+        "corridorHalfWidthMetres": 64,
+        "passPinch": 0.6,
+        "wallBandMetres": 60,
+        "mountainMetres": [
+          60,
+          160
+        ],
+        "basinDepthMetres": 12
+      },
+      "cinder": {
+        "style": "volcanic",
+        "seed": 503,
+        "floorMetres": 30,
+        "levels": {
+          "citadel-site": 42,
+          "ore-field": 10,
+          "gas-vent": 4,
+          "chokepoint": 36,
+          "relay-ridge": 105
+        },
+        "levelJitterMetres": 6,
+        "padMarginMetres": 30,
+        "corridorHalfWidthMetres": 56,
+        "passPinch": 0.6,
+        "wallBandMetres": 50,
+        "mountainMetres": [
+          70,
+          260
+        ],
+        "basinDepthMetres": 16
+      }
+    }
+  }
+}
