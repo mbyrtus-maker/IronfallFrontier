@@ -4,7 +4,11 @@ A co-op three-lane MOBA shooter built on the Ironfall engine. You fight as a pil
 
 ## Play
 
-`dist/index.html` is the built game: one self-contained page plus the `dist/music/` folder. The game fetches the music over HTTP, so serve the folder rather than opening the file directly:
+Online: https://mbyrtus-maker.github.io/IronfallFrontier/ (GitHub Pages, from `docs/` on `main`).
+
+Locally:
+
+`docs/index.html` is the built game: one self-contained page plus the `docs/music/` folder. The game fetches the music over HTTP, so serve the folder rather than opening the file directly:
 
 ```sh
 tools/serve.sh          # then open http://localhost:8123/index.html
@@ -22,14 +26,14 @@ URL options: `?frontline=1`, `?planet=pale`, `?showcase=1` (every unit, your wea
 | `frontline/samples/` | Mastered sound effects (base64); `samples_orig/` holds the recordings before mastering |
 | `frontline/music_src/` | The music plan and track list (the original MP3s are not in the repo) |
 | `halcyon/index.html` | The page shell the build fills in |
-| `dist/` | The built game and the mastered music |
+| `docs/` | The built game and the mastered music |
 | `tools/` | Build, local server, smoke test, headless sim tests, model renderers, audio mastering |
 | `blender/` | The Blender scene script for the mech concept render |
 
 ## Build
 
 ```sh
-node tools/build.js halcyon/index.html frontline dist/index.html "build label"
+node tools/build.js halcyon/index.html frontline docs/index.html "build label"
 ```
 
 The build swaps the sources, data and samples into the page shell. Nothing needs installing beyond Node.
