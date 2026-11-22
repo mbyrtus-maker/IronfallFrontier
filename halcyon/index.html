@@ -801,23 +801,23 @@
     <!-- designer 20 Nov: "the main screen goes off the page, condense, reorder": two columns. Left: planet (a change reloads the page), pilot (callsign, host / join), profile, sound, controls. Right: the loadout and deploy. -->
     <div class="stGrid">
     <div class="stColL">
-    <div class="stSec"><div class="stH"><span>1</span>Planet</div>
+    <div class="stSec"><div class="stH">Planet</div>
       <div class="diffRow battleRow" id="battleRow"></div>
       <div id="battleSub" class="battleSub"></div>
       <div class="diffRow"><span class="label">Enemy</span><button data-diff="easy">EASY</button><button data-diff="normal">NORMAL</button><button data-diff="hard">HARD</button></div></div>
-    <div class="stSec"><div class="stH"><span>2</span>Pilot</div>
+    <div class="stSec"><div class="stH">Pilot</div>
       <div class="mpRow stLeft"><span class="label">Callsign</span><input id="mpName" maxlength="16" placeholder="your callsign" autocomplete="off"></div>
       <div class="mpRow stLeft"><span class="label">Squad</span><input id="mpCode" maxlength="24" placeholder="room code" autocomplete="off"><button id="mpBtn" title="Uses the loadout below">CONFIRM LOADOUT · HOST / JOIN</button></div>
       <div class="stNote">optional · up to 4 players type the same code; the first one in hosts</div>
       <div id="mpStat"></div>
       <div id="mpList"></div><div id="stSquad"></div></div>
-    <div class="stSec"><div class="stH"><span>3</span>Profile</div><div id="c7aSlot"></div></div>
+    <div class="stSec"><div class="stH">Profile</div><div id="c7aSlot"></div></div>
     <div class="stSec stSound"><div class="stH">Sound</div>
     <div class="audioRow"><span class="label">Master</span><input id="volStart" type="range" min="0" max="100" value="70"><label><input id="muteStart" type="checkbox"> mute</label></div></div>
     <div class="note2">Cyan: yours · red-orange: the Hegemony · grey: empty, anyone can board. <span style="opacity:0.6">build <span id="buildStamp"></span></span></div>
     </div>
     <div class="stColR">
-    <div class="stSec stLo"><div class="stH"><span>4</span>Loadout</div><div id="loSlot"></div></div>
+    <div class="stSec stLo"><div class="stH">Loadout</div><div id="loSlot"></div></div>
     <div class="choices">
       <button id="startBtn">CLICK TO DEPLOY<small id="startSub">in a Dart at the Command Core</small></button>
       <button id="bigBtn" style="display:none">300-UNIT BATTLE<small>performance run</small></button><!-- retired from the start screen (designer 19 Nov); ?units=300 still runs it -->

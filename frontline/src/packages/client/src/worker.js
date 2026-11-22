@@ -234,7 +234,7 @@ function guestMsg(slot, m) {
         // Frontline (21 Nov, Ace of the Airways co-op lessons): the guest's own kit, lane, give-up and cell swap act on the
         // guest's pilot and player slot (they were the host's only); lane requests and the priority are the team's
         case "flKit":
-            if (s.fkit && m.kit && (!g.kitSet || (m.confirm && !g.kitConfirmed) || flAtCore(s, g.pilotId))) { // the first kit (with the join) and the confirmed one at once; later ones at the Core
+            if (s.fkit && m.kit && (!g.kitSet || m.confirm || flAtCore(s, g.pilotId))) { // the first kit (with the join) and the confirmed one at once; later ones at the Core
                 if (m.confirm)
                     g.kitConfirmed = true;
                 if (s.fkit.setKit(s, g.slot, m.kit))
@@ -990,7 +990,7 @@ ctx.onmessage = (ev) => {
                     sim.fkit.laneOf.set(scen.pilotId, Math.max(0, Math.min(3, m.lane)));
                 break;
             case "flKit": // Frontline: the player changed the kit (start card)
-                if (sim && sim.fkit && m.kit && flAtCore(sim, scen.pilotId))
+                if (sim && sim.fkit && m.kit && (m.confirm || flAtCore(sim, scen.pilotId)))
                     sim.fkit.setKit(sim, 0, m.kit);
                 break;
             case "pctl":

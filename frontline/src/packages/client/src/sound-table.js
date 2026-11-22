@@ -50,7 +50,9 @@ function familyOf(weaponId, damageType) {
  */
 exports.MG_SAMPLE = {
     "hammer-machine-gun": 1.0, "carrier-roof-gun": 0.97, "mule-door-gun": 1.04, "strider-chin-guns": 0.94,
-    "dart-gun": 0.9, // Frontline: lower and heavier (it read as a pea shooter at 1.12) "salvo-minigun": 1.08, "bunker-hmg": 0.88,
+    "dart-gun": 0.9, // Frontline: lower and heavier (it read as a pea shooter at 1.12)
+    "salvo-minigun": 1.08, "bunker-hmg": 0.88,
+    "heavy-machine-gun": 0.76, // designer 21 Nov: the pilot's heavy machine gun (slot 2) on the recorded M249, slowed: deep, with a low punch (audio.ts mgShot)
     "gunship-twin-mg": 1.18, "gunship-door-minigun": 1.0, // Frontline gunship
     "mech-autocannon": 0.52, // Frontline: the mech's twin autocannon, low and booming
 };

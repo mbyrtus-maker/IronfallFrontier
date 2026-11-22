@@ -3,8 +3,8 @@
     "id": "pilot-carbine",
     "name": "Pilot carbine",
     "damageType": "kinetic",
-    "damage": 20,
-    "shotsPerSecond": 3,
+    "damage": 14,
+    "shotsPerSecond": 6,
     "range": 150,
     "projectileSpeed": 0,
     "ballistic": false,
@@ -12,7 +12,7 @@
     "gasPerShot": 0,
     "class": "small-arms",
     "canHitAir": true,
-    "ammo": 150
+    "ammo": 240
   },
   {
     "id": "pilot-long-rifle",
@@ -935,8 +935,8 @@
     "id": "pulse-carbine",
     "name": "Pulse carbine",
     "damageType": "laser",
-    "damage": 17,
-    "shotsPerSecond": 3,
+    "damage": 12,
+    "shotsPerSecond": 6,
     "range": 150,
     "projectileSpeed": 0,
     "ballistic": false,

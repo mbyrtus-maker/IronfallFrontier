@@ -6437,8 +6437,422 @@ function vmAmr() {
     b.mirrored((s) => rod(b, [0.5, -0.01, 0], [0.47, -0.12, s * 0.04], 0.006, 3)); // bipod (folded down)
     return b.build([0, 0, 0], 0, 0);
 }
+
+// ---- designer 21 Nov: "all the player guns need more details": one detailed model per Frontline gun (slot 1 x kinetic /
+// laser, slot 2), built from the same kit of parts so they read as one family. Same conventions as above: +x along the
+// barrel, origin at the rear of the receiver, barrel axis at y 0.012 (slot 1) / 0.006 (slot 2, main.ts vmMuzzleVm).
+const VM_BLK = [0.22, 0.23, 0.23], VM_GUN = [0.44, 0.46, 0.46], VM_GRIP = [0.28, 0.27, 0.25], VM_WHITE = [0.86, 0.87, 0.85];
+const VM_LASER = [0.35, 0.9, 1], VM_HOT = [1, 0.62, 0.22];
+/** A picatinny rail: a strip with n cross slots, from x0 over len at height y. */
+function vmRail(b, x0, len, y, hw = 0.009) {
+    b.set(VM_BLK, 0);
+    b.box(x0 + len / 2, y, 0, len / 2, 0.004, hw);
+    const n = Math.max(2, Math.round(len / 0.014));
+    for (let i = 0; i < n; i++)
+        b.box(x0 + (i + 0.5) * (len / n), y + 0.005, 0, len / n * 0.28, 0.002, hw * 0.95);
+}
+/** A pistol grip with finger grooves and a trigger guard + trigger, grip top at (x, y). */
+function vmGrip(b, x, y, h = 0.085, rake = 0.03) {
+    b.set(VM_GRIP, 0);
+    b.hull([[x - 0.018, y], [x + 0.016, y], [x + 0.006 - rake, y - h], [x - 0.03 - rake, y - h + 0.006]], 0.015, 0.014);
+    b.set(VM_BLK, 0);
+    for (let i = 1; i <= 3; i++)
+        b.box(x + 0.012 - rake * i / 4, y - h * i / 4, 0, 0.004, 0.003, 0.0155); // finger grooves
+    b.box(x + 0.046, y - 0.026, 0, 0.026, 0.003, 0.012); // trigger guard bottom
+    b.box(x + 0.071, y - 0.014, 0, 0.003, 0.013, 0.012); // front of the guard
+    b.set(VM_GUN, 0);
+    b.hull([[x + 0.03, y - 0.002], [x + 0.038, y - 0.002], [x + 0.034, y - 0.02], [x + 0.028, y - 0.018]], 0.003, 0.003); // trigger
+}
+/** Laser guns: glowing heat-cell windows along the body and a lit emitter ring at the muzzle. */
+function vmLaserBits(b, x0, x1, y, muzzleX, r) {
+    b.set(VM_LASER, 2);
+    const n = Math.max(2, Math.round((x1 - x0) / 0.04));
+    for (let i = 0; i < n; i++)
+        b.mirrored((sd) => b.box(x0 + (i + 0.5) * (x1 - x0) / n, y, sd * 0.0215, (x1 - x0) / n * 0.32, 0.007, 0.0008));
+    b.cyl(muzzleX, y, 0, r * 1.05, r * 1.05, 0.006, 10, "x");
+}
+function vmCarbineHD(laser = false) {
+    const b = new MeshBuilder();
+    const BODY = laser ? [0.78, 0.8, 0.82] : VM_OLIVE;
+    // stock: buffer tube, adjustable stock with butt pad and cheek riser, sling loop
+    b.set(VM_BLK, 0);
+    b.cyl(-0.2, 0.012, 0, 0.012, 0.012, 0.13, 8, "x"); // buffer tube
+    b.set(BODY, 0);
+    b.hull([[-0.3, -0.055], [-0.2, -0.03], [-0.17, 0.0], [-0.17, 0.026], [-0.3, 0.03]], 0.02, 0.018); // stock body
+    b.set(VM_BLK, 0);
+    b.box(-0.302, -0.012, 0, 0.004, 0.044, 0.021); // butt pad
+    b.box(-0.235, 0.034, 0, 0.05, 0.006, 0.012); // cheek riser
+    b.box(-0.24, -0.046, 0, 0.012, 0.003, 0.016); // sling loop
+    // lower and upper receiver (two tones), magazine well, ejection port, forward assist, charging handle
+    b.set(BODY, 0);
+    b.box(0.04, -0.008, 0, 0.12, 0.02, 0.022); // lower
+    b.set(laser ? VM_GUN : VM_DARK, 0);
+    b.box(0.05, 0.03, 0, 0.13, 0.019, 0.021); // upper
+    b.set(VM_BLK, 0);
+    b.box(0.07, 0.033, 0.0215, 0.035, 0.008, 0.001); // ejection port
+    b.box(0.13, 0.03, 0.022, 0.008, 0.006, 0.004); // forward assist
+    b.box(-0.075, 0.046, 0, 0.012, 0.004, 0.014); // charging handle
+    b.box(0.0, -0.002, -0.0225, 0.006, 0.006, 0.001); // safety selector
+    vmGrip(b, -0.035, -0.028);
+    // curved magazine with ribs and a base plate
+    b.set(VM_BLK, 0);
+    b.box(0.07, -0.034, 0, 0.026, 0.008, 0.019); // magazine well
+    b.set(laser ? VM_GUN : VM_DARK, 0);
+    b.hull([[0.048, -0.04], [0.092, -0.04], [0.108, -0.135], [0.066, -0.142]], 0.015, 0.015);
+    b.set(VM_BLK, 0);
+    for (const t of [0.3, 0.55, 0.8])
+        b.box(0.07 + t * 0.03, -0.04 - t * 0.1, 0, 0.022, 0.002, 0.0158); // ribs
+    b.box(0.088, -0.143, 0, 0.026, 0.004, 0.017); // base plate
+    // handguard: an octagonal tube with vent slots, a full-length top rail, side rail stubs and an angled fore-grip
+    b.set(BODY, 0);
+    b.cyl(0.18, 0.012, 0, 0.026, 0.026, 0.23, 8, "x", true, Math.PI / 8);
+    b.set(VM_BLK, 0);
+    for (let i = 0; i < 6; i++)
+        b.mirrored((sd) => b.box(0.21 + i * 0.033, 0.012, sd * 0.0245, 0.009, 0.0045, 0.002)); // vent slots
+    vmRail(b, -0.07, 0.48, 0.052);
+    b.mirrored((sd) => b.box(0.36, 0.012, sd * 0.027, 0.03, 0.004, 0.003)); // side rail stubs
+    b.set(VM_GRIP, 0);
+    b.hull([[0.3, -0.014], [0.34, -0.014], [0.33, -0.06], [0.305, -0.06]], 0.012, 0.011); // fore-grip
+    // optic: a holographic sight with a hood, a lit reticle window and a brightness dial
+    b.set(VM_BLK, 0);
+    b.box(0.03, 0.061, 0, 0.03, 0.005, 0.013); // base
+    b.mirrored((sd) => b.box(0.03, 0.074, sd * 0.013, 0.026, 0.009, 0.0015)); // hood sides
+    b.box(0.03, 0.0835, 0, 0.026, 0.0015, 0.0145); // hood top
+    b.set([1, 0.3, 0.2], 4);
+    b.box(0.056, 0.074, 0, 0.001, 0.003, 0.003); // reticle
+    b.set(VM_GUN, 0);
+    b.cyl(0.01, 0.07, 0.0145, 0.005, 0.005, 0.005, 8, "z"); // dial
+    // folding front sight, barrel with gas block, flash hider with slots
+    b.set(VM_BLK, 0);
+    b.box(0.43, 0.066, 0, 0.006, 0.012, 0.007);
+    b.set(VM_STEEL, 0);
+    b.cyl(0.41, 0.012, 0, 0.0095, 0.0095, 0.07, 8, "x"); // barrel
+    b.set(VM_BLK, 0);
+    b.box(0.425, 0.012, 0, 0.008, 0.013, 0.012); // gas block
+    b.cyl(0.475, 0.012, 0, 0.014, 0.014, 0.03, 8, "x"); // flash hider
+    b.set([0.08, 0.08, 0.08], 0);
+    b.mirrored((sd) => b.box(0.49, 0.012, sd * 0.0135, 0.008, 0.003, 0.0012)); // its slots
+    if (laser)
+        vmLaserBits(b, 0.2, 0.4, 0.012, 0.5, 0.014);
+    return b.build([0, 0, 0], 0, 0);
+}
+/** Machine pistol (one of the dual pair, held in each hand): slide with serrations, frame, extended magazine, compensator. */
+function vmPistol(laser = false) {
+    const b = new MeshBuilder();
+    const BODY = laser ? [0.78, 0.8, 0.82] : VM_DARK;
+    b.set(BODY, 0);
+    b.box(0.09, 0.024, 0, 0.13, 0.017, 0.014); // slide
+    b.set(VM_BLK, 0);
+    for (let i = 0; i < 6; i++)
+        b.mirrored((sd) => b.box(-0.025 + i * 0.008, 0.026, sd * 0.0142, 0.0018, 0.012, 0.0008)); // rear serrations
+    b.box(0.07, 0.024, 0.0143, 0.03, 0.007, 0.0008); // ejection port
+    b.box(-0.03, 0.044, 0, 0.006, 0.004, 0.008); // rear sight
+    b.box(0.2, 0.043, 0, 0.004, 0.004, 0.003); // front sight
+    b.set(VM_GRIP, 0);
+    b.box(0.08, -0.002, 0, 0.11, 0.01, 0.013); // frame
+    vmRail(b, 0.11, 0.07, -0.016, 0.008);
+    vmGrip(b, 0.0, -0.01, 0.075, 0.02);
+    // extended magazine sticking out of the grip, with a grip sleeve
+    b.set(VM_BLK, 0);
+    b.hull([[-0.032, -0.084], [-0.008, -0.084], [-0.018, -0.17], [-0.042, -0.168]], 0.011, 0.011);
+    b.box(-0.03, -0.172, 0, 0.016, 0.004, 0.0125);
+    // threaded barrel with a ported compensator
+    b.set(VM_STEEL, 0);
+    b.cyl(0.215, 0.024, 0, 0.0065, 0.0065, 0.012, 8, "x");
+    b.set(VM_BLK, 0);
+    b.box(0.245, 0.026, 0, 0.018, 0.013, 0.0125);
+    b.set([0.08, 0.08, 0.08], 0);
+    for (const x of [0.236, 0.25])
+        b.box(x, 0.039, 0, 0.003, 0.0015, 0.007); // ports on top
+    if (laser) {
+        b.set(VM_LASER, 2);
+        b.mirrored((sd) => b.box(0.11, 0.024, sd * 0.0145, 0.05, 0.004, 0.0008));
+        b.cyl(0.262, 0.026, 0, 0.0085, 0.0085, 0.004, 8, "x");
+    }
+    return b.build([0, 0, 0], 0, 0);
+}
+/** Pump shotgun: stock, receiver with a side shell carrier, pump with grooves, tube magazine under the barrel, bead sight. */
+function vmShotgun(laser = false) {
+    const b = new MeshBuilder();
+    const BODY = laser ? [0.78, 0.8, 0.82] : VM_DARK, WOOD = laser ? VM_GUN : [0.48, 0.32, 0.2];
+    b.set(WOOD, 0);
+    b.hull([[-0.32, -0.07], [-0.07, -0.03], [-0.07, 0.022], [-0.32, 0.03]], 0.022, 0.02); // stock
+    b.set(VM_BLK, 0);
+    b.box(-0.322, -0.02, 0, 0.004, 0.05, 0.023); // recoil pad
+    b.set(BODY, 0);
+    b.box(0.03, 0.01, 0, 0.1, 0.03, 0.024); // receiver
+    b.set(VM_BLK, 0);
+    b.box(0.03, -0.021, 0, 0.05, 0.004, 0.016); // loading port
+    b.box(0.03, 0.042, 0, 0.09, 0.003, 0.008); // top rib
+    vmGrip(b, -0.05, -0.016, 0.07, 0.025);
+    // side saddle with four shells
+    b.set(VM_BLK, 0);
+    b.box(0.03, 0.01, -0.027, 0.045, 0.022, 0.003);
+    b.set(laser ? VM_LASER : [0.75, 0.12, 0.1], laser ? 2 : 0);
+    for (let i = 0; i < 4; i++)
+        b.cyl(0.0 + i * 0.02, -0.012, -0.033, 0.0075, 0.0075, 0.044, 8, "y");
+    b.set([0.82, 0.66, 0.3], 0);
+    for (let i = 0; i < 4; i++)
+        b.cyl(0.0 + i * 0.02, -0.016, -0.033, 0.008, 0.008, 0.006, 8, "y"); // brass bases
+    // tube magazine and barrel
+    b.set(VM_STEEL, 0);
+    b.cyl(0.13, 0.022, 0, 0.013, 0.013, 0.48, 10, "x"); // barrel
+    b.set(BODY, 0);
+    b.cyl(0.13, -0.008, 0, 0.011, 0.011, 0.42, 10, "x"); // magazine tube
+    b.box(0.55, 0.006, 0, 0.012, 0.022, 0.012); // barrel clamp
+    // pump with grooves
+    b.set(WOOD, 0);
+    b.cyl(0.2, -0.004, 0, 0.022, 0.022, 0.14, 10, "x");
+    b.set(VM_BLK, 0);
+    for (let i = 0; i < 6; i++)
+        b.cyl(0.21 + i * 0.022, -0.004, 0, 0.0232, 0.0232, 0.004, 10, "x");
+    b.set([0.9, 0.85, 0.6], 0);
+    b.box(0.6, 0.037, 0, 0.003, 0.003, 0.003); // bead
+    if (laser)
+        vmLaserBits(b, 0.15, 0.55, 0.022, 0.61, 0.014);
+    const m = b.build([0, 0, 0], 0, 0);
+    for (let i = 0; i < m.verts.length; i += exports.VERTEX_FLOATS)
+        m.verts[i + 1] -= 0.01; // barrel axis at 0.012
+    return m;
+}
+/** Marksman rifle: tan furniture, long free-float handguard, variable scope with turrets, folded bipod, 20-round magazine. */
+function vmMarksman(laser = false) {
+    const b = new MeshBuilder();
+    const BODY = laser ? [0.78, 0.8, 0.82] : VM_TAN;
+    b.set(BODY, 0);
+    b.hull([[-0.36, -0.07], [-0.2, -0.045], [-0.08, -0.03], [-0.08, 0.03], [-0.36, 0.036]], 0.022, 0.019); // stock
+    b.set(VM_BLK, 0);
+    b.box(-0.362, -0.016, 0, 0.004, 0.052, 0.023);
+    b.box(-0.25, 0.042, 0, 0.06, 0.007, 0.013); // cheek piece
+    b.set(laser ? VM_GUN : VM_DARK, 0);
+    b.box(0.05, 0.01, 0, 0.13, 0.03, 0.022); // receiver
+    b.set(VM_BLK, 0);
+    b.box(0.07, 0.02, 0.0222, 0.035, 0.009, 0.001); // ejection port
+    vmGrip(b, -0.045, -0.02);
+    b.set(laser ? VM_GUN : VM_DARK, 0);
+    b.box(0.08, -0.07, 0, 0.022, 0.05, 0.016); // straight magazine
+    b.set(VM_BLK, 0);
+    b.box(0.08, -0.121, 0, 0.024, 0.004, 0.017);
+    // handguard and barrel
+    b.set(BODY, 0);
+    b.cyl(0.18, 0.012, 0, 0.024, 0.024, 0.34, 8, "x", true, Math.PI / 8);
+    b.set(VM_BLK, 0);
+    for (let i = 0; i < 7; i++)
+        b.mirrored((sd) => b.box(0.21 + i * 0.042, 0.012, sd * 0.0225, 0.012, 0.004, 0.002));
+    vmRail(b, -0.06, 0.26, 0.044);
+    b.set(VM_STEEL, 0);
+    b.cyl(0.52, 0.012, 0, 0.0095, 0.009, 0.14, 8, "x");
+    b.set(VM_BLK, 0);
+    b.box(0.675, 0.012, 0, 0.022, 0.014, 0.014); // muzzle brake
+    b.set([0.08, 0.08, 0.08], 0);
+    b.mirrored((sd) => b.box(0.675, 0.012, sd * 0.0142, 0.012, 0.006, 0.0008));
+    // scope: tube, eyepiece, objective, elevation / windage turrets, rings
+    b.set(VM_BLK, 0);
+    b.cyl(-0.05, 0.08, 0, 0.017, 0.015, 0.06, 10, "x"); // eyepiece
+    b.cyl(0.01, 0.08, 0, 0.013, 0.013, 0.14, 10, "x");
+    b.cyl(0.15, 0.08, 0, 0.014, 0.022, 0.05, 10, "x"); // objective bell
+    b.cyl(0.06, 0.093, 0, 0.009, 0.009, 0.016, 8, "y"); // elevation turret
+    b.cyl(0.06, 0.08, 0.012, 0.009, 0.009, 0.014, 8, "z"); // windage turret
+    b.mirrored((sd) => b.box(0.06 + sd * 0.05, 0.06, 0, 0.007, 0.016, 0.014)); // rings
+    b.set([0.6, 0.85, 1], 4);
+    b.disc(0.2, 0.08, 0, 0.019, 10, "x", 1);
+    // bipod folded under the handguard
+    b.set(VM_BLK, 0);
+    b.box(0.44, -0.016, 0, 0.012, 0.006, 0.012);
+    b.mirrored((sd) => rod(b, [0.44, -0.02, sd * 0.01], [0.3, -0.03, sd * 0.016], 0.004, 4));
+    if (laser)
+        vmLaserBits(b, 0.2, 0.5, 0.012, 0.695, 0.015);
+    return b.build([0, 0, 0], 0, 0);
+}
+/** Revolver grenade launcher: folding stock, a six-chamber cylinder with its spring housing, a fat short barrel, leaf sight. */
+function vmLauncher(laser = false) {
+    const b = new MeshBuilder();
+    const BODY = laser ? [0.78, 0.8, 0.82] : VM_OLIVE;
+    b.set(VM_BLK, 0);
+    b.hull([[-0.3, -0.06], [-0.27, -0.06], [-0.12, -0.012], [-0.12, 0.012], [-0.3, 0.02]], 0.016, 0.016); // skeleton stock
+    b.box(-0.302, -0.02, 0, 0.004, 0.042, 0.02);
+    b.set(BODY, 0);
+    b.box(-0.06, 0.006, 0, 0.07, 0.03, 0.026); // frame
+    vmGrip(b, -0.07, -0.024, 0.075);
+    // cylinder with chambers, flutes and the spring housing at the front
+    b.set(laser ? VM_GUN : VM_DARK, 0);
+    b.cyl(0.01, 0.0, 0, 0.055, 0.055, 0.14, 12, "x");
+    b.set(VM_BLK, 0);
+    for (let i = 0; i < 6; i++) {
+        const a = (i / 6) * Math.PI * 2 + Math.PI / 6;
+        b.box(0.08, Math.sin(a) * 0.056, Math.cos(a) * 0.056, 0.06, 0.004, 0.004); // flutes
+    }
+    b.set(laser ? VM_LASER : VM_HOT, laser ? 2 : 4);
+    for (let i = 0; i < 6; i++) {
+        const a = (i / 6) * Math.PI * 2;
+        b.disc(0.009, Math.sin(a) * 0.033, Math.cos(a) * 0.033, 0.014, 8, "x", -1); // rounds in the chambers (rear face)
+    }
+    b.set(BODY, 0);
+    b.cyl(0.15, 0.0, 0, 0.03, 0.03, 0.04, 10, "x"); // spring housing
+    // barrel with the rail over it and a vertical fore-grip
+    b.set(VM_DARK, 0);
+    b.cyl(0.15, 0.012, 0, 0.027, 0.027, 0.26, 12, "x");
+    b.set(VM_BLK, 0);
+    b.cyl(0.4, 0.012, 0, 0.031, 0.031, 0.018, 12, "x"); // muzzle ring
+    b.set([0.06, 0.06, 0.06], 0);
+    b.disc(0.419, 0.012, 0, 0.021, 10, "x", 1); // bore
+    vmRail(b, -0.1, 0.48, 0.062, 0.008);
+    b.mirrored((sd) => b.box(0.0, 0.05, sd * 0.008, 0.004, 0.012, 0.0015)); // rail risers
+    b.set(VM_BLK, 0);
+    b.box(0.16, 0.085, 0, 0.004, 0.02, 0.012); // leaf sight
+    b.set([1, 0.82, 0.3], 4);
+    b.box(0.164, 0.098, 0, 0.0012, 0.0025, 0.0025);
+    b.set(VM_GRIP, 0);
+    b.hull([[0.28, -0.015], [0.31, -0.015], [0.305, -0.075], [0.282, -0.075]], 0.012, 0.012);
+    if (laser)
+        vmLaserBits(b, 0.17, 0.39, 0.012, 0.42, 0.03);
+    return b.build([0, 0, 0], 0, 0);
+}
+/** Long rifle (slot 2): bolt action, chassis stock with an adjustable cheek and monopod, big thermal scope, fluted barrel, brake. */
+function vmLongRifle() {
+    const b = new MeshBuilder();
+    b.set(VM_TAN, 0);
+    b.hull([[-0.38, -0.08], [-0.22, -0.05], [-0.06, -0.04], [-0.06, 0.03], [-0.38, 0.035]], 0.023, 0.02); // chassis stock
+    b.set(VM_BLK, 0);
+    b.box(-0.382, -0.022, 0, 0.004, 0.058, 0.024); // butt pad
+    b.box(-0.26, 0.044, 0, 0.07, 0.007, 0.014); // cheek piece
+    b.mirrored((sd) => b.box(-0.26, 0.026, sd * 0.016, 0.004, 0.012, 0.002)); // its posts
+    b.cyl(-0.31, -0.07, 0, 0.005, 0.005, 0.04, 6, "y"); // monopod
+    b.set(VM_TAN, 0);
+    b.box(0.07, 0.0, 0, 0.13, 0.034, 0.026); // receiver chassis
+    b.set(VM_DARK, 0);
+    b.cyl(-0.05, 0.03, 0, 0.016, 0.016, 0.2, 10, "x"); // action / bolt body
+    b.set(VM_STEEL, 0);
+    rod(b, [-0.02, 0.03, 0.016], [-0.02, 0.012, 0.05], 0.004, 5); // bolt handle
+    b.cyl(-0.02, 0.012, 0.05, 0.009, 0.009, 0.012, 8, "z"); // bolt knob
+    vmGrip(b, -0.045, -0.028, 0.085, 0.035);
+    b.set(VM_DARK, 0);
+    b.box(0.07, -0.048, 0, 0.022, 0.018, 0.016); // detachable magazine
+    // thermal scope: housing, display eyepiece, lens and a lit battery cap
+    b.set(VM_DARK, 0);
+    b.cyl(-0.07, 0.072, 0, 0.018, 0.016, 0.06, 10, "x");
+    b.box(0.04, 0.072, 0, 0.08, 0.02, 0.02);
+    b.cyl(0.12, 0.072, 0, 0.02, 0.026, 0.05, 10, "x");
+    b.set(VM_BLK, 0);
+    b.cyl(0.03, 0.096, 0, 0.008, 0.008, 0.01, 8, "y"); // focus knob
+    b.mirrored((sd) => b.box(0.04 + sd * 0.055, 0.05, 0, 0.008, 0.012, 0.014)); // rings
+    b.set([1, 0.55, 0.25], 4);
+    b.disc(0.171, 0.072, 0, 0.022, 10, "x", 1);
+    b.set([0.35, 1, 0.45], 4);
+    b.box(0.0, 0.072, 0.0205, 0.006, 0.004, 0.0008); // status LED
+    // fore-end and a fluted barrel
+    b.set(VM_TAN, 0);
+    b.hull([[0.2, -0.034], [0.48, -0.022], [0.48, 0.022], [0.2, 0.034]], 0.022, 0.018);
+    b.set(VM_BLK, 0);
+    for (let i = 0; i < 5; i++)
+        b.mirrored((sd) => b.box(0.24 + i * 0.05, 0.0, sd * 0.021, 0.014, 0.006, 0.001));
+    b.set(VM_STEEL, 0);
+    b.cyl(0.2, 0.006, 0, 0.014, 0.011, 0.53, 8, "x");
+    b.set([0.4, 0.42, 0.42], 0);
+    for (let i = 0; i < 4; i++)
+        b.box(0.52 + i * 0.045, 0.006, 0, 0.018, 0.0122, 0.0122); // flutes (darker bands)
+    b.set(VM_BLK, 0);
+    b.box(0.745, 0.006, 0, 0.03, 0.02, 0.02); // brake
+    b.set([0.08, 0.08, 0.08], 0);
+    for (const x of [0.73, 0.75, 0.77])
+        b.mirrored((sd) => b.box(x, 0.006, sd * 0.0202, 0.005, 0.01, 0.0008));
+    return b.build([0, 0, 0], 0, 0);
+}
+/** Heavy machine gun (slot 2): perforated barrel shroud, top cover with a carry handle, belt feed from a side box, bipod. */
+function vmHmg() {
+    const b = new MeshBuilder();
+    b.set(VM_DARK, 0);
+    b.hull([[-0.34, -0.07], [-0.12, -0.04], [-0.12, 0.03], [-0.34, 0.035]], 0.024, 0.022); // stock
+    b.set(VM_BLK, 0);
+    b.box(-0.342, -0.018, 0, 0.004, 0.054, 0.025);
+    b.set(VM_GUN, 0);
+    b.box(0.03, 0.006, 0, 0.15, 0.04, 0.032); // receiver
+    b.set(VM_DARK, 0);
+    b.box(0.03, 0.05, 0, 0.13, 0.006, 0.03); // feed cover
+    b.set(VM_BLK, 0);
+    b.box(-0.06, 0.06, 0, 0.012, 0.006, 0.012); // cover latch
+    for (let i = 0; i < 5; i++)
+        b.mirrored((sd) => b.box(-0.08 + i * 0.03, 0.006, sd * 0.0325, 0.008, 0.026, 0.001)); // side panel ribs
+    vmGrip(b, -0.07, -0.034, 0.085);
+    // carry handle
+    b.set(VM_BLK, 0);
+    rod(b, [0.06, 0.056, 0], [0.09, 0.1, 0], 0.006, 5);
+    rod(b, [0.2, 0.056, 0], [0.17, 0.1, 0], 0.006, 5);
+    b.box(0.13, 0.102, 0, 0.045, 0.007, 0.01);
+    // belt box on the left with a belt of rounds into the feed tray
+    b.set(VM_OLIVE, 0);
+    b.box(0.04, -0.07, -0.03, 0.06, 0.045, 0.03);
+    b.set(VM_BLK, 0);
+    b.box(0.04, -0.07, -0.061, 0.05, 0.035, 0.001); // lid
+    b.set([0.82, 0.66, 0.3], 0);
+    for (let i = 0; i < 6; i++)
+        b.cyl(-0.02 + i * 0.016, -0.02 + i * 0.006, -0.036 + i * 0.004, 0.0045, 0.0045, 0.03, 6, "z"); // rounds
+    // shroud with holes, the barrel inside and a big flash hider
+    b.set(VM_DARK, 0);
+    b.cyl(0.18, 0.006, 0, 0.03, 0.03, 0.42, 12, "x");
+    b.set([0.14, 0.14, 0.14], 0);
+    for (let i = 0; i < 8; i++)
+        for (const a of [0.6, 1.57, 2.55, -0.6, -1.57, -2.55])
+            b.box(0.2 + i * 0.05, 0.006 + Math.sin(a) * 0.0302, Math.cos(a) * 0.0302, 0.0055, 0.0032, 0.0032); // cooling holes
+    b.set(VM_STEEL, 0);
+    b.cyl(0.6, 0.006, 0, 0.014, 0.014, 0.12, 8, "x");
+    b.set(VM_BLK, 0);
+    b.cyl(0.72, 0.006, 0, 0.022, 0.02, 0.05, 8, "x"); // flash hider
+    b.box(0.6, 0.046, 0, 0.005, 0.012, 0.006); // front sight post
+    b.box(0.0, 0.07, 0, 0.012, 0.008, 0.012); // rear sight
+    // bipod folded forward
+    b.set(VM_BLK, 0);
+    b.box(0.55, -0.026, 0, 0.012, 0.006, 0.016);
+    b.mirrored((sd) => rod(b, [0.55, -0.03, sd * 0.012], [0.7, -0.03, sd * 0.02], 0.005, 4));
+    return b.build([0, 0, 0], 0, 0);
+}
+/** Medic gun (slot 2): white body, a glass canister of glowing medi-gel, a hose, a cross, and a ring emitter. */
+function vmMedic() {
+    const b = new MeshBuilder();
+    b.set(VM_WHITE, 0);
+    b.hull([[-0.25, -0.05], [-0.06, -0.03], [-0.06, 0.035], [-0.25, 0.03]], 0.022, 0.02); // stock
+    b.box(0.06, 0.006, 0, 0.12, 0.035, 0.028); // body
+    b.set([0.85, 0.15, 0.15], 0);
+    b.box(0.06, 0.006, 0.0285, 0.018, 0.006, 0.001);
+    b.box(0.06, 0.006, 0.0285, 0.006, 0.018, 0.001); // red cross
+    b.set(VM_BLK, 0);
+    b.box(0.06, 0.042, 0, 0.1, 0.004, 0.02); // top strip
+    vmGrip(b, -0.04, -0.028);
+    // canister on top: metal caps, glowing gel
+    b.set(VM_GUN, 0);
+    b.cyl(-0.02, 0.07, 0, 0.022, 0.022, 0.012, 10, "x");
+    b.cyl(0.13, 0.07, 0, 0.022, 0.022, 0.012, 10, "x");
+    b.set([0.35, 1, 0.55], 4);
+    b.cyl(-0.008, 0.07, 0, 0.018, 0.018, 0.138, 10, "x");
+    b.set(VM_BLK, 0);
+    b.mirrored((sd) => b.box(0.06, 0.05, sd * 0.012, 0.07, 0.004, 0.002)); // cage bars
+    rod(b, [0.14, 0.06, 0.012], [0.2, 0.02, 0.026], 0.005, 5); // hose
+    // nozzle with emitter rings
+    b.set(VM_WHITE, 0);
+    b.cyl(0.18, 0.006, 0, 0.02, 0.016, 0.14, 10, "x");
+    b.set(VM_GUN, 0);
+    for (const x of [0.25, 0.29])
+        b.cyl(x, 0.006, 0, 0.022, 0.022, 0.008, 10, "x");
+    b.set([0.35, 1, 0.55], 4);
+    b.cyl(0.32, 0.006, 0, 0.018, 0.018, 0.006, 10, "x");
+    return b.build([0, 0, 0], 0, 0);
+}
+function flViewModels() {
+    const o = {};
+    for (const [k, f] of [["carbine", vmCarbineHD], ["pistol", vmPistol], ["shotgun", vmShotgun], ["marksman", vmMarksman], ["launcher", vmLauncher]]) {
+        o[`vm-${k}-k`] = f(false);
+        o[`vm-${k}-l`] = f(true);
+    }
+    o["vm-longrifle"] = vmLongRifle();
+    o["vm-hmg"] = vmHmg();
+    o["vm-medic"] = vmMedic();
+    return o;
+}
+Object.assign(exports.VIEWMODEL_AXIS, { "vm-carbine-k": [-0.3, 0.505], "vm-carbine-l": [-0.3, 0.505], "vm-pistol-k": [-0.04, 0.263], "vm-pistol-l": [-0.04, 0.266],
+    "vm-shotgun-k": [-0.32, 0.61], "vm-shotgun-l": [-0.32, 0.615], "vm-marksman-k": [-0.36, 0.697], "vm-marksman-l": [-0.36, 0.7], "vm-launcher-k": [-0.3, 0.42], "vm-launcher-l": [-0.3, 0.42],
+    "vm-longrifle": [-0.38, 0.775], "vm-hmg": [-0.34, 0.77], "vm-medic": [-0.25, 0.326] });
 function viewModelMeshes() {
-    return { "vm-carbine": vmCarbine(), "vm-rifle": vmRifle(), "vm-torch": vmTorch(), "vm-build": vmBuild(), "vm-beacon": vmBeacon(),
+    return { ...flViewModels(), "vm-carbine": vmCarbine(), "vm-rifle": vmRifle(), "vm-torch": vmTorch(), "vm-build": vmBuild(), "vm-beacon": vmBeacon(),
         "vm-beacon-supply": vmBeacon([0.35, 1, 0.45]), "vm-beacon-defensive": vmBeacon([0.3, 0.75, 1]), "vm-beacon-recon": vmBeacon([1, 0.9, 0.3]), "vm-beacon-orbital": vmBeacon([1, 0.32, 0.18]), "vm-beacon-air": vmBeacon([1, 0.6, 0.15]), "vm-flash": vmFlash(), "vm-tube": vmTube(), "vm-lance": vmLance(), "vm-amr": vmAmr(), "vm-lcannon": vmLaserCannon() };
 }
 // ---------------------------------------------------------------- G1: resource fields (ore deposits, gas geysers)

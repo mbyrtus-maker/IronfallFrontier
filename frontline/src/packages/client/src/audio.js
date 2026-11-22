@@ -672,6 +672,10 @@ class Sound {
         src.stop(t + (heavy ? 0.9 : 0.5));
         if (own && !heavy && (dens >= 0.99 || (this.ownMgTimes.length & 1) === 0)) // Frontline: a short low thump under the player's own shots (the weight of a vehicle gun; every other one on a fast gun)
             this.filtered(t, 0.09, "lowpass", 260, 70, 0.9, 0.55 * dens, 0.002, p.node);
+        if (!heavy && rate < 0.85) { // designer 21 Nov: a heavy calibre (the pilot's HMG): a chest punch and a short crack over the slowed shot
+            this.filtered(t, 0.14, "lowpass", 200, 60, 0.9, own ? 1.0 : 0.7, 0.002, p.node);
+            this.filtered(t, 0.035, "bandpass", 2600, 1500, 1.4, own ? 0.32 : 0.2, 0.0008, p.node);
+        }
         if (heavy) {
             this.filtered(t, 0.32, "lowpass", 220, 55, 0.8, 1.1, 0.004, p.node);
             this.filtered(t, 0.06, "bandpass", 900, 400, 1.2, 0.35, 0.001, p.node);

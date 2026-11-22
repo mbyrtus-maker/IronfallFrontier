@@ -734,6 +734,7 @@ function raiseThreat(t) {
 /** The match is over: input is released and the end screen is up (until Play again). */
 const matchLocked = () => matchWatch.over;
 function resetClientState() {
+    flCorePickShown = false;
     c6Reset();
     c11Reset();
     lastSeen.clear();
@@ -1181,6 +1182,7 @@ function applyPilot(p, now) {
         }
     }
     if (prev && prev.state === sim_ts_1.P_DEAD && p.state !== sim_ts_1.P_DEAD) {
+        flCorePickShown = false; // designer 21 Nov: the loadout screen again at the Core after a respawn
         deadSince = 0;
         lastCtl = "";
         camPitch = -0.05;
@@ -2256,7 +2258,7 @@ function flSquadLine() {
     const AP = FL.aiPilots, by = AP?.byDifficulty?.[difficulty] ?? AP ?? {}, e = by.enemies ?? 4, guests = (() => { try { return mp.active ? Math.max(0, roster.length - 1) : 0; } catch { return 0; } })(), a = Math.max(0, (by.allies ?? 3) - guests);
     if (!AP)
         return "";
-    const names = ["Vance (Sniper)", "Okoro (Heavy)", "Reyes (Medic)"].slice(0, a).join(", ");
+    const names = ["Vance", "Okoro", "Reyes"].slice(0, a).join(", ");
     return `<div class="battleSub">SQUAD · you${guests ? ` + ${guests} player${guests > 1 ? "s" : ""}` : ""}${a ? ` + ${names}` : ""} against ${e} Hegemony pilots · a player who joins takes an AI teammate's place</div>`;
 }
 /** The loadout picker on the start card and, while open, the in-game loadout panel (K at the Command Core). */
@@ -2617,9 +2619,9 @@ function flBotDoing(st, mode) {
 let flTeamRows = () => {
     if (!flBotsNow.length)
         return "";
-    const row = (q) => `<div class="tm"><span><b>${q[1]}</b> ${FL_ROLE[q[3]] ?? q[3]} · ${FL_LANES[q[4]] ?? ""}</span><span>${flBotDoing(q[5], q[6])}${q[8] >= 0 ? ` · ${q[8]}%` : ""}</span></div>`;
+    const row = (q) => `<div class="tm"><span><b>${q[1]}</b> ${FL_LANES[q[4]] ?? ""}</span><span>${flBotDoing(q[5], q[6])}${q[8] >= 0 ? ` · ${q[8]}%` : ""}</span></div>`;
     const mine = flBotsNow.filter((q) => q[2] === 0), foe = flBotsNow.filter((q) => q[2] !== 0);
-    return `<div class="ps">YOUR SQUAD</div>${mine.map(row).join("")}<div class="ps">HEGEMONY PILOTS</div><div class="pn">${foe.map((q) => `${q[1]} (${FL_ROLE[q[3]] ?? q[3]}${q[5] === "dead" ? ", down" : ""})`).join(" · ")}</div>`;
+    return `<div class="ps">YOUR SQUAD</div>${mine.map(row).join("")}<div class="ps">HEGEMONY PILOTS</div><div class="pn">${foe.map((q) => `${q[1]}${q[5] === "dead" ? " (down)" : ""}`).join(" · ")}</div>`;
 };
 /** A live player past the host takes an AI teammate's place (sim: flbots seats): say who stepped out or came back. */
 let flSquadSeen = null;
@@ -2661,7 +2663,7 @@ function flBotTags() {
             tag(e.x, e.cy + 1.4, e.z, `◆ ${q[1]} DOWN · ${q[10]} s${q[11] > 0 ? ` · being revived ${q[11]}%` : ""}`, "nameTag flBot enemy");
             continue;
         }
-        tag(e.x, e.cy + cd.tRadius[e.type] + 1.6, e.z, `${q[2] === 0 ? "" : "◆ "}${q[1]} <small>${FL_ROLE[q[3]] ?? ""}</small>`, q[2] === 0 ? "nameTag flBot" : "nameTag flBot enemy");
+        tag(e.x, e.cy + cd.tRadius[e.type] + 1.6, e.z, `${q[2] === 0 ? "" : "◆ "}${q[1]}`, q[2] === 0 ? "nameTag flBot" : "nameTag flBot enemy");
     }
 }
 {
@@ -2709,7 +2711,33 @@ function flRenderPanel() {
     const here = flAtCore();
     el.style.display = "block";
     el.innerHTML = `<div class="where" style="margin:0 0 8px;padding:4px 8px;font-size:12px;border-left:3px solid ${here ? "#7dff9a" : "#ffd23c"};text-align:left">${here ? "AT THE COMMAND CORE · changes apply at once" : "AWAY FROM BASE · you can look, but changes need your Command Core"}</div>`
-        + flPickerHtml() + `<div class="note2">K or Esc to close</div>`;
+        + flPickerHtml() + `<button id="flConfirm" style="margin:10px auto 2px;display:block;padding:10px 34px;font:700 15px var(--mono, monospace);letter-spacing:1px;color:#0b1214;background:#7dff9a;border:0;border-radius:4px;cursor:pointer">CONFIRM LOADOUT</button><div class="note2">K or Esc to close · opens here at the Command Core when you deploy or respawn</div>`;
+    el.querySelector("#flConfirm")?.addEventListener("click", (ev) => { ev.stopPropagation(); flConfirmLoadout(); });
+}
+/**
+ * Designer 21 Nov: the loadout picker screen at the Command Core: it opens by itself when the match starts (after the
+ * opening cinematic) and after every respawn; CONFIRM LOADOUT sends the kit (applied at the Core) and closes it.
+ */
+let flCorePickShown = false;
+function flCorePickFrame() {
+    if (flCorePickShown || !started || !isFrontline() || cine || !me || dead() || pauseOn || matchLocked())
+        return;
+    if (!flAtCore())
+        return;
+    flCorePickShown = true;
+    if (!flPanelOpen)
+        flTogglePanel();
+}
+function flConfirmLoadout() {
+    if (!flAtCore()) {
+        notify("LOADOUT · return to your Command Core to change it", "warn");
+        snd.ui("error");
+        return;
+    }
+    send({ t: "flKit", kit: flKit, confirm: true });
+    notify(`LOADOUT CONFIRMED · ${flName(flWeapons().gun)} · ${flName(flWeapons().role)} · ${FL.armour[flKit.armour].name} armour`, "good");
+    if (flPanelOpen)
+        flTogglePanel();
 }
 function flTogglePanel() {
     flPanelOpen = !flPanelOpen;
@@ -8156,6 +8184,18 @@ const vmInst = new Float32Array(render_ts_1.INST_FLOATS), vmFlashInst = new Floa
 // Frontline: the second gun of dual machine pistols (left hand) and its muzzle flash
 const vmInst2 = new Float32Array(render_ts_1.INST_FLOATS), vmFlashInst2 = new Float32Array(render_ts_1.INST_FLOATS);
 /** Frontline: the slot 1 gun drawn as a pistol (0.62 scale): "single" one, "dual" one in each hand; null: the usual carbine. */
+/** Designer 21 Nov: the viewmodel of the Frontline kit gun in hand (slot 1 by gun and type, slot 2 by its weapon), or null. */
+function flGunVm() {
+    if (!isFrontline() || !flKit)
+        return null;
+    if (kit === 0) {
+        const g = { carbine: "carbine", dual: "pistol", shotgun: "shotgun", marksman: "marksman", launcher: "launcher" }[flKit.gun];
+        return g ? `vm-${g}-${flKit.laser ? "l" : "k"}` : null;
+    }
+    if (kit === 1)
+        return { sniper: "vm-longrifle", assault: "vm-hmg", heavy: "vm-tube", medic: "vm-medic" }[flKit.role] ?? null;
+    return null;
+}
 function flPistols() {
     if (kit !== 0 || !isFrontline() || !flKit)
         return null;
@@ -8228,7 +8268,8 @@ function drawViewModel(now, frameDt) {
         return;
     }
     const beacon = !!armedCall && onFoot();
-    const name = beacon ? (0, c5_ts_1.beaconVmName)(data, armedCall.call) : heavyHeld() ? heavyVm(heavyNow()) : kit === 0 ? (flScopeKind() === "plain" ? "vm-rifle" : "vm-carbine") /* the marksman rifle carries its scope */ : kit === 1 ? (heavyHeld() ? heavyVm(heavyNow()) : "vm-rifle") : kit === KIT_BUILD ? "vm-build" : "vm-torch";
+    const flVm = !beacon && !heavyHeld() ? flGunVm() : null; // designer 21 Nov: a detailed model per Frontline gun
+    const name = flVm ? flVm : beacon ? (0, c5_ts_1.beaconVmName)(data, armedCall.call) : heavyHeld() ? heavyVm(heavyNow()) : kit === 0 ? (flScopeKind() === "plain" ? "vm-rifle" : "vm-carbine") /* the marksman rifle carries its scope */ : kit === 1 ? (heavyHeld() ? heavyVm(heavyNow()) : "vm-rifle") : kit === KIT_BUILD ? "vm-build" : "vm-torch";
     const sp = bodyRender && bodyRender.alt < 0.3 ? Math.hypot(bodyRender.vx, bodyRender.vz) : 0;
     // sprint pose: a critically damped follow of the input target (~0.2 s, starts and ends at zero speed: the old
     // exponential ease moved the weapon 2.2 deg in the first frame of a sprint)
@@ -8253,7 +8294,7 @@ function drawViewModel(now, frameDt) {
     // converge on the point under the reticle (yaw only: the vertical offset is under 0.4 deg at 30 m)
     const D = (0, math_ts_1.clamp)(Math.hypot(aimPoint[0] - eye[0], aimPoint[1] - eye[1], aimPoint[2] - eye[2]) || 40, 6, 300);
     let yaw = Math.atan2(-z, D - x) - vmSprint * 0.3; // sprinting: lowered and turned in across the body
-    const pist = beacon || heavyHeld() ? null : flPistols(), psc = pist ? 0.62 : 1;
+    const pist = beacon || heavyHeld() ? null : flPistols(), psc = pist && name !== "vm-pistol-k" && name !== "vm-pistol-l" ? 0.62 : 1;
     if (pist) { // pistols are held higher and closer in, one in each hand for the dual pair
         x += 0.07;
         y += 0.045;
@@ -10429,6 +10470,7 @@ function frame(now) {
     lastFrame = now;
     try {
         padFrame(now, frameDt);
+        flCorePickFrame();
         if (holdT !== null)
             transT = holdT; // test aid: transition frozen (mid-blend screenshots)
         else if (transT < 1) {
