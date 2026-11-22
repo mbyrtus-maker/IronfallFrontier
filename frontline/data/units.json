@@ -7,8 +7,8 @@
     "tier": 1,
     "cp": 1,
     "cost": {
-      "ore": 50,
-      "gas": 10
+      "ore": 90,
+      "gas": 15
     },
     "hp": 1000,
     "shield": 1000,
@@ -252,7 +252,7 @@
     },
     "hp": 1500,
     "shield": 1500,
-    "speed": 11,
+    "speed": 14,
     "turnRate": 0.9,
     "handling": {
       "accel": 22,
