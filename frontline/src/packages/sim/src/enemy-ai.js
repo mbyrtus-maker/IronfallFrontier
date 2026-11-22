@@ -673,6 +673,8 @@ class EnemyAi {
         this.huntPilots(sim, team, next, df, free, busy);
         // Frontline (lanes.ts): free units leave in lane waves instead of the mission, Core attack and expansion steps
         if (sim.lanes) {
+            if (sim.tpRules)
+                this.flTransports(sim, team, next, free, busy, ownCore); // designer 21 Nov: Carriers and Mules carry troops, never go out empty
             sim.lanes.dispatch(sim, team, next, df, free, busy, ownCore);
             return;
         }
@@ -1756,6 +1758,66 @@ class EnemyAi {
                 take(bs, pick);
             if (pick >= 0 && pick === fb)
                 pri.shift(); // one Forward Base Vehicle per decision
+        }
+    }
+    /**
+     * Designer 21 Nov (Frontline): the AI's troop transports (Carrier, Mule) never join the lane waves on their own. An empty
+     * one waits by its Core and takes on a whole free infantry squad that is there; loaded, it carries it to the most
+     * forward ground its side holds on a lane (fkit.forwardDrop) and unloads it, then comes back for the next.
+     */
+    flTransports(sim, team, next, free, busy, ownCore) {
+        const R = sim.tpRules, T = sim.tp, d = sim.d;
+        if (ownCore < 0)
+            return;
+        const ox = sim.x[ownCore], oz = sim.z[ownCore], near = 140;
+        const claimed = new Set();
+        for (let s = 0; s < sim.hi; s++) {
+            if (!sim.alive[s] || sim.team[s] !== team || sim.hp[s] <= 0 || !R.carrier[sim.etype[s]] || sim.etype[s] >= d.unitCount || d.tStructure[sim.etype[s]])
+                continue;
+            if (!sim.drv[s] || sim.driverIsPlayer(s) || sim.playerAboard(s))
+                continue; // a player's transport is the player's
+            free.delete(s);
+            busy.add(s); // never sent out empty with a wave
+            const id = sim.eid[s];
+            if (T && (T.loads.some((l) => l.vehicle === id) || T.unloads.some((u) => u.vehicle === id) || T.ferries.some((f) => f.vehicle === id) || T.lifts.some((l) => l.lifter === id)))
+                continue; // boarding, under way or unloading
+            const aboard = T ? T.cargo.filter((c) => c.vehicle === id).length : 0;
+            if (aboard > 0) { // loaded (e.g. its load just finished): to the front
+                const lane = (id + sim.tick / 1200 | 0) % sim.lanes.rules.paths.length;
+                const at = sim.fkit ? sim.fkit.forwardDrop(sim, team, lane) : null;
+                if (at)
+                    (0, transport_ts_1.tpUnload)(sim, id, at[0], at[1], team);
+                continue;
+            }
+            const dHome = Math.hypot(sim.x[s] - ox, sim.z[s] - oz);
+            if (dHome > near) { // empty and away: back to the Core for the next squad
+                if (this.idle(sim, s) || sim.tick % 200 === (id % 200))
+                    sim.queueOrder(next, [id], { type: "move", x: ox + 40, z: oz + 30 }, team);
+                continue;
+            }
+            // empty at home: a whole free infantry squad by the Core boards (the transport then takes it forward)
+            for (const sq of sim.squads.values()) {
+                if (sq.team !== team || claimed.has(sq.id) || !sq.members.length)
+                    continue;
+                const ms = sq.members.map((m) => sim.idToSlot.get(m));
+                if (ms.some((m) => m === undefined || !sim.alive[m] || !free.has(m) || busy.has(m) || !(d.tArmour[sim.etype[m]] === data_ts_1.AC_INFANTRY && !d.tPilot[sim.etype[m]])))
+                    continue;
+                if (ms.some((m) => Math.hypot(sim.x[m] - ox, sim.z[m] - oz) > near * 1.6))
+                    continue;
+                const r = (0, transport_ts_1.tpLoad)(sim, sq.id, id, team);
+                if (!r.ok)
+                    continue;
+                claimed.add(sq.id);
+                for (const m of ms) {
+                    free.delete(m);
+                    busy.add(m);
+                }
+                const lane = (id + sim.tick / 1200 | 0) % sim.lanes.rules.paths.length;
+                const at = sim.fkit ? sim.fkit.forwardDrop(sim, team, lane) : null;
+                if (at)
+                    sim.tpState().ferries.push({ vehicle: id, squad: sq.id, x: at[0], z: at[1] }); // unload there once aboard
+                break;
+            }
         }
     }
     /** w3b: an armed aircraft that is not a transport (Wasp; not the Mule): flies strikes, not capture runs. */
