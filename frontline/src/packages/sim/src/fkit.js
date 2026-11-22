@@ -392,6 +392,14 @@ class FKit {
             if (p.player < 100 && this.respawnInCore(sim, p))
                 continue; // designer 21 Nov: a player respawns inside the Command Core (loadout, then the drop pod), no lane ride
             const lane = this.laneOf.get(pid) ?? this.lane; // 4c: an AI pilot rides to its own lane
+            if (p.player >= 100) { // designer 21 Nov: an AI pilot drop-pods to the most forward ground its side holds on its lane
+                const at = this.forwardDrop(sim, p.team, lane);
+                if (at && this.respawnInCore(sim, p)) {
+                    if (this.launchDrop(sim, pid, at[0], at[1]) === "")
+                        continue;
+                    sim.leaveShelter(pid, p.team);
+                }
+            }
             if (lane === 3)
                 continue; // lane 3: the player chose to stay at the Command Core (no ride)
             const s = sim.idToSlot.get(p.entity);
@@ -538,6 +546,32 @@ class FKit {
                 sim.dropOut(p, q.x, q.z);
             return false;
         });
+    }
+    /**
+     * The most forward spot on `team`'s lane where its drop pod may land: walking the lane from its own Core toward the
+     * enemy's, the last point on controlled ground (dropOk), preferring one with no enemy within 120 m.
+     */
+    forwardDrop(sim, team, lane) {
+        const L = sim.lanes, wps = L ? L.path(team, lane) : null;
+        if (!wps || wps.length < 2)
+            return null;
+        let safe = null, any = null;
+        for (let k = 0; k + 1 < wps.length; k++) {
+            const [x0, z0] = wps[k], [x1, z1] = wps[k + 1], len = Math.hypot(x1 - x0, z1 - z0), n = Math.max(1, Math.ceil(len / 25));
+            for (let i = 0; i < n; i++) {
+                const x = x0 + (x1 - x0) * i / n, z = z0 + (z1 - z0) * i / n;
+                if (!this.dropOk(sim, team, x, z))
+                    continue;
+                any = [x, z];
+                let foe = false;
+                for (let o = 0; o < sim.hi && !foe; o++)
+                    if (sim.alive[o] && sim.hp[o] > 0 && sim.team[o] !== team && sim.team[o] < 4 && Math.hypot(sim.x[o] - x, sim.z[o] - z) < 120)
+                        foe = true;
+                if (!foe)
+                    safe = [x, z];
+            }
+        }
+        return safe ?? any;
     }
     /** A respawned player pilot goes straight inside its team's Command Core. */
     respawnInCore(sim, p) {

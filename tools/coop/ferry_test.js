@@ -14,24 +14,25 @@ let inCore = false;
 for (let k = 0; k < 20 * 60 && !inCore; k++) { sim.step(); const p = sim.pilot(pid); if (p.state === 4) inCore = true; }
 const p = sim.pilot(pid), cs = sim.idToSlot.get(p.vehicle);
 check("a player respawns inside the Command Core", inCore && cs !== undefined && sim.d.typeIds[sim.etype[cs]] === "command-core", { state: p.state });
-// an AI teammate still rides the Mule
-const muleT = sim.d.typeIds.indexOf("mule");
-const mules = () => { let n = 0; for (let o = 0; o < sim.hi; o++) if (sim.alive[o] && sim.etype[o] === muleT && sim.team[o] === 0) n++; return n; };
+// an AI teammate drop-pods to the most forward ground its side holds on its lane
 const bot = [...sim.pilots.values()].find((q) => q.team === 0 && q.player >= 100);
-let rode = false, dropped = false, peak = 0, m0 = mules();
+let launched = null, landedAt = null;
 if (bot) {
-    for (let k = 0; k < 400 && bot.state !== 1; k++) sim.step();
+    if (bot.state === 0)
+        sim.exit(bot.id, bot.team); // the bot starts in a Dart: out first
     const b = sim.idToSlot.get(bot.entity);
     if (b !== undefined) sim.envDamage(b, 1e6);
-    for (let k = 0; k < 20 * 260 && !(dropped && mules() === m0); k++) {
+    for (let k = 0; k < 20 * 90 && !landedAt; k++) {
         sim.step();
-        if (bot.state === 0 && sim.etype[sim.idToSlot.get(bot.vehicle)] === muleT) rode = true;
-        if (rode && bot.state === 1) dropped = true;
-        peak = Math.max(peak, mules());
+        const d = sim.fkit.drops.find((q) => q.pid === bot.id);
+        if (d && !launched) launched = { x: d.x, z: d.z };
+        if (launched && !d && bot.state === 1) { const s2 = sim.idToSlot.get(bot.entity); landedAt = { x: sim.x[s2], z: sim.z[s2] }; }
     }
 }
-check("an AI teammate rides a Mule to its lane", !!bot && rode && dropped);
-check("the Mule is gone afterwards", peak > m0 && mules() === m0, { before: m0, peak, after: mules() });
+const lane = sim.fkit.laneOf.get(bot?.id) ?? sim.fkit.lane, fwd = bot ? sim.fkit.forwardDrop(sim, 0, lane) : null;
+check("an AI teammate drop-pods instead of riding a Mule", !!launched && !!landedAt, { launched, landedAt });
+const core = (() => { for (let o = 0; o < sim.hi; o++) if (sim.alive[o] && sim.team[o] === 0 && sim.d.typeIds[sim.etype[o]] === "command-core") return o; return -1; })();
+check("it lands well forward of the Core, on ground its side holds", !!landedAt && Math.hypot(landedAt.x - sim.x[core], landedAt.z - sim.z[core]) > 300 && sim.fkit.dropOk(sim, 0, landedAt.x, landedAt.z), landedAt && { fromCore: Math.round(Math.hypot(landedAt.x - sim.x[core], landedAt.z - sim.z[core])) });
 const T = sim.d.typeIds.indexOf("gun-tower");
 check("gun towers are tougher (3600 hp)", sim.d.tHp[T] === 3600, sim.d.tHp[T]);
 process.exit(0);
