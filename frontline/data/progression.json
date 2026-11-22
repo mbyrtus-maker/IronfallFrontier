@@ -196,7 +196,7 @@
     "larger-reserve"
   ],
   "frontline": {
-    "_note": "Designer 19 Nov: all unlocks removed for now (a new unlock list comes later): every loadout option is open. The last list is kept under _shelved for reference.",
+    "_note": "Designer 21 Nov: every loadout option that existed before stays free; only new items are token unlocks (Flak turret 1, Shield barrier 2). Tokens: 1 per rank, +1 at each bonusTokenRanks.",
     "bonusTokenRanks": [
       5,
       10,
@@ -206,7 +206,12 @@
       30
     ],
     "start": {},
-    "cost": {},
+    "cost": {
+      "flCalls": {
+        "flak-turret": 1,
+        "shield-bubble": 2
+      }
+    },
     "_shelved": {
       "start": {
         "flGuns": [
@@ -300,11 +305,6 @@
               "cost": 1
             },
             {
-              "name": "Shield bubble",
-              "what": "A dome that stops incoming fire",
-              "cost": 2
-            },
-            {
               "name": "Minefield",
               "what": "Seeds a lane with mines",
               "cost": 2
@@ -391,52 +391,52 @@
           "items": [
             {
               "name": "Anti-materiel rifle",
-              "what": "Slot 2 \u00b7 410 damage at 600 m",
+              "what": "Slot 2 · 410 damage at 600 m",
               "cost": 2
             },
             {
               "name": "Pulse pistol",
-              "what": "Slot 1 \u00b7 a laser sidearm",
+              "what": "Slot 1 · a laser sidearm",
               "cost": 1
             },
             {
               "name": "Trooper rifle",
-              "what": "Slot 1 \u00b7 steady, mid-range",
+              "what": "Slot 1 · steady, mid-range",
               "cost": 1
             },
             {
               "name": "Demo charge",
-              "what": "Grenade \u00b7 1,320 damage placed by hand",
+              "what": "Grenade · 1,320 damage placed by hand",
               "cost": 2
             },
             {
               "name": "Arc rifle",
-              "what": "Slot 1 \u00b7 chains an arc between enemies",
+              "what": "Slot 1 · chains an arc between enemies",
               "cost": 2
             },
             {
               "name": "Burst battle rifle",
-              "what": "Slot 1 \u00b7 three-round bursts",
+              "what": "Slot 1 · three-round bursts",
               "cost": 1
             },
             {
               "name": "Lock-on sidearm",
-              "what": "Slot 2 \u00b7 auto-tracks in a short cone",
+              "what": "Slot 2 · auto-tracks in a short cone",
               "cost": 2
             },
             {
               "name": "Satchel charges",
-              "what": "Grenade \u00b7 thrown, set off by hand",
+              "what": "Grenade · thrown, set off by hand",
               "cost": 1
             },
             {
               "name": "Rail driver",
-              "what": "Slot 3 \u00b7 a charged shot that pierces a line",
+              "what": "Slot 3 · a charged shot that pierces a line",
               "cost": 2
             },
             {
               "name": "Mortar tube",
-              "what": "Slot 3 \u00b7 arcing fire onto a pinged spot",
+              "what": "Slot 3 · arcing fire onto a pinged spot",
               "cost": 2
             }
           ]

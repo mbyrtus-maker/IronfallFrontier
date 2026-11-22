@@ -1179,45 +1179,88 @@ function siege() {
 function flPod() {
     const b = new MeshBuilder();
     b.grit = exports.GRIT;
-    b.set(DARK, 0);
-    b.cyl(0, 0, 0, 1.25, 1.1, 0.35, 10, "y", true); // landing ring
-    b.set(P1);
-    b.cyl(0, 0.35, 0, 1.1, 1.05, 2.0, 10, "y", true); // body
+    // an orbital drop capsule in the call-down family: scorched heat shield, 12-sided team-tinted body, nose cone with a
+    // parachute canister and beacon, four retro-thruster fairings on the axes, four swept fins on the diagonals
+    const N = 12, R0 = 1.12, R1 = 0.94, Y0 = 0.4, H = 1.9, bodyR = (y) => R0 + (R1 - R0) * ((y - Y0) / H);
+    b.set(SCORCH, 0);
+    b.disc(0, 0, 0, 0.95, N, "y", -1, R12);
+    b.cyl(0, 0, 0, 0.95, 1.27, 0.14, N, "y", false, R12); // heat shield: dished underside, rim
+    b.cyl(0, 0.14, 0, 1.27, 1.22, 0.18, N, "y", false, R12);
+    b.set(ABLATE, 0);
+    b.cyl(0, 0.32, 0, 1.22, R0, 0.08, N, "y", false, R12); // ablative lip
     b.set(P2);
-    b.cyl(0, 2.35, 0, 1.05, 0.35, 1.0, 10, "y", true); // nose cone
+    b.cyl(0, Y0, 0, R0, R1, H, N, "y", false, R12); // body
+    b.set(P1);
+    b.cyl(0, 2.3, 0, R1, 0.46, 0.7, N, "y", false, R12); // nose cone
+    b.set(GUN, 0);
+    b.cyl(0, 3.0, 0, 0.46, 0.42, 0.18, N, "y", false, R12); // parachute canister
+    b.disc(0, 3.18, 0, 0.42, N, "y", 1, R12);
     b.set(STEEL, 0);
-    b.cyl(0, 3.35, 0, 0.2, 0.12, 0.3, 6, "y", true); // beacon mast
+    b.cyl(0, 3.18, 0, 0.13, 0.08, 0.3, 6, "y", false); // beacon mast
+    b.set(AMBER, 5);
+    b.box(0, 3.56, 0, 0.075, 0.085, 0.075);
     b.set(AMBER, 4);
-    b.cyl(0, 1.75, 0, 1.08, 1.08, 0.12, 10, "y", false); // lit band
+    b.cyl(0, 2.3, 0, R1 + 0.015, R1 - 0.03, 0.07, N, "y", false, R12); // lit shoulder ring
     b.set([1, 1, 1], 2);
-    b.cyl(0, 1.0, 0, 1.08, 1.08, 0.1, 10, "y", false); // team band
-    b.set(DARK, 0);
+    b.cyl(0, 1.92, 0, bodyR(1.92) + 0.02, bodyR(2.08) + 0.02, 0.16, N, "y", false, R12); // team band
     for (let k = 0; k < 4; k++) {
-        const a = k * Math.PI / 2 + Math.PI / 4;
-        yawBox(b, Math.cos(a) * 1.3, 0.9, Math.sin(a) * 1.3, a, 0.35, 0.8, 0.06, 1, 0);
+        // on the axes: a retro-thruster fairing with its bell, throat and burn glow
+        let m = b.mark();
+        b.set(GUN, 0);
+        b.hull([[0.96, 0.74], [1.46, 0.74], [1.46, 1.0], [1.12, 1.52], [0.92, 1.52]], 0.2, 0.15);
+        b.set(STEEL, 0);
+        b.cyl(1.3, 0.42, 0, 0.2, 0.12, 0.33, 6, "y", false);
+        b.set(BLACK, 0);
+        b.disc(1.3, 0.47, 0, 0.18, 6, "y", -1);
+        b.set([1, 0.55, 0.25], 3);
+        b.disc(1.3, 0.455, 0, 0.11, 6, "y", -1);
+        b.rotY(m, k * Math.PI / 2);
+        // on the diagonals: a swept stabiliser fin
+        m = b.mark();
+        b.set(GUN, 0);
+        b.hull([[0.97, 1.2], [1.5, 0.95], [1.5, 1.42], [0.88, 2.34]], 0.07, 0.04);
+        b.rotY(m, Math.PI / 4 + k * Math.PI / 2);
     }
     G2(() => {
-        // graphics pass: hazard ring on the landing skirt, plate seams and bolts, an access hatch, retro nozzles, a beacon
-        b.set(HAZARD, 0);
-        b.cyl(0, 0.3, 0, 1.13, 1.12, 0.07, 10, "y", false);
-        for (let k = 0; k < 10; k++) {
-            const a0 = (k / 10) * Math.PI * 2, a1 = ((k + 1) / 10) * Math.PI * 2, am = (a0 + a1) / 2, n = [Math.cos(am), 0, Math.sin(am)];
-            const P = (a, y, r) => [Math.cos(a) * r, y, Math.sin(a) * r];
-            b.set(PANEL, 1);
-            seam(b, P(a0, 0.4, 1.1), P(a0, 2.3, 1.05), [Math.cos(a0), 0, Math.sin(a0)], 0.05, 0.01);
-            b.set(GUN, 0);
-            bolts(b, vlerp(P(a0, 2.2, 1.055), P(a1, 2.2, 1.055), 0.1), vlerp(P(a0, 2.2, 1.055), P(a1, 2.2, 1.055), 0.9), 3, n, 0.04);
-            if (k % 5 === 1) {
-                b.set(P2, 1);
-                panel(b, [[vlerp(P(a0, 0.5, 1.097), P(a1, 0.5, 1.097), 0.15), vlerp(P(a0, 0.5, 1.097), P(a1, 0.5, 1.097), 0.85), vlerp(P(a0, 1.5, 1.07), P(a1, 1.5, 1.07), 0.85), vlerp(P(a0, 1.5, 1.07), P(a1, 1.5, 1.07), 0.15)], [0, 1, 0]], 0.05, 0.08);
-            }
+        // near detail: re-entry streaks, hatches with a lit port, vents, armour panels, fin tips, attitude jets, a stencil
+        const F = (i, u0, u1, v0, v1) => fq(N, R12, R0, R1, Y0, H, i, u0, u1, v0, v1);
+        b.set(SCORCH2, 0);
+        for (let i = 0; i < N; i++)
+            decal(b, F(i, 0, 1, 0, 0.1 + 0.16 * (((Math.sin(i * 12.9898) * 43758.5453) % 1 + 1) % 1)), 0.012);
+        for (const i of [0, 6]) { // the hatch: a door plate with a lit port, a grab bar and a warning strip
+            b.set(P3, 1);
+            panel(b, F(i, 0.14, 0.86, 0.2, 0.72), 0.05, 0.08);
+            const D = F(i, 0.14, 0.86, 0.2, 0.72), n = qn(D), o = vmul(n, 0.05);
+            b.set(COOLWIN, 4);
+            decal(b, [qsub(D, 0.36, 0.64, 0.58, 0.8)[0].map((p) => vadd(p, o)), D[1]], 0.012);
+            b.set(DARK, 0);
+            rod(b, vadd(qp(D[0], 0.24, 0.42), vmul(n, 0.08)), vadd(qp(D[0], 0.76, 0.42), vmul(n, 0.08)), 0.03, 3);
+            for (const u of [0.24, 0.76])
+                rod(b, vadd(qp(D[0], u, 0.42), vmul(n, 0.02)), vadd(qp(D[0], u, 0.42), vmul(n, 0.09)), 0.022, 3);
+            chevrons(b, F(i, 0.1, 0.9, 0.06, 0.15), 4);
         }
+        for (const i of [3, 9])
+            grille(b, F(i, 0.2, 0.8, 0.3, 0.62), 3);
+        for (const i of [1, 4, 7, 10]) {
+            b.set(P1, 1);
+            panel(b, F(i, 0.16, 0.84, 0.36, 0.7), 0.04, 0.12);
+        }
+        markings(b, F(3, 0.2, 0.8, 0.84, 0.94));
         b.set(DARK, 0);
+        for (const i of [1, 4, 7, 10])
+            bolts(b, F(i, 0, 1, 0.26, 0.26)[0][0], F(i, 0, 1, 0.26, 0.26)[0][1], 3, qn(F(i, 0, 1, 0, 1)), 0.035);
         for (let k = 0; k < 4; k++) {
-            const a = k * Math.PI / 2;
-            b.cyl(Math.cos(a) * 0.72, 2.75, Math.sin(a) * 0.72, 0.1, 0.14, 0.22, 5, "y", true);
+            let m = b.mark();
+            b.set(HAZARD, 0);
+            b.box(1.525, 1.185, 0, 0.025, 0.235, 0.07); // fin tip cap
+            b.rotY(m, Math.PI / 4 + k * Math.PI / 2);
+            m = b.mark();
+            b.set(DARK, 0);
+            b.box(0.7, 2.62, 0, 0.1, 0.08, 0.11); // attitude jet block on the cone
+            b.set(AMBER, 4);
+            b.quad([1.462, 0.8, -0.1], [1.462, 0.8, 0.1], [1.462, 0.92, 0.1], [1.462, 0.92, -0.1], [1, 0.86, 0]); // fairing marker lamp
+            b.rotY(m, k * Math.PI / 2);
         }
-        beacon(b, 0, 3.65, 0, AMBER, 0.09);
     });
     return b.build([0, 0, 0], 0, 0);
 }
@@ -1228,109 +1271,292 @@ function flPod() {
  * angle in iC.y) and the floor with its thrusters stays a moment (fldropbase).
  */
 const DROP_W = 0.5, DROP_H = 0.78, DROP_T = 0.035;
-function dropThrusters(b) {
+const DROP_DECK = 0.05, DROP_R = 0.014; // the floor's thickness (the walls stand on it); the depth of the walls' outer relief
+const DROP_SOOT = [0.1, 0.085, 0.075], DROP_ABL = [0.3, 0.22, 0.16], DROP_PLATE = [0.4, 0.42, 0.41], DROP_MARK = [0.82, 0.82, 0.76];
+/**
+ * A box from its bounds, drawing only the listed faces (x/y/z: the low face on that axis, X/Y/Z: the high one). The crate
+ * is modelled at 1 m and drawn 5 to 15 times that, so deFight's fixed 3 cm separation would throw any flush detail far
+ * off its surface: every surface here is tiled instead (markings are cells in the plane of the face they are painted on,
+ * raised parts stand in a gap of it) and no face is drawn under another.
+ */
+function dropBox(b, x0, x1, y0, y1, z0, z1, faces = "xXyYzZ") {
+    const c = [(x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2];
+    if (faces.includes("x"))
+        b.poly([[x0, y0, z0], [x0, y1, z0], [x0, y1, z1], [x0, y0, z1]], c);
+    if (faces.includes("X"))
+        b.poly([[x1, y0, z0], [x1, y1, z0], [x1, y1, z1], [x1, y0, z1]], c);
+    if (faces.includes("y"))
+        b.poly([[x0, y0, z0], [x1, y0, z0], [x1, y0, z1], [x0, y0, z1]], c);
+    if (faces.includes("Y"))
+        b.poly([[x0, y1, z0], [x1, y1, z0], [x1, y1, z1], [x0, y1, z1]], c);
+    if (faces.includes("z"))
+        b.poly([[x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0]], c);
+    if (faces.includes("Z"))
+        b.poly([[x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1]], c);
+}
+/** A flat ring between two n-gons in the plane y, facing down, and the n-gon inside it in its own colour. */
+function dropRing(b, x, y, z, r0, r1, n, rot, colRing, colIn, matIn) {
+    const p = (r, i) => [x + Math.cos((i / n) * Math.PI * 2 + rot) * r, y, z + Math.sin((i / n) * Math.PI * 2 + rot) * r], up = [x, y + 1, z];
+    b.set(colRing, 0);
+    for (let i = 0; i < n; i++)
+        b.poly([p(r0, i), p(r0, i + 1), p(r1, i + 1), p(r1, i)], up);
+    b.set(colIn, matIn);
+    b.disc(x, y, z, r0, n, "y", -1, rot);
+}
+/**
+ * The crate's floor: a slab the size of the footprint (y 0 .. DROP_DECK), under it an ablative heat shield burnt black in
+ * the middle and a retro thruster at each corner (bell mouths at y = -0.105: main.ts flDropThrusters lights them at
+ * +-0.43, -0.11). `deck`: the load deck (the seat the walls stand on, a hazard border, the plate with the team's drive-off
+ * chevrons, two tie-down rails with cleats), left out of the closed crate, where the lid hides it.
+ */
+function dropBase(b, deck) {
+    const W = DROP_W, D = DROP_DECK, R8 = Math.PI / 8, hi = !LO;
+    b.set(GUN, 0);
+    dropBox(b, -W, W, 0, D, -W, W, "xXyzZ");
+    b.set(DROP_ABL, 0);
+    b.cyl(0, -0.035, 0, 0.35, 0.42, 0.035, 8, "y", false, R8); // heat shield
+    dropRing(b, 0, -0.035, 0, hi ? 0.2 : 0.35, 0.35, 8, R8, DROP_SOOT, hi ? [0.05, 0.045, 0.04] : DROP_SOOT, 0);
     for (const sx of [1, -1])
         for (const sz of [1, -1]) {
-            b.set(GUN, 0);
-            b.box(sx * 0.43, 0.02, sz * 0.43, 0.075, 0.05, 0.075);
-            b.set(DARK, 0);
-            b.cyl(sx * 0.43, -0.06, sz * 0.43, 0.06, 0.075, 0.08, 8, "y", true);
-            b.set([1, 0.72, 0.35], 4); // the nozzle's hot ring
-            b.cyl(sx * 0.43, -0.105, sz * 0.43, 0.052, 0.052, 0.012, 8, "y", true);
+            const x = sx * 0.43, z = sz * 0.43;
+            b.set(STEEL, 0);
+            dropBox(b, x - 0.065, x + 0.065, -0.045, 0, z - 0.065, z + 0.065, "xXyzZ"); // thruster housing
+            b.set(DROP_SOOT, 0);
+            b.cyl(x, -0.105, z, 0.062, 0.042, 0.06, 6, "y", false); // bell
+            dropRing(b, x, -0.105, z, 0.044, 0.062, 6, 0, DROP_SOOT, [1, 0.72, 0.35], 4); // rim, hot throat
         }
+    if (!deck)
+        return;
+    const up = [0, -9, 0], q = (pts) => b.poly(pts.map(([x, z]) => [x, D, z]), up);
+    for (let k = 0; k < 4; k++) { // the walls' seat and the hazard border inside it
+        const m = b.mark();
+        b.set(GUN, 0);
+        q([[W, -W], [W, W], [0.465, 0.465], [0.465, -0.465]]);
+        b.set(HAZARD, 0);
+        q([[0.465, -0.465], [0.465, 0.465], [0.44, 0.44], [0.44, -0.44]]);
+        b.rotY(m, k * Math.PI / 2);
+    }
+    const RZ0 = 0.234, RZ1 = 0.266, cleats = hi ? [-0.3, 0, 0.3] : [];
+    b.mirrored((s) => {
+        b.set(DROP_PLATE, 0);
+        q([[-0.44, s * RZ1], [0.44, s * RZ1], [0.44, s * 0.44], [-0.44, s * 0.44]]);
+        q([[-0.44, s * 0.12], [0.44, s * 0.12], [0.44, s * RZ0], [-0.44, s * RZ0]]);
+        for (const e of [1, -1])
+            q([[e * 0.4, s * RZ0], [e * 0.44, s * RZ0], [e * 0.44, s * RZ1], [e * 0.4, s * RZ1]]);
+        // the team's chevrons down the middle: drive off this way (+x)
+        const cut = [-0.26, -0.19, -0.04, 0.03, 0.18, 0.25].map((x) => [x, x - 0.1]);
+        const bd = [[-0.44, -0.44], ...cut, [0.44, 0.44]];
+        for (let i = 0; i + 1 < bd.length; i++) {
+            b.set(i % 2 ? [1, 1, 1] : DROP_PLATE, i % 2 ? 2 : 0);
+            q([[bd[i][0], 0], [bd[i + 1][0], 0], [bd[i + 1][1], s * 0.12], [bd[i][1], s * 0.12]]);
+        }
+        // tie-down rail: a low bar with cleats standing through it
+        const z0 = Math.min(s * RZ0, s * RZ1), z1 = Math.max(s * RZ0, s * RZ1);
+        let x = -0.4;
+        b.set(DARK, 0);
+        for (const c of [...cleats, 9]) {
+            const x1 = Math.min(0.4, c - 0.035);
+            dropBox(b, x, x1, D, D + 0.012, z0, z1, (x < -0.39 ? "x" : "") + (x1 > 0.39 ? "X" : "") + "YzZ");
+            x = c + 0.035;
+        }
+        b.set(STEEL, 0);
+        for (const c of cleats)
+            dropBox(b, c - 0.035, c + 0.035, D, D + 0.03, z0, z1, "xXYzZ");
+    });
 }
-function dropWallFace(b, outward) {
-    // one wall: a ribbed panel, hazard band low, the team's stripe high; x from -DROP_T (inside) to 0 (outside)
-    b.set(P2, 1, 23);
-    b.box(-DROP_T / 2, 0.05 + (DROP_H - 0.05) / 2, 0, DROP_T / 2, (DROP_H - 0.05) / 2, DROP_W);
-    b.set(DARK, 0, 23);
-    for (const z of [-0.33, 0, 0.33])
-        b.box(0.008, 0.05 + (DROP_H - 0.05) / 2, z, 0.008, (DROP_H - 0.07) / 2, 0.025);
-    b.set(HAZARD, 0, 23);
-    b.box(0.004, 0.13, 0, 0.004, 0.035, DROP_W * 0.96);
-    b.set([1, 1, 1], 2, 23);
-    b.box(0.004, DROP_H - 0.1, 0, 0.004, 0.025, DROP_W * 0.96);
-    b.set(GUN, 0, 23);
-    b.box(-DROP_T / 2, 0.06, 0, DROP_T * 0.7, 0.012, DROP_W); // the hinge rail
+/**
+ * One wall, x from ox - DROP_T (inside) to ox (outside: nothing stands proud of it, so it lies flat on the ground when it
+ * has fallen), standing on the floor's rim; z from -(DROP_W - DROP_T) to DROP_W, so four of them, each a quarter turn on,
+ * close the box with no overlap at the corners. Outside: a frame with corner posts and two ribs over recessed team-tinted
+ * panels, three hinge knuckles, a hazard sill with chevrons, the team's lit band, a stencilled arrow and lettering, two
+ * latches. `loose` (the hinged wall, not the closed crate): the inside face, a ramp once it is down (cleats, the team's
+ * strip at the hinge, a hazard end), and the end that butts on the next wall.
+ */
+function dropWall(b, ox, part, loose) {
+    const T = DROP_T, H = DROP_H, Y0 = DROP_DECK, Z0 = -(DROP_W - DROP_T), Z1 = DROP_W, hi = !LO;
+    const xi = ox - T, xp = ox - DROP_R, YS = Y0 + 0.04, YB = Y0 + 0.115, YT = H - 0.055, PZ0 = Z0 + 0.06, PZ1 = Z1 - 0.095;
+    const IN = [ox - 9, 0.4, 0];
+    /** A row of cells on the outside, [z0, z1, kind]: p panel, g team glow, m stencil paint (all recessed); k knuckle, d latch (flush). */
+    const row = (y0, y1, cells) => {
+        for (const [z0, z1, k0] of cells) {
+            const k = hi || k0 === "g" || k0 === "k" ? k0 : "p";
+            if (k === "k" || k === "d") {
+                b.set(k === "k" ? GUN : DARK, 0, part);
+                dropBox(b, xp, ox, y0, y1, z0, z1, "XyzZ");
+                continue;
+            }
+            if (k === "g")
+                b.set([1, 1, 1], 2, part);
+            else
+                b.set(k === "m" ? DROP_MARK : P2, k === "m" ? 0 : 1, part);
+            dropBox(b, xi, xp, y0, y1, z0, z1, "X");
+        }
+    };
+    // the slab's edges
+    b.set(STEEL, 0, part);
+    dropBox(b, xi, ox, Y0, H, Z0, Z1, "Y");
+    dropBox(b, xi, xp, Y0, YS, Z0, Z1, "yZ" + (loose ? "z" : ""));
+    dropBox(b, xi, ox, YS, H, Z0, Z1, "Z" + (loose ? "z" : ""));
+    // the frame, flush with the outside: top beam, corner posts, ribs
+    dropBox(b, xp, ox, YT, H, Z0, Z1, "Xy");
+    dropBox(b, xp, ox, YB, YT, Z0, PZ0, "XZ");
+    dropBox(b, xp, ox, YB, YT, PZ1, Z1, "Xz");
+    b.set(DARK, 0, part);
+    for (const z of [-0.14, 0.14])
+        dropBox(b, xp, ox, YB, YT, z - 0.02, z + 0.02, "XzZ");
+    // hinge knuckles on the bottom edge
+    row(Y0, YS, [[Z0, -0.385, "p"], [-0.385, -0.215, "k"], [-0.215, -0.085, "p"], [-0.085, 0.085, "k"], [0.085, 0.215, "p"], [0.215, 0.385, "k"], [0.385, Z1, "p"]]);
+    // the hazard sill: chevrons pointing up to the middle
+    const cut = hi ? [0.06, 0.115, 0.19, 0.245, 0.32, 0.375].map((z) => [z, z - 0.05]) : [];
+    const bd = [...cut.map(([z0, z1]) => [-z0, -z1]).reverse(), ...cut];
+    bd.unshift([Z0, Z0]);
+    bd.push([Z1, Z1]);
+    for (let i = 0; i + 1 < bd.length; i++) {
+        b.set(i % 2 ? DARK : HAZARD, 0, part);
+        b.poly([[ox, YS, bd[i][0]], [ox, YS, bd[i + 1][0]], [ox, YB, bd[i + 1][1]], [ox, YB, bd[i][1]]], IN);
+    }
+    b.set(HAZARD, 0, part);
+    dropBox(b, xp, ox, YS, YB, Z0, Z1, "yY");
+    // the three bays: stencils, the team's band, a latch under the top beam of the outer two
+    const L0 = PZ0, L1 = -0.16, C0 = -0.12, C1 = 0.12, R0 = 0.16, R1 = PZ1, G0 = 0.6, G1 = 0.655, YL = YT - 0.05;
+    row(YB, 0.36, [[L0, L1, "p"]]);
+    row(0.36, 0.4, [[L0, -0.37, "p"], [-0.37, -0.27, "m"], [-0.27, L1, "p"]]);
+    row(0.4, 0.44, [[L0, L1, "p"]]);
+    row(0.44, 0.5, [[L0, -0.37, "p"], [-0.37, -0.2, "m"], [-0.2, L1, "p"]]);
+    row(0.5, G0, [[L0, L1, "p"]]);
+    row(YB, 0.24, [[C0, C1, "p"], [R0, R1, "p"]]);
+    row(0.24, 0.32, [[R0, 0.2, "p"], [0.2, 0.36, "m"], [0.36, R1, "p"]]);
+    row(0.32, G0, [[R0, R1, "p"]]);
+    row(0.52, G0, [[C0, C1, "p"]]);
+    row(G0, G1, [[L0, L1, "g"], [C0, C1, "g"], [R0, R1, "g"]]);
+    row(G1, YL, [[L0, L1, "p"], [R0, R1, "p"]]);
+    row(G1, YT, [[C0, C1, "p"]]);
+    row(YL, YT, [[L0, -0.315, "p"], [-0.315, -0.245, "d"], [-0.245, L1, "p"], [R0, 0.245, "p"], [0.245, 0.315, "d"], [0.315, R1, "p"]]);
+    if (hi) { // "this way up" in the middle bay
+        const pq = (pts) => b.poly(pts.map(([y, z]) => [xp, y, z]), IN);
+        b.set(P2, 1, part);
+        for (const s of [1, -1]) {
+            pq([[0.24, s * 0.03], [0.24, s * C1], [0.4, s * C1], [0.4, s * 0.03]]);
+            pq([[0.4, s * 0.08], [0.4, s * C1], [0.52, s * C1], [0.52, 0]]);
+        }
+        b.set(DROP_MARK, 0, part);
+        pq([[0.24, -0.03], [0.24, 0.03], [0.4, 0.03], [0.4, -0.03]]);
+        pq([[0.4, -0.08], [0.4, 0.08], [0.52, 0]]);
+    }
+    else
+        row(0.24, 0.52, [[C0, C1, "p"]]);
+    if (!loose)
+        return;
+    // the inside
+    const A0 = -0.4, A1 = 0.4, inRow = (y0, y1, col, mat, z0 = Z0, z1 = Z1) => { b.set(col, mat, part); dropBox(b, xi, xp, y0, y1, z0, z1, "x"); };
+    let y = Y0;
+    const band = (y0, y1, col, mat, raised) => {
+        inRow(y, y0, DROP_PLATE, 0);
+        inRow(y0, y1, DROP_PLATE, 0, Z0, A0);
+        inRow(y0, y1, DROP_PLATE, 0, A1, Z1);
+        if (raised) {
+            b.set(col, mat, part);
+            dropBox(b, xi - 0.008, xi, y0, y1, A0, A1, "xyYzZ");
+        }
+        else
+            inRow(y0, y1, col, mat, A0, A1);
+        y = y1;
+    };
+    band(0.1, 0.125, [1, 1, 1], 2, false);
+    if (hi)
+        for (const c of [0.24, 0.4, 0.56])
+            band(c - 0.014, c + 0.014, DARK, 0, true); // ramp cleats
+    band(0.69, 0.75, HAZARD, 0, false);
+    inRow(y, H, DROP_PLATE, 0);
 }
 function flDrop() {
     const b = new MeshBuilder();
     b.grit = exports.GRIT;
-    b.set(GUN, 0);
-    b.box(0, 0.025, 0, DROP_W, 0.025, DROP_W); // floor
-    for (let i = 0; i < 4; i++) { // four walls, each the wall mesh turned to its side
-        const w = new MeshBuilder();
-        w.grit = exports.GRIT;
-        dropWallFace(w, true);
-        const a = (i * Math.PI) / 2, c = Math.cos(a), sn = Math.sin(a), V = w.d, F = exports.VERTEX_FLOATS;
-        for (let v = 0; v < V.length; v += F) {
-            const x = V[v] + DROP_W, z = V[v + 2], nx = V[v + 3], nz = V[v + 5];
-            V[v] = x * c - z * sn;
-            V[v + 2] = x * sn + z * c;
-            V[v + 3] = nx * c - nz * sn;
-            V[v + 5] = nx * sn + nz * c;
-            V[v + 9] = 0; // part 0 on the closed crate (only the loose walls hinge)
-        }
-        for (let v = 0; v < V.length; v++)
-            b.d.push(V[v]);
+    dropBase(b, false);
+    for (let i = 0; i < 4; i++) { // the four walls closed: the wall on each side, part 0 (only the loose walls hinge)
+        const m = b.mark();
+        dropWall(b, 0, 0, false); // built where the loose wall is (the same wear on every face), then moved out to its side
+        for (let v = m; v < b.d.length; v += exports.VERTEX_FLOATS)
+            b.d[v] += DROP_W;
+        b.rotY(m, (i * Math.PI) / 2);
     }
-    b.set(P2, 1);
-    b.box(0, DROP_H + 0.02, 0, DROP_W + 0.01, 0.025, DROP_W + 0.01); // lid
+    // the lid (blown off when the walls drop): a rim with explosive bolts, a raised cover with the team's bars, a hatch, a beacon
+    const W = DROP_W, Y1 = DROP_H + 0.035, Y2 = Y1 + 0.035, Y3 = Y2 + 0.035, A = 0.43, C = 0.37, up = [0, -9, 0];
+    const q = (pts, y) => b.poly(pts.map(([x, z]) => [x, y, z]), up);
+    b.set(STEEL, 0, 0);
+    dropBox(b, -W, W, DROP_H, Y1, -W, W, "xXzZ");
+    for (let k = 0; k < 4; k++) {
+        const m = b.mark();
+        b.set(STEEL, 0);
+        q([[W, -W], [W, W], [A, A], [A, -A]], Y1);
+        b.set(P2, 1);
+        b.poly([[A, Y1, -A], [A, Y1, A], [C, Y2, C], [C, Y2, -C]], [0, Y1, 0]);
+        if (!LO) {
+            b.set(HAZARD, 0);
+            dropBox(b, 0.44, 0.49, Y1, Y2, 0.44, 0.49, "xXYzZ"); // bolt
+        }
+        b.rotY(m, k * Math.PI / 2);
+    }
+    b.mirrored((s) => {
+        b.set(P2, 1);
+        q([[-C, s * 0.29], [C, s * 0.29], [C, s * C], [-C, s * C]], Y2);
+        q([[-C, 0], [C, 0], [C, s * 0.23], [-C, s * 0.23]], Y2);
+        for (const e of [1, -1])
+            q([[e * 0.3, s * 0.23], [e * C, s * 0.23], [e * C, s * 0.29], [e * 0.3, s * 0.29]], Y2);
+        b.set([1, 1, 1], 2);
+        q([[-0.3, s * 0.23], [0.3, s * 0.23], [0.3, s * 0.29], [-0.3, s * 0.29]], Y2);
+    });
     b.set(DARK, 0);
-    b.box(0, DROP_H + 0.05, 0, 0.32, 0.012, 0.32);
-    b.set([1, 0.3, 0.2], 5); // a blinking beacon on the lid
-    b.box(0.36, DROP_H + 0.07, 0.36, 0.03, 0.02, 0.03);
-    dropThrusters(b);
+    dropBox(b, -0.15, 0.15, Y2, Y3, -0.15, 0.15, "xXYzZ");
+    b.set([1, 0.3, 0.2], 5); // a blinking beacon on the hatch
+    dropBox(b, -0.035, 0.035, Y3, Y3 + 0.035, -0.035, 0.035, "xXYzZ");
     return b.build([0, 0, 0], 0, 0);
 }
 function flDropWall() {
     const b = new MeshBuilder();
     b.grit = exports.GRIT;
-    dropWallFace(b, true);
+    dropWall(b, 0, 23, true);
     return b.build([0, 0, 0], 0, 0);
 }
 function flDropBase() {
     const b = new MeshBuilder();
     b.grit = exports.GRIT;
-    b.set(GUN, 0);
-    b.box(0, 0.025, 0, DROP_W, 0.025, DROP_W);
-    b.set(HAZARD, 0);
-    for (const s of [1, -1]) {
-        b.box(s * (DROP_W - 0.03), 0.052, 0, 0.02, 0.003, DROP_W * 0.9);
-        b.box(0, 0.052, s * (DROP_W - 0.03), DROP_W * 0.9, 0.003, 0.02);
-    }
-    dropThrusters(b);
+    dropBase(b, true);
     return b.build([0, 0, 0], 0, 0);
 }
 function flCrate() {
     const b = new MeshBuilder();
     b.grit = exports.GRIT;
-    b.set(P2);
-    b.box(0, 0.32, 0, 0.5, 0.32, 0.32);
+    // an air-drop ammunition container: a tub on two skids with the team band let into it, a chamfered lid, a status lamp
     b.set(DARK, 0);
-    b.box(0, 0.66, 0, 0.52, 0.03, 0.34);
+    b.mirrored((s) => b.box(0, 0.035, s * 0.2, 0.46, 0.035, 0.055)); // skids
+    b.set(P2);
+    b.box(0, 0.18, 0, 0.5, 0.11, 0.32); // tub, below the band
+    b.box(0, 0.455, 0, 0.5, 0.075, 0.32); // and above it
     b.set([1, 1, 1], 2);
-    b.box(0, 0.32, 0, 0.51, 0.06, 0.33);
-    b.set([0.35, 1, 0.5], 2);
-    b.box(0, 0.71, 0, 0.18, 0.025, 0.04);
+    b.box(0, 0.335, 0, 0.5, 0.045, 0.32); // team band
+    b.set(P3);
+    b.hull([[-0.52, 0.53], [0.52, 0.53], [0.52, 0.62], [0.45, 0.7], [-0.45, 0.7], [-0.52, 0.62]], 0.34, 0.27); // lid
+    b.set([0.35, 1, 0.5], 4);
+    b.box(0.32, 0.715, 0, 0.06, 0.025, 0.045); // status lamp
     G2(() => {
-        // graphics pass: corner posts, latches, end grips, stencil bars on the lid
+        // near detail: corner posts, carry rails on the ends, lid straps with latches, a stencil
         b.set(GUN, 0);
         for (const sx of [1, -1])
             for (const sz of [1, -1])
-                b.box(sx * 0.49, 0.33, sz * 0.31, 0.035, 0.34, 0.035);
-        b.mirrored((s) => {
-            b.set(DARK, 0);
-            b.box(-0.22, 0.6, s * 0.335, 0.05, 0.07, 0.015);
-            b.box(0.22, 0.6, s * 0.335, 0.05, 0.07, 0.015);
-            b.set(HAZARD, 0);
-            b.box(0, 0.12, s * 0.325, 0.4, 0.03, 0.006);
-        });
+                b.box(sx * 0.495, 0.3, sz * 0.315, 0.035, 0.23, 0.035);
         for (const sx of [1, -1]) {
+            b.set(HAZARD, 0);
+            b.box(sx * 0.535, 0.45, 0, 0.035, 0.028, 0.28); // carry rail between the posts
             b.set(DARK, 0);
-            rod(b, [sx * 0.54, 0.42, -0.14], [sx * 0.54, 0.42, 0.14], 0.02, 3);
+            b.box(sx * 0.14, 0.71, 0, 0.03, 0.025, 0.275); // lid strap
         }
-        markings(b, qy(0.69, -0.42, -0.24, -0.2, 0.2, 1));
+        b.set(STEEL, 0);
+        b.mirrored((s) => {
+            for (const x of [-0.14, 0.14])
+                b.box(x, 0.52, s * 0.34, 0.045, 0.06, 0.022); // latch
+        });
+        markings(b, qy(0.7, -0.4, -0.22, -0.18, 0.18, 1));
     });
     return b.build([0, 0, 0], 0, 0);
 }
@@ -2367,23 +2593,108 @@ function coreSilo(b) {
  */
 function flRocket() {
     const b = new MeshBuilder();
-    b.set([0.88, 0.89, 0.86], 0);
-    b.cyl(0, 1.2, 0, 1.4, 1.4, 9.5, 16, "y", false);
-    b.set([0.16, 0.17, 0.16], 0);
-    b.cyl(0, 6.0, 0, 1.42, 1.42, 1.2, 16, "y", false);
-    b.set([0.8, 0.25, 0.15], 0);
-    b.cyl(0, 10.4, 0, 1.43, 1.43, 0.35, 16, "y", false);
-    b.set([0.88, 0.89, 0.86], 0);
-    b.cyl(0, 10.7, 0, 1.4, 0.2, 3.4, 16, "y", true); // the capsule nose (it comes down as the pod)
+    b.grit = exports.GRIT * 0.6;
+    const N = 12, R = 1.4, A = R * Math.cos(R12), WHITE = [0.88, 0.89, 0.86], REDP = [0.8, 0.25, 0.15], BLK = [0.16, 0.17, 0.16];
+    const ring = (col, mat, y, h, r = R + 0.03) => { b.set(col, mat); b.cyl(0, y, 0, r, r, h, N, "y", false, R12); };
+    // engine: the bell with its throat and burn, the boat-tail it hangs from
     b.set(STEEL, 0);
-    b.cyl(0, 0.0, 0, 0.7, 1.1, 1.2, 12, "y", true); // engine bell
-    b.set([0.8, 0.25, 0.15], 0);
-    for (let i = 0; i < 4; i++) {
-        const a = i * Math.PI / 2, c = Math.cos(a), sn = Math.sin(a);
-        const fin = [[c * 1.35, 1.2, sn * 1.35], [c * 2.6, 0.6, sn * 2.6], [c * 2.6, 2.4, sn * 2.6], [c * 1.35, 4.2, sn * 1.35]], tx = -sn, tz = c;
-        b.poly(fin, [c * 2 - tx, 2.1, sn * 2 - tz]); // both faces of the flat fin
-        b.poly(fin.slice().reverse(), [c * 2 + tx, 2.1, sn * 2 + tz]);
+    b.cyl(0, 0, 0, 1.05, 0.5, 1.3, 10, "y", false);
+    b.set(BLACK, 0);
+    b.disc(0, 0.3, 0, 0.9, 10, "y", -1);
+    b.set([1, 0.6, 0.3], 3);
+    b.disc(0, 0.26, 0, 0.55, 10, "y", -1);
+    b.set(BLK, 0);
+    b.disc(0, 1.1, 0, 1.08, N, "y", -1, R12);
+    b.cyl(0, 1.1, 0, 1.08, R, 0.6, N, "y", false, R12);
+    // first stage
+    b.set(WHITE, 0);
+    b.cyl(0, 1.7, 0, R, R, 5.7, N, "y", false, R12);
+    b.disc(0, 7.4, 0, R, N, "y", 1, R12);
+    ring(BLK, 0, 1.7, 0.5);
+    ring(REDP, 0, 6.95, 0.3);
+    // interstage: a recessed dark drum
+    b.set(BLK, 0);
+    b.cyl(0, 7.4, 0, 1.16, 1.16, 0.8, N, "y", false, R12);
+    // second stage
+    b.set(WHITE, 0);
+    b.disc(0, 8.2, 0, R, N, "y", -1, R12);
+    b.cyl(0, 8.2, 0, R, R, 2.2, N, "y", false, R12);
+    ring([1, 1, 1], 2, 9.7, 0.2);
+    // the capsule (it comes down as the pod): adapter, heat shield, team-tinted body, cone, parachute canister
+    b.set(GUN, 0);
+    b.cyl(0, 10.4, 0, R, 1.56, 0.3, N, "y", false, R12);
+    b.set(SCORCH, 0);
+    b.cyl(0, 10.7, 0, 1.56, 1.52, 0.2, N, "y", false, R12);
+    b.set(ABLATE, 0);
+    b.cyl(0, 10.9, 0, 1.52, 1.44, 0.08, N, "y", false, R12);
+    b.set(P2, 1);
+    b.cyl(0, 10.98, 0, 1.44, 1.17, 1.52, N, "y", false, R12);
+    b.set(P1, 1);
+    b.cyl(0, 12.5, 0, 1.17, 0.52, 0.9, N, "y", false, R12);
+    b.set([1, 1, 1], 2);
+    b.cyl(0, 12.12, 0, 1.26, 1.225, 0.18, N, "y", false, R12); // team band
+    b.set(GUN, 0);
+    b.cyl(0, 13.4, 0, 0.52, 0.48, 0.2, 8, "y", false, Math.PI / 8);
+    b.disc(0, 13.6, 0, 0.48, 8, "y", 1, Math.PI / 8);
+    // launch escape tower: four legs, the motor with its canted nozzles, a red tip
+    for (let k = 0; k < 4; k++) {
+        const a = Math.PI / 4 + k * Math.PI / 2, c = Math.cos(a), s = Math.sin(a);
+        b.set(GUN, 0);
+        rod(b, [c * 0.4, 13.58, s * 0.4], [c * 0.16, 14.4, s * 0.16], 0.04, 3);
     }
+    b.set(WHITE, 0);
+    b.disc(0, 14.3, 0, 0.21, 8, "y", -1);
+    b.cyl(0, 14.3, 0, 0.21, 0.21, 0.85, 8, "y", false);
+    b.set(REDP, 0);
+    b.cyl(0, 15.15, 0, 0.21, 0.03, 0.45, 8, "y", true);
+    // fins on the axes: thick swept blades, the tips clear of the silo wall
+    for (let k = 0; k < 4; k++) {
+        const m = b.mark();
+        b.set(REDP, 0);
+        b.hull([[1.3, 1.75], [2.3, 0.45], [2.3, 1.5], [1.3, 4.3]], 0.1, 0.045);
+        b.rotY(m, k * Math.PI / 2);
+    }
+    G2(() => {
+        // near detail: vernier nozzles, the interstage truss, roll pattern, panel lines, a cable raceway, thruster quads,
+        // tower bracing and escape nozzles, the capsule's retro fairings
+        const F = (i, y0, y1, u0 = 0, u1 = 1) => fq(N, R12, R, R, 0, 1, i, u0, u1, y0, y1);
+        for (let k = 0; k < 4; k++) {
+            const a = Math.PI / 4 + k * Math.PI / 2, c = Math.cos(a), s = Math.sin(a);
+            b.set(STEEL, 0);
+            b.cyl(c * 0.82, 0.7, s * 0.82, 0.17, 0.09, 0.45, 6, "y", false); // vernier
+            b.set(GUN, 0);
+            rod(b, [c * 0.28, 14.0, s * 0.28], [-s * 0.28, 14.0, c * 0.28], 0.03, 3); // tower brace
+            b.set(BLK, 0);
+            b.cyl(c * 0.25, 14.12, s * 0.25, 0.1, 0.05, 0.24, 5, "y", false); // escape nozzle
+            let m = b.mark();
+            b.set(GUN, 0);
+            b.hull([[1.22, 11.2], [1.62, 11.2], [1.62, 11.45], [1.36, 11.95], [1.2, 11.95]], 0.2, 0.15); // retro fairing
+            b.set(BLK, 0);
+            b.box(1.39, 9.2, 0, 0.07, 0.16, 0.14); // attitude thruster quad
+            b.rotY(m, k * Math.PI / 2);
+        }
+        b.set(STEEL, 0);
+        for (let i = 0; i < N; i++) { // interstage truss: a zigzag of struts between the stage rims
+            const a0 = (i / N) * Math.PI * 2 + R12, a1 = ((i + 1) / N) * Math.PI * 2 + R12, r = R - 0.06;
+            rod(b, [Math.cos(a0) * r, i % 2 ? 8.2 : 7.4, Math.sin(a0) * r], [Math.cos(a1) * r, i % 2 ? 7.4 : 8.2, Math.sin(a1) * r], 0.05, 3);
+        }
+        b.set(BLK, 0);
+        for (const i of [0, 1, 2, 6, 7, 8])
+            decal(b, F(i, 5.6, 6.9), 0.012); // roll pattern
+        for (const i of [4, 10])
+            decal(b, F(i, 2.8, 4.6, 0.25, 0.75), 0.012); // stripe
+        b.set([0.6, 0.61, 0.59], 0);
+        for (const y of [3.6, 5.5])
+            for (let i = 0; i < N; i++)
+                decal(b, F(i, y, y + 0.05), 0.02); // panel lines
+        b.set(GUN, 0);
+        const m = b.mark();
+        b.box(A + 0.05, 4.45, 0, 0.05, 2.2, 0.1); // cable raceway
+        b.rotY(m, Math.PI * 2 / 3);
+        b.set(REDP, 0);
+        decal(b, F(11, 8.75, 9.45, 0.2, 0.8), 0.012);
+        markings(b, F(5, 8.8, 9.3, 0.15, 0.85));
+    });
     return b.build([0, 0, 0], 0, 0);
 }
 /**
@@ -3819,6 +4130,7 @@ const dpR = (y) => 2.72 - ((y - 0.7) / 3.3) * 0.67;
 function dropPod() {
     const b = new MeshBuilder();
     b.grit = exports.GRIT;
+    const HX = exports.DP.hx, GY = exports.DP.gunY, GZ = exports.DP.gunZ, CZ = exports.DP.podZ, CY = 5.12;
     // heat shield and capsule
     b.set(SCORCH, 0);
     b.cyl(0, 0, 0, 2.95, 2.82, 0.62, 12, "y", true, R12);
@@ -3833,25 +4145,27 @@ function dropPod() {
     }
     b.set([1, 1, 1], 2);
     b.cyl(0, 3.55, 0, dpR(3.55) + 0.02, dpR(3.7) + 0.02, 0.15, 12, "y", false, R12); // team glow band
-    // shoulder deck, hatch rim, the dark well
+    // shoulder deck, the hatch collar (its corners carried on gussets out of the shoulder), the rim, the dark well
     b.set(GUN, 0);
     b.disc(0, 4.0, 0, 2.05, 12, "y", 1, R12);
-    b.mirrored((s) => { b.box(s * (exports.DP.hx + 0.08), 4.15, 0, 0.08, 0.15, exports.DP.hx + 0.16); b.box(0, 4.15, s * (exports.DP.hx + 0.08), exports.DP.hx, 0.15, 0.08); });
+    b.cyl(0, 3.62, 0, 1.34 * Math.SQRT2, (HX + 0.16) * Math.SQRT2, 0.38, 4, "y", false, Math.PI / 4);
+    b.mirrored((s) => { b.box(s * (HX + 0.08), 4.15, 0, 0.08, 0.15, HX + 0.16); b.box(0, 4.15, s * (HX + 0.08), HX, 0.15, 0.08); });
     b.set(BLACK, 0);
-    b.quad([-exports.DP.hx, 4.012, -exports.DP.hx], [exports.DP.hx, 4.012, -exports.DP.hx], [exports.DP.hx, 4.012, exports.DP.hx], [-exports.DP.hx, 4.012, exports.DP.hx], [0, 3, 0]);
-    // retro thrusters (between the legs), fins above them; legs on the diagonals
+    b.quad([-HX, 4.012, -HX], [HX, 4.012, -HX], [HX, 4.012, HX], [-HX, 4.012, HX], [0, 3, 0]);
+    // on the axes: a retro-thruster fairing, its bell hung clear of the heat shield, a stabiliser fin standing on it;
+    // on the diagonals: a splayed landing leg, its brace and foot
     for (let k = 0; k < 4; k++) {
         let m = b.mark();
         b.set(GUN, 0);
-        b.box(2.55, 1.25, 0, 0.26, 0.32, 0.3);
+        b.hull([[2.45, 1.05], [3.25, 1.05], [3.25, 1.4], [2.62, 2.0], [2.3, 2.0]], 0.32, 0.26);
         b.set(STEEL, 0);
-        b.cyl(2.88, 0.5, 0, 0.44, 0.24, 0.62, 8, "y", false);
+        b.cyl(3.0, 0.76, 0, 0.36, 0.2, 0.34, 8, "y", false);
         b.set(BLACK, 0);
-        b.disc(2.88, 0.52, 0, 0.4, 8, "y", -1);
+        b.disc(3.0, 0.82, 0, 0.32, 8, "y", -1);
         b.set([1, 0.55, 0.25], 3);
-        b.disc(2.88, 0.56, 0, 0.2, 8, "y", -1);
+        b.disc(3.0, 0.8, 0, 0.19, 8, "y", -1);
         b.set(P3, 1);
-        b.hull([[2.42, 1.9], [3.3, 2.05], [2.95, 3.3], [2.05, 3.95]], 0.05, 0.05);
+        b.hull([[2.3, 2.0], [3.25, 2.1], [2.95, 3.2], [1.95, 3.8]], 0.07, 0.05);
         b.rotY(m, k * Math.PI / 2);
         m = b.mark();
         b.set(GUN, 0);
@@ -3864,7 +4178,7 @@ function dropPod() {
     }
     // the hatch petals: a square pyramid split into four, each hinged on its rim edge
     for (let k = 0; k < 4; k++) {
-        const m = b.mark(), B0 = [exports.DP.hx, exports.DP.hy, -exports.DP.hx], B1 = [exports.DP.hx, exports.DP.hy, exports.DP.hx], A = [0.02, 6.05, 0], M = [0.84, 5.2, 0];
+        const m = b.mark(), B0 = [HX, exports.DP.hy, -HX], B1 = [HX, exports.DP.hy, HX], A = [0.02, 6.05, 0], M = [0.84, 5.2, 0];
         b.part = 18 + k;
         b.set(P1, 1, 18 + k);
         b.tri(B0, B1, M, [0, 4.3, 0]);
@@ -3875,12 +4189,19 @@ function dropPod() {
         b.tri(inn(B0), inn(B1), inn(M), [4, 6.5, 0]);
         b.tri(inn(B0), inn(M), inn(A), [4, 6.5, 0]);
         b.tri(inn(M), inn(B1), inn(A), [4, 6.5, 0]);
-        G2(() => g2PodPetal(b, B0, B1, A, 18 + k));
+        G2(() => {
+            g2PodPetal(b, B0, B1, A, 18 + k);
+            // the inner face (it lies open to the sky once the petal has folded back): a warning strip along the hinge, a lining pad
+            const I0 = inn(B0), I1 = inn(B1), IM = inn(M), out = [4, 6.5, 0];
+            chevrons(b, [[vlerp(I0, IM, 0.08), vlerp(I1, IM, 0.08), vlerp(I1, IM, 0.26), vlerp(I0, IM, 0.26)], out], 5);
+            b.set(CANVAS, 0, 18 + k);
+            panel(b, [[vlerp(I0, IM, 0.4), vlerp(I1, IM, 0.4), vlerp(I1, IM, 0.82), vlerp(I0, IM, 0.82)], out], 0.035, 0.1);
+        });
         b.rotY(m, k * Math.PI / 2);
         b.part = 0;
     }
-    beacon(b, -1.75, 4.0, 1.0, RED, 0.12, 0);
-    // the weapon head (rises out of the hatch): column, ring, armoured head, twin guns, rocket pod
+    beacon(b, -1.5, 4.3, 1.5, RED, 0.1, 0); // on a rim corner, clear of the petals' swing
+    // the weapon head (rises out of the hatch): column, ring, armoured head, gun mantlet
     b.part = 1;
     b.set(STEEL, 0, 1);
     b.cyl(0, 2.7, 0, 0.55, 0.5, 1.8, 8, "y", false);
@@ -3889,20 +4210,36 @@ function dropPod() {
     b.set(P2, 1, 1);
     b.hull([[-1.0, 4.5], [1.05, 4.5], [1.3, 4.95], [1.05, 5.55], [-0.85, 5.6], [-1.1, 5.1]], 0.75, 0.62);
     b.set(DARK, 0, 1);
-    b.box(1.32, exports.DP.gunY, 0, 0.12, 0.3, 0.55);
-    // designer 21 Nov: a cannon on the left of the head (it replaces the rocket pod): breech housing, barrel, muzzle brake
+    b.box(1.32, GY, 0, 0.12, 0.3, 0.55);
+    // the cannon on the left of the head: an armoured sponson let into the head's side, a collar, then (part 2, recoils)
+    // the sleeve, the barrel with its fume extractor and a ported muzzle brake ending on the muzzle (x 2.98)
     b.set(STEEL, 0, 1);
-    b.box(0.15, 5.12, exports.DP.podZ, 0.75, 0.32, 0.26);
-    b.set(GUN, 0, 2);
-    b.cyl(0.9, 5.12, exports.DP.podZ, 0.15, 0.13, 1.85, 12, "x", false);
-    b.set(DARK, 0, 2);
-    b.cyl(1.0, 5.12, exports.DP.podZ, 0.2, 0.2, 0.3, 12, "x", false);
-    b.box(2.85, 5.12, exports.DP.podZ, 0.12, 0.2, 0.2);
+    b.hull([[-0.7, 4.8], [0.8, 4.8], [0.98, 4.98], [0.98, 5.26], [0.8, 5.44], [-0.55, 5.44], [-0.7, 5.3]], 0.36, 0.36, -0.98);
+    b.set(DARK, 0, 1);
+    b.cyl(0.98, CY, CZ, 0.23, 0.18, 0.14, 8, "x", false, Math.PI / 8);
     b.set([1, 1, 1], 2, 1);
-    b.box(-0.2, 5.45, exports.DP.podZ, 0.55, 0.015, 0.2); // team strip on the housing
-    beacon(b, -0.62, 5.58, 0.32, AMBER, 0.11, 1);
+    decal(b, qy(5.44, -0.5, 0.45, -1.2, -0.8, 1), 0.012); // team strip on the sponson
     b.set(GUN, 0, 2);
-    b.mirrored((s) => { b.cyl(1.3, exports.DP.gunY, s * exports.DP.gunZ, 0.1, 0.09, 0.8, 6, "x", false); b.set(DARK, 0, 2); b.cyl(2.05, exports.DP.gunY, s * exports.DP.gunZ, 0.14, 0.14, 0.2, 6, "x"); b.set(GUN, 0, 2); });
+    b.cyl(1.0, CY, CZ, 0.18, 0.16, 0.75, 8, "x", true, Math.PI / 8);
+    b.set(STEEL, 0, 2);
+    b.cyl(1.75, CY, CZ, 0.12, 0.11, 0.97, 8, "x", false, Math.PI / 8);
+    b.set(DARK, 0, 2);
+    b.box(2.835, CY, CZ, 0.115, 0.17, 0.19); // the bore (near mesh) sits on the muzzle 3 cm ahead of this face
+    // the ready-ammunition bin on the right of the head
+    b.set(OLIVE, 0, 1);
+    b.box(-0.3, 5.05, 0.84, 0.45, 0.27, 0.2);
+    beacon(b, -0.62, 5.58, 0.32, AMBER, 0.11, 1);
+    // twin machine guns (part 2): cooling jackets, barrels, flash hiders ending on the muzzles (x DP.gunTip)
+    b.mirrored((s) => {
+        b.set(DARK, 0, 2);
+        b.cyl(1.44, GY, s * GZ, 0.115, 0.1, 0.5, 6, "x", true);
+        b.set(GUN, 0, 2);
+        b.cyl(1.94, GY, s * GZ, 0.05, 0.05, 0.14, 5, "x", false);
+        b.set(DARK, 0, 2);
+        b.cyl(exports.DP.gunTip - 0.19, GY, s * GZ, 0.065, 0.1, 0.19, 6, "x", false);
+        b.set(GBLK, 0, 2);
+        b.disc(exports.DP.gunTip - 0.04, GY, s * GZ, 0.09, 6, "x", 1);
+    });
     G2(() => g2DropPod(b));
     b.part = 0;
     const m = b.build([0, exports.DP.pivotY, 0], 0, 0, 0.25);
@@ -4077,7 +4414,8 @@ function g2DropPod(b) {
         const u = 0.2 + 0.6 * (((Math.sin(i * 7.31) * 9173.1) % 1 + 1) % 1);
         b.set(SCORCH, 0);
         decal(b, fq(12, R12, 2.72, 2.05, 0.7, 3.3, i, u, u + 0.08, 0, 0.55 + 0.25 * (i % 3) / 2), 0.02);
-        if (i % 2 === 0) {
+        if (i % 3 === 2) { } // the faces behind the thruster fairings and fins stay plain
+        else if (i % 2 === 0) {
             b.set(P1, 1);
             panel(b, fq(12, R12, 2.72, 2.05, 0.7, 3.3, i, 0.12, 0.88, 0.5, 0.78), 0.05, 0.12);
         }
@@ -4099,34 +4437,40 @@ function g2DropPod(b) {
         b.rotY(m, Math.PI / 4 + k * Math.PI / 2);
         const n = b.mark();
         b.set(DARK, 0);
-        b.cyl(2.88, 1.1, 0, 0.27, 0.27, 0.08, 8, "y", false); // nozzle collar
-        b.set(RUBBER, 0);
-        rod(b, [2.4, 1.6, 0.2], [2.8, 1.12, 0.22], 0.045, 4); // fuel line
+        b.cyl(3.0, 0.97, 0, 0.29, 0.29, 0.08, 8, "y", false); // nozzle collar
+        chevrons(b, qx(3.25, -0.28, 0.28, 1.1, 1.36, 1), 3); // warning strip on the fairing
         b.set(MARK, 0);
-        decal(b, [[[2.42, 2.4, 0.052], [2.95, 2.45, 0.052], [2.8, 3.0, 0.052], [2.3, 3.0, 0.052]], [2.6, 2.7, -1]], 0.01); // fin marking
+        b.mirrored((s) => decal(b, [[[2.5, 2.3, s * 0.066], [2.98, 2.36, s * 0.066], [2.84, 2.9, s * 0.059], [2.36, 3.0, s * 0.058]], [2.6, 2.7, 0]], 0.01)); // fin marking
         b.rotY(n, k * Math.PI / 2);
     }
-    whip(b, 1.6, 4.0, -1.55, 1.9, RED, 0);
-    // head: panels, vents, ammo feeds, sensor, rotary barrel clusters, rocket pod frame
+    whip(b, 1.5, 4.3, -1.5, 0.5, RED, 0); // a stub aerial on a rim corner, under the sweep of the barrels
+    // head: side armour, a rear vent and team strip (on the rear plates), the ammunition feed, a sensor, a gunner's sight
     b.part = 1;
-    b.mirrored((s) => { b.set(P3, 1, 1); panel(b, [[[-0.7, 4.62, s * 0.752], [0.9, 4.62, s * 0.752], [0.9, 5.35, s * 0.66], [-0.7, 5.35, s * 0.66]], [0, 5, 0]], 0.05, 0.1); });
-    grille(b, qx(-1.1, -0.45, 0.45, 4.7, 5.05, -1), 3);
-    b.set(OLIVE, 0, 1);
-    b.box(-0.55, 5.25, 0.9, 0.35, 0.25, 0.15); // ammo box
-    b.set(RUBBER, 0, 1);
-    rod(b, [-0.25, 5.25, 0.85], [0.9, 5.0, 0.5], 0.05, 4);
-    sensorDome(b, 0.55, 5.57, 0.32, 0.2, 1);
-    b.set(GUN, 0, 1);
-    b.box(0.15, 5.12, exports.DP.podZ, 0.82, 0.08, 0.32);
-    b.box(-0.62, 5.12, exports.DP.podZ, 0.04, 0.52, 0.32);
-    chevrons(b, qz(exports.DP.podZ - 0.302, -0.55, 0.85, 4.7, 4.9, -1), 5);
+    lampX(b, 1.2, 5.38, 0.42, 0.1, 1, LAMP, 1); // searchlight beside the guns
+    const RL = (t, z) => [-1.0 - 0.1 * t, 4.5 + 0.6 * t, z], RU = (t, z) => [-1.1 + 0.25 * t, 5.1 + 0.5 * t, z];
+    grille(b, [[RL(0.2, -0.45), RL(0.2, 0.45), RL(0.85, 0.45), RL(0.85, -0.45)], [0, 4.9, 0]], 3);
     b.set([1, 1, 1], 2, 1);
-    b.box(-1.11, 5.3, 0, 0.012, 0.08, 0.4);
+    decal(b, [[RU(0.3, -0.4), RU(0.3, 0.4), RU(0.62, 0.4), RU(0.62, -0.4)], [0, 5.3, 0]], 0.012);
+    b.set(DARK, 0, 1);
+    b.box(-0.3, 5.33, 0.84, 0.3, 0.02, 0.06); // bin lid handle
+    b.set(RUBBER, 0, 1);
+    rod(b, [0.1, 5.05, 0.92], [1.26, 4.95, 0.56], 0.05, 4); // feed chute to the guns
+    sensorDome(b, 0.55, 5.55, 0.3, 0.2, 1);
+    b.set(DARK, 0, 1);
+    b.box(0.82, 5.62, -0.28, 0.13, 0.09, 0.15); // sight housing
+    b.set(COOLWIN, 4, 1);
+    b.quad([0.952, 5.57, -0.38], [0.952, 5.57, -0.18], [0.952, 5.68, -0.18], [0.952, 5.68, -0.38], [0.8, 5.62, -0.28]);
+    hatch(b, -0.2, 5.585, -0.22, 0.26, 1);
     b.part = 2;
-    b.mirrored((s) => { b.set(DARK, 0, 2); for (let j = 0; j < 3; j++) {
-        const a = (j / 3) * Math.PI * 2;
-        b.cyl(1.35, exports.DP.gunY + Math.cos(a) * 0.07, s * exports.DP.gunZ + Math.sin(a) * 0.07, 0.035, 0.035, 0.75, 4, "x", false);
-    } b.set(STEEL, 0, 2); b.cyl(1.5, exports.DP.gunY, s * exports.DP.gunZ, 0.13, 0.13, 0.06, 6, "x", false); });
+    b.mirrored((s) => {
+        b.set(STEEL, 0, 2);
+        b.cyl(1.6, exports.DP.gunY, s * exports.DP.gunZ, 0.125, 0.125, 0.06, 6, "x", false); // jacket band
+        b.set(GBLK, 0, 2);
+        b.quad([2.76, 5.02, exports.DP.podZ + s * 0.2], [2.91, 5.02, exports.DP.podZ + s * 0.2], [2.91, 5.22, exports.DP.podZ + s * 0.2], [2.76, 5.22, exports.DP.podZ + s * 0.2], [2.85, 5.12, exports.DP.podZ]); // brake port
+    });
+    b.disc(2.98, 5.12, exports.DP.podZ, 0.09, 6, "x", 1); // bore, on the muzzle point
+    b.set(DARK, 0, 2);
+    b.cyl(2.02, 5.12, exports.DP.podZ, 0.165, 0.165, 0.3, 8, "x", true, Math.PI / 8); // fume extractor
     b.part = part;
 }
 const vadd = (a, c) => [a[0] + c[0], a[1] + c[1], a[2] + c[2]];
