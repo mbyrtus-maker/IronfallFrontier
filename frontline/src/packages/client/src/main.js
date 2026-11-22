@@ -6168,6 +6168,8 @@ function assemble(now, frameDt) {
                 fb1Stats.moving++;
             fb1Stats.lastOpen = u;
         }
+        if (!cd.tStructure[t] && flInClosedCrate(x, z, now))
+            continue; // designer 22 Nov: a dropped vehicle stays hidden in its crate until the walls fall (a tank's gun poked out through the side)
         putInst(kb.a, kb.n * render_ts_1.INST_FLOATS, x, y + liftY, z, yaw, shown, (empty || faint ? 2 : unitTeamIndex(eb)) + (selected.has(eb.id) || eb.id === selBuilding ? 10 : 0), phase, scale, walk, walkAmp, recoil);
         if (gaitG) { // W1: the four legs, hip (on the tilted hull) to the planted / swinging sole (render.ts walkerLeg IK)
             const W = gaitG.W, lb = kindBuf.get(W.biped ? "mleg" : "sleg"), team = (empty || faint ? 2 : unitTeamIndex(eb)) + (selected.has(eb.id) ? 10 : 0);
@@ -11604,6 +11606,13 @@ function onCallEffect(e) {
 let flGroundPods = [];
 const flPodLand = new Map();
 const flCallStats = { falling: 0, ground: 0, crates: 0 };
+/** Is (x, z) inside a vehicle drop crate that has not opened yet? */
+function flInClosedCrate(x, z, now) {
+    for (const la of flPodLand.values())
+        if (la.drop && la.S && (la.landedAt === undefined || (now - la.landedAt) / 1000 / flDropTimeK < 0.5) && Math.abs(x - la.x) < la.S * 0.75 && Math.abs(z - la.z) < la.S * 0.75)
+            return true;
+    return false;
+}
 function flInst(kind, x, y, z, yaw, team, scale = 1, amp = 0) {
     const kb = kindBuf.get(kind);
     if (!kb)

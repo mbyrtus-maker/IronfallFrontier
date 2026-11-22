@@ -150,7 +150,7 @@ vec3 podPetal(vec3 p, float part, vec4 iC, bool pos) {
 vec3 unitLocal0(vec3 p, float part, vec4 iA, vec4 iB, vec4 iC) {
   if (uPod.w > 0.0) {
     if (part > 17.5) return podPetal(p, part, iC, true);
-    if (part > 0.5 && part < 2.5) p.y -= (1.0 - podHead(iC)) * uPod.z;
+    if (part > 0.5 && part < 2.5) { float st = 1.0 - podHead(iC); p.y -= st * uPod.z; if (part > 1.5) p.x -= st * 1.4; } // stowed: the barrels also run back into the head, clear of the hull
   }
   if (part > 21.5 && part < 22.5) { vec2 P = vec2(-1.9, 1.3); p.xy = rot(p.xy - P, iC.y) + P; return p; } // Frontline: the gunship's tilting wing engines (angle in iC.y)
   if (part > 22.5 && part < 23.5) { p.xy = rot(p.xy, -iC.y); return p; } // Frontline: a drop crate wall falling outward about its bottom outer edge (iC.y: 0 standing .. pi/2 flat)
