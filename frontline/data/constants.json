@@ -1281,6 +1281,9 @@
     "pelletFalloff": {
       "fullMetres": 20,
       "minMul": 0.4
-    }
+    },
+    "aiEmptyVehicleRadiusMetres": 120,
+    "playerVehicleTagSeconds": 45,
+    "_emptyVehiclesNote": "Designer 22 Nov: AI pilots of both sides man an empty vehicle within aiEmptyVehicleRadiusMetres before running back to base (or one they pass); a vehicle a player summoned or was in is left alone until playerVehicleTagSeconds after the player was last aboard."
   }
 }

@@ -1511,8 +1511,8 @@ class EnemyAi {
         for (let s = 0; s < sim.hi && avail > 0; s++) {
             if (!sim.alive[s] || sim.hp[s] <= 0 || sim.team[s] !== team || d.tStructure[sim.etype[s]] || sim.critTick[s] >= 0 || !sim.crewable(s))
                 continue;
-            if (pool.waiting.has(sim.eid[s]))
-                continue;
+            if (pool.waiting.has(sim.eid[s]) || (sim.fkit && sim.fkit.isPlayerTagged(sim, sim.eid[s])))
+                continue; // (designer 22 Nov: not a player-tagged vehicle until its tag lapses)
             const n = pool.emptySeats(sim, s).length;
             if (n === 0 || !pool.atHome(sim, s))
                 continue;

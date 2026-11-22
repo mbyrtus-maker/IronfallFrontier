@@ -75,7 +75,8 @@ function fkitRules(d) {
         bleedTicks: mins(PC.coreBleedAfterMinutes, 18), bleedPerPoint: PC.coreBleedPerPointPer5s ?? 0.004 };
     const PF = F.pelletFalloff ?? {}, pellet = { full: PF.fullMetres ?? 20, minMul: PF.minMul ?? 0.4 };
     return { pellet, pace, swapSeconds: F.cellSwapSeconds ?? 1, spend, heli, lock, thirdW, jetEnergyMul: F.jetEnergyMul ?? 1, podNeed: F.podNeedFraction ?? 1, silo, roles, guns, grenades, armour, heal, cellShots, slot3, empty: F.slot3Empty ? wi(F.slot3Empty) : -1, calls: F.frontlineCalls ?? [], cells: F.heatCells ?? 4, small, hullMul, refillRadius: F.refillRadiusMetres ?? 40,
-        refillTicks: Math.round((F.refillSeconds ?? 4) * d.constants.tickRate), defaultKit: F.defaultKit };
+        refillTicks: Math.round((F.refillSeconds ?? 4) * d.constants.tickRate), defaultKit: F.defaultKit,
+        emptyRadius: F.aiEmptyVehicleRadiusMetres ?? 120, playerTagTicks: Math.round((F.playerVehicleTagSeconds ?? 45) * d.constants.tickRate) };
 }
 /** Frontline: mOvh value of a laser locked by overheating until its cell is swapped. */
 exports.CELL_STUCK = 2 ** 30;
@@ -796,7 +797,61 @@ class FKit {
             }
         }
     }
+    /**
+     * Designer 22 Nov, empty vehicles: AI pilots of both sides man an empty vehicle before running back to base, or one
+     * they pass on the way. A vehicle a player summoned or was in carries a player tag (vehicle id -> tick it lapses,
+     * refreshed while a player is aboard): the AI leave it alone until the tag lapses, then it is fair game.
+     */
+    ptag = new Map();
+    /** vehicle id -> {pid, until}: an AI pilot on its way to climb into an empty vehicle (one per vehicle). */
+    claims = new Map();
+    playerTag(sim, vid) { this.ptag.set(vid, sim.tick + this.R.playerTagTicks); }
+    isPlayerTagged(sim, vid) { const t = this.ptag.get(vid); return t !== undefined && t > sim.tick; }
+    tagStep(sim) {
+        for (const p of sim.pilots.values())
+            if (p.player >= 0 && p.state === 0 && !sim.isBotPilot(p.id) && p.vehicle)
+                this.playerTag(sim, p.vehicle);
+        for (const [vid, t] of [...this.ptag])
+            if (t <= sim.tick || !sim.idToSlot.has(vid))
+                this.ptag.delete(vid);
+        for (const [vid, c] of [...this.claims])
+            if (c.until <= sim.tick || !sim.idToSlot.has(vid))
+                this.claims.delete(vid);
+    }
+    /** May an AI pilot of team take empty vehicle slot o (no player tag, not a Mule on ferry work, claimed by nobody else)? */
+    freeForAi(sim, o, team, pid, ground) {
+        const d = sim.d, t = sim.etype[o], vid = sim.eid[o];
+        if (!sim.alive[o] || sim.team[o] !== team || sim.hp[o] <= d.tHp[t] * 0.3 || sim.critTick[o] >= 0 || sim.nOcc[o] !== 0)
+            return false;
+        if (d.tDriverSeat[t] < 0 || d.tStructure[t] || (ground && d.tAir[t]))
+            return false;
+        if (this.isPlayerTagged(sim, vid) || this.homebound.has(vid) || (sim.dispatch && sim.dispatch.enRoute(vid) > 0))
+            return false; // (a crew already sent to it keeps it)
+        for (const f of this.ferry.values())
+            if (f.mule === vid)
+                return false;
+        const c = this.claims.get(vid);
+        return !c || c.pid === pid || c.until <= sim.tick;
+    }
+    /** The nearest empty vehicle slot within the empty-vehicle radius of body s that an AI pilot may take (claimed for it), or -1. */
+    emptyFor(sim, s, team, pid, ground) {
+        let best = -1, bg = this.R.emptyRadius;
+        for (let o = 0; o < sim.hi; o++) {
+            if (!sim.alive[o] || sim.team[o] !== team || sim.nOcc[o] !== 0 || sim.d.tDriverSeat[sim.etype[o]] < 0)
+                continue;
+            const g = sim.gap(s, o);
+            if (g <= bg && this.freeForAi(sim, o, team, pid, ground)) {
+                bg = g;
+                best = o;
+            }
+        }
+        if (best >= 0)
+            this.claims.set(sim.eid[best], { pid, until: sim.tick + 30 * sim.d.constants.tickRate });
+        return best;
+    }
     step(sim) {
+        if (sim.tick % 10 === 0)
+            this.tagStep(sim);
         if (this.bots)
             this.bots.step(sim); // Frontline 4c: the AI pilots' brains
         if (sim.tick % (5 * sim.d.constants.tickRate) === 0)

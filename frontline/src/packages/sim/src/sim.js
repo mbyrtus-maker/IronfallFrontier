@@ -6315,8 +6315,12 @@ class Sim {
                 } // damage kept
                 if (r && r.ok) {
                     n = r.ids[0];
-                    if (this.fkit && b.caller > 0)
+                    if (this.fkit && b.caller > 0) {
                         this.fkit.dropped.set(b.caller, n); // Frontline: one dropped vehicle per player at a time
+                        const cp = this.pilots.get(b.caller);
+                        if (cp && cp.player >= 0 && !this.isBotPilot(b.caller))
+                            this.fkit.playerTag(this, n); // designer 22 Nov: a player's drop is theirs a while (the AI leave it)
+                    }
                     if (this.fkit && this.d.tAir[t]) { // Frontline: a dropped aircraft arrives parked on the ground where the drop landed
                         const ns = this.idToSlot.get(n);
                         if (ns !== undefined) {

@@ -524,17 +524,27 @@ function kitAiReboard(sim) {
     const R = sim.kitRules, d = sim.d, tick = sim.tick;
     if (!R || R.aiReboard <= 0)
         return;
-    // only on teams without player pilots (the enemy side): a friendly AI pilot never climbs into a vehicle a player parked
+    // only on teams without player pilots (the enemy side): a friendly AI pilot never climbs into a vehicle a player parked.
+    // Frontline (designer 22 Nov): both sides do, within the empty-vehicle radius, leaving player-tagged vehicles alone
+    // (fkit.emptyFor: a vehicle a player summoned or was in, until the tag lapses)
+    const F = sim.fkit;
     let playerTeams = 0;
-    for (const p of sim.pilots.values())
-        if (p.player >= 0)
-            playerTeams |= 1 << p.team;
+    if (!F)
+        for (const p of sim.pilots.values())
+            if (p.player >= 0)
+                playerTeams |= 1 << p.team;
     for (const p of sim.pilots.values()) {
         if (p.player >= 0 || (playerTeams & (1 << p.team)) !== 0 || p.state !== 1 || p.task !== 1 || p.hackVehicle !== 0 || (tick + p.id) % 10 !== 0)
             continue;
         const s = sim.idToSlot.get(p.entity);
         if (s === undefined || sim.airborne[s] !== 0 || sim.hp[s] <= 0)
             continue;
+        if (F) {
+            const o = F.emptyFor(sim, s, p.team, p.id, false);
+            if (o >= 0 && !sim.enter(p.id, sim.eid[o]).ok)
+                sim.kitWalkTo(s, sim.x[o], sim.z[o]);
+            continue;
+        }
         let best = -1, bg = R.aiReboard;
         for (let o = 0; o < sim.hi; o++) {
             if (!sim.alive[o] || sim.team[o] !== p.team || sim.hp[o] <= 0 || sim.critTick[o] >= 0 || sim.nOcc[o] !== 0)

@@ -260,8 +260,27 @@ class FlBots {
             return;
         }
         const hpMax = sim.pilotMaxHp(p) || sim.d.tHp[sim.etype[s]] || 1, hpF = sim.hp[s] / hpMax;
-        // a vehicle it dropped: go and climb in
-        const F = sim.fkit, vid = F.dropped.get(b.pid), vs = vid !== undefined ? sim.idToSlot.get(vid) : undefined;
+        // a vehicle it dropped: go and climb in. Else (designer 22 Nov) an empty vehicle near by: man it rather than run
+        // back to base or slog down the lane on foot (not a player-tagged one, nor one another AI pilot is going for)
+        const F = sim.fkit, own = F.dropped.get(b.pid), os = own !== undefined ? sim.idToSlot.get(own) : undefined;
+        const ownOk = os !== undefined && sim.alive[os] && sim.hp[os] > sim.d.tHp[sim.etype[os]] * 0.3 && sim.team[os] === team && sim.d.tAir[sim.etype[os]] === 0 && (sim.nOcc[os] === 0 || sim.drv[os] === 0);
+        let vid = ownOk ? own : undefined, vs = ownOk ? os : undefined;
+        if (!ownOk) {
+            const gs = b.grab !== undefined ? sim.idToSlot.get(b.grab) : undefined;
+            if (gs !== undefined && F.freeForAi(sim, gs, team, b.pid, true) && sim.gap(s, gs) <= F.R.emptyRadius * 1.5) {
+                vs = gs;
+                vid = b.grab;
+            }
+            else {
+                const o = F.emptyFor(sim, s, team, b.pid, true);
+                b.grab = o >= 0 ? sim.eid[o] : undefined;
+                if (o >= 0) {
+                    vs = o;
+                    vid = b.grab;
+                    this.stats.grabs = (this.stats.grabs ?? 0) + 1;
+                }
+            }
+        }
         if (vs !== undefined && sim.alive[vs] && sim.hp[vs] > sim.d.tHp[sim.etype[vs]] * 0.3 && sim.team[vs] === team && sim.d.tAir[sim.etype[vs]] === 0) { // not one about to blow (it bailed out of it)
             const dx = sim.x[s] - sim.x[vs], dz = sim.z[s] - sim.z[vs], d = Math.hypot(dx, dz) || 1;
             if (!sim.inReach(s, vs) && d < sim.d.tRadius[sim.etype[vs]] + 8) { // the last few metres (a move order counts as arrived short of the hull)
@@ -273,6 +292,8 @@ class FlBots {
                 const r = sim.enter(b.pid, vid, sim.d.tDriverSeat[sim.etype[vs]], team);
                 if (r.ok) {
                     this.stats.boards++;
+                    b.grab = undefined;
+                    F.claims.delete(vid);
                     b.goal = "";
                     b.wpReset = true;
                     return;

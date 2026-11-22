@@ -100,8 +100,8 @@ function unitAiPilots(sim, R) {
         for (let o = 0; o < sim.hi; o++) {
             if (!sim.alive[o] || sim.team[o] === p.team || !M.inMatch(sim.team[o]) || sim.hp[o] <= 0 || sim.critTick[o] >= 0 || sim.nOcc[o] !== 0)
                 continue;
-            if (d.tDriverSeat[sim.etype[o]] < 0 || d.tStructure[sim.etype[o]])
-                continue;
+            if (d.tDriverSeat[sim.etype[o]] < 0 || d.tStructure[sim.etype[o]] || (sim.fkit && sim.fkit.isPlayerTagged(sim, sim.eid[o])))
+                continue; // (designer 22 Nov: a player-tagged vehicle is left alone by both sides until the tag lapses)
             const g = sim.gap(s, o);
             if (g <= bg) {
                 bg = g;
