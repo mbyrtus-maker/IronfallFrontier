@@ -3047,8 +3047,8 @@ let shelterName = "Citadel", wasSheltered = false;
 /** Per frame: inside, the command view is forced and the LEAVE bar shows; coming out goes back to first person. */
 function shelterFrame() {
     const inside = sheltered() && started;
-    if (inside && mode === "fp")
-        setMode("cmd");
+    if (inside && mode === "fp" && !flMyDrop())
+        setMode("cmd"); // (21 Nov: not while the own drop pod flies: its launch and landing play in the world view)
     if (!inside && wasSheltered && onFoot() && mode === "cmd")
         setMode("fp");
     wasSheltered = inside;
@@ -6893,6 +6893,10 @@ function updateBob(frameDt) {
     bobAmp += (want - bobAmp) * Math.min(1, frameDt / 0.15);
 }
 function fpPose(now) {
+    const dc = flDropCam(now); // designer 21 Nov: the own drop pod: watch the rocket leave, then ride the pod down
+    document.body.classList.toggle("dropcam", !!dc);
+    if (dc)
+        return dc;
     if (bodyRender)
         lastBodyPos = { x: bodyRender.x, y: bodyRender.y, z: bodyRender.z };
     b1Stats.bunkerCam = false;
@@ -11829,6 +11833,8 @@ function flDropFrame(now) {
         flDropStage = 2; // the loadout screen was closed: on to the map
     flDropWasInside = inside;
     const mine = inside ? flMyDrop() : null;
+    if (!mine || mode !== "fp")
+        document.body.classList.remove("dropcam");
     if (mine && mode === "cmd") { // the map watches the rocket leave the silo, then follows the pod down to where it lands
         const up = renderTick(now) - mine[5] < FL_ROCKET_TICKS * 0.75, dx = up ? mine[1] : mine[3], dz = up ? mine[2] : mine[4];
         const jump = flDropPanned !== mine[5] || (!up && flDropPanned === mine[5] && Math.hypot(cmd.x - dx, cmd.z - dz) > 600);
@@ -11880,6 +11886,10 @@ function flDropClick() {
 }
 function flDropResult(reason) {
     if (!reason) {
+        if (mode === "cmd")
+            setMode("fp"); // out of the map: the launch and the drop play in the world view (flDropCam)
+        if (flPanelOpen)
+            flTogglePanel();
         flDropStage = 3;
         flDropStats.launched++;
         notify("DROP POD LAUNCHED · hold on", "good");
@@ -11890,6 +11900,27 @@ function flDropResult(reason) {
     snd.ui("error");
 }
 /** The rockets and pods in flight: up out of the silo (faster and faster, gone into the sky), then down at the spot. */
+/**
+ * The own drop pod's camera (designer 21 Nov): from the ground beside the silo looking up as the rocket climbs out of
+ * sight, then beside the pod as it falls on the chosen spot, low at the end for the touchdown. Null: no own drop.
+ */
+function flDropCam(now) {
+    const d = flMyDrop();
+    if (!d || !sheltered())
+        return null;
+    const [, sx, sz, x, z, launch, land] = d, rt = renderTick(now), up = rt - launch;
+    if (up < FL_ROCKET_TICKS - 8) {
+        const t = Math.max(0, up) * dt, gy = (0, terrain_gen_ts_1.sampleHeight)(hm, sx, sz), ry = gy + 3 + 6 * t * t * t + 4 * t;
+        const a = 0.9, ex = sx + Math.cos(a) * 55, ez = sz + Math.sin(a) * 55, ey = (0, terrain_gen_ts_1.sampleHeight)(hm, ex, ez) + 6;
+        camYaw = Math.atan2(sz - ez, sx - ex);
+        return { eye: [ex, ey, ez], target: [sx, Math.min(ry + 6, ey + 900), sz] };
+    }
+    const k = Math.max(0, land - rt) / FL_POD_TICKS, gy = (0, terrain_gen_ts_1.sampleHeight)(hm, x, z), py = gy + 650 * Math.min(1, k) * Math.min(1, k);
+    const h = Math.max(10, (py - gy) * 0.55 + 10), ex = x - 38, ez = z + 22, ey = Math.max((0, terrain_gen_ts_1.sampleHeight)(hm, ex, ez) + 4, gy + h);
+    camYaw = Math.atan2(z - ez, x - ex); // the pilot steps out facing the way the camera looked
+    camPitch = -0.05;
+    return { eye: [ex, ey, ez], target: [x, py + 2, z] };
+}
 function flDropMeshes(now, rt) {
     flDropStats.rockets = flDropStats.pods = 0;
     if (!isFrontline())

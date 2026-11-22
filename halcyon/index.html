@@ -535,6 +535,7 @@
   #cine { position: fixed; inset: 0; pointer-events: none; display: none; z-index: 60; }
   body.cine #cine { display: block; }
   body.cine #hud, body.cine #scope, body.cine #thermal, body.cine #downed, body.cine #dead { visibility: hidden !important; }
+  body.dropcam #hud, body.dropcam #reticle, body.dropcam #tags, body.dropcam #nameTags, body.dropcam #ebars { visibility: hidden !important; } /* designer 21 Nov: the drop pod's launch and landing play clean */
   body.cine { cursor: none; }
   #cine .lb { position: absolute; left: 0; right: 0; height: var(--cine-lb, 11vh); background: #000; }
   #cine .lb.top { top: 0; } #cine .lb.bot { bottom: 0; }
