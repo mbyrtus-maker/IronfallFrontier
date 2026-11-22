@@ -22,7 +22,7 @@ exports.BUSES = ["weapons", "explosions", "vehicles", "ambience", "ui", "music"]
 exports.WEAPON_FAMILIES = ["kinetic-small", "kinetic-medium", "kinetic-heavy", "autocannon", "energy", "beam", "rocket", "missile", "mortar", "artillery", "flak", "carbine", "rifle", "turret", "shotgun", "melee", "laser-cannon", "laser-rapid", "tank-cannon", "none"];
 /** Every weapon in data/weapons.json. A weapon not listed falls back by damage type (familyOf). */
 exports.WEAPON_FAMILY = {
-    "sentry-cannon": "tank-cannon", "gun-tower-cannon": "tank-cannon", // designer 21 Nov: turret cannons
+    "sentry-cannon": "tank-cannon", "gun-tower-cannon": "tank-cannon", "fb-turret-cannon": "tank-cannon", // designer 21 Nov: turret cannons
     "pilot-carbine": "carbine", "pilot-long-rifle": "rifle", "pilot-demo-charge": "none", "sapper-demo-charge": "none", "mine-layer": "none",
     "trooper-rifle": "kinetic-small", "marksman-rifle": "kinetic-small", "hammer-machine-gun": "kinetic-small", "carrier-roof-gun": "kinetic-small",
     "mule-door-gun": "kinetic-small", "strider-chin-guns": "kinetic-small", "dart-gun": "kinetic-small",

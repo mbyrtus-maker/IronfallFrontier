@@ -283,9 +283,7 @@
       "id": "gunship-drop",
       "name": "Gunship",
       "category": "supply",
-      "requires": [
-        "atmosphere"
-      ],
+      "requires": [],
       "delaySeconds": 12,
       "cooldownSeconds": 360,
       "params": {

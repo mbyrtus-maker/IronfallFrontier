@@ -13477,6 +13477,8 @@ G.__ironfall = {
     cinePlay() { cineDone = false; if (!cine) cineStart(); },
     flTestCallAhead(call, k = 0.6) { const g = groundAt(cssW / 2, cssH * k); if (!g) return null; send({ t: "flTestCall", call, ax: g[0], az: g[2] }); return [Math.round(g[0]), Math.round(g[2])]; },
     flTestCore() { send({ t: "flTestCore" }); return true; },
+    testCmdCam(x, z, dist, rot) { cmd.x = x; cmd.z = z; cmd.dist = dist; if (rot !== undefined) cmd.rot = rot; return true; },
+    testTowers() { return rendered.filter((e) => cd.typeIds[e.type] === "gun-tower" || cd.typeIds[e.type] === "fb-turret").map((e) => [cd.typeIds[e.type], e.team, Math.round(e.x), Math.round(e.z)]); },
     flDrop() { return { stage: flDropStage, inside: flInsideCore(), drops: flDropsNow.length, rt: renderTick(performance.now()), list: flDropsNow, ...flDropStats }; },
     flTestDown(name, near) { const g = near ? groundAt(cssW / 2, cssH * (near === 2 ? 0.74 : 0.62)) : null; send(g ? { t: "flTestDown", name, x: g[0], z: g[2] } : { t: "flTestDown", name }); return g ? [Math.round(g[0]), Math.round(g[2])] : true; },
     flTestBoom(k) { const a = snd.grenadeBooms ?? 0, b = snd.explSamples ?? 0; snd.explosion([eye[0] + 8, eye[1], eye[2]], k); return [(snd.grenadeBooms ?? 0) - a, (snd.explSamples ?? 0) - b]; },

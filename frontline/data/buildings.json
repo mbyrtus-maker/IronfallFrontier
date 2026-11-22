@@ -554,8 +554,8 @@
     "baseType": "forward",
     "sensorRange": 300,
     "buildTime": 1,
-    "weapons": ["gun-tower-autocannon"],
-    "muzzle": [2.35, 3.95, 0],
+    "weapons": ["gun-tower-mg", "fb-turret-cannon"],
+    "muzzles": [[2.72, 3.83, 0.88], [4.1, 3.95, 0]],
     "defence": true,
     "effects": { "pointStructure": true },
     "notes": "Ruling 132 (FB1): one of a forward base's own turrets, unfolded by the Field Depot as it deploys (points.forwardBase.defences); the Gun Tower's autocannon in a low armoured casing whose roof petals fold back and whose head rises. Never built. Hull PROPOSED."

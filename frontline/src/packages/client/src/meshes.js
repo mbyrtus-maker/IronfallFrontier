@@ -3621,8 +3621,35 @@ function fbTurret() {
     b.set([1, 1, 1], 2, 1);
     b.quad([-1.06, 3.65, -0.5], [-1.06, 3.65, 0.5], [-1.06, 4.05, 0.5], [-1.06, 4.05, -0.5], [0, 3.85, 0]); // team plate
     beacon(b, -0.55, 4.5, 0.32, RED, 0.09, 1);
+    // designer 21 Nov: a real cannon in the middle (recoil sleeve, banded barrel, ported brake) and a machine gun on a
+    // pod either side (receiver, perforated jacket, barrel, flash hider, ammo can), like the Gun Tower
+    b.set(DARK, 0, 2);
+    b.cyl(1.15, exports.FBT.gunY, 0, 0.24, 0.24, 0.45, 12, "x", false); // recoil sleeve
     b.set(GUN, 0, 2);
-    b.mirrored((s) => { b.cyl(1.2, exports.FBT.gunY, s * exports.FBT.gunZ, 0.11, 0.1, exports.FBT.gunTip - 1.45, 6, "x", false); b.set(DARK, 0, 2); b.cyl(exports.FBT.gunTip - 0.25, exports.FBT.gunY, s * exports.FBT.gunZ, 0.15, 0.15, 0.25, 6, "x"); b.set(GUN, 0, 2); });
+    b.cyl(1.55, exports.FBT.gunY, 0, 0.16, 0.13, 2.3, 12, "x", false); // barrel
+    b.set(DARK, 0, 2);
+    for (const x of [2.3, 3.0])
+        b.cyl(x, exports.FBT.gunY, 0, 0.175, 0.175, 0.1, 12, "x", false); // bands
+    b.box(3.95, exports.FBT.gunY, 0, 0.14, 0.23, 0.23); // muzzle brake
+    b.set([0.08, 0.08, 0.08], 0, 2);
+    b.mirrored((sd) => b.box(3.95, exports.FBT.gunY, sd * 0.235, 0.08, 0.1, 0.01));
+    for (const sd of [-1, 1]) {
+        const z = sd * 0.88, y = exports.FBT.gunY - 0.12;
+        b.set(P2, 1, 1);
+        b.box(0.55, y, sd * 0.78, 0.35, 0.16, 0.14); // pod off the head
+        b.set(DARK, 0, 2);
+        b.box(1.0, y, z, 0.22, 0.12, 0.1); // receiver
+        b.cyl(1.2, y, z, 0.085, 0.085, 0.8, 8, "x", false); // perforated jacket
+        b.set([0.06, 0.06, 0.06], 0, 2);
+        for (let i = 0; i < 4; i++)
+            b.box(1.32 + i * 0.17, y + 0.08, z, 0.035, 0.01, 0.04);
+        b.set(GUN, 0, 2);
+        b.cyl(2.0, y, z, 0.045, 0.045, 0.62, 6, "x", false); // barrel
+        b.set(DARK, 0, 2);
+        b.cyl(2.6, y, z, 0.065, 0.055, 0.12, 6, "x"); // flash hider
+        b.set(OLIVE, 0, 1);
+        b.box(0.75, y - 0.2, z, 0.14, 0.1, 0.09); // ammo can
+    }
     b.part = 0;
     const m = b.build([0, exports.FBT.pivotY, 0], 0, 0, 0.3);
     m.pod = [exports.FBT.hx, exports.FBT.hy, exports.FBT.rise, exports.FBT.ang];
@@ -6267,7 +6294,7 @@ function ringMesh() {
 }
 const TT = (px, py, r, h, L) => [px + r * 1.3 + L * 1.12, py + h * 0.55, 0]; // tankTurret barrel tip
 exports.MUZZLES = {
-    fbturret: [{ pts: [[exports.FBT.gunTip, exports.FBT.gunY, exports.FBT.gunZ], [exports.FBT.gunTip, exports.FBT.gunY, -exports.FBT.gunZ]], turret: true }], fbwall: [], // ruling 132
+    fbturret: [{ pts: [[2.72, exports.FBT.gunY - 0.12, 0.88], [2.72, exports.FBT.gunY - 0.12, -0.88]], turret: true }, { pts: [[4.1, exports.FBT.gunY, 0]], turret: true }], fbwall: [], // ruling 132; designer 21 Nov: machine guns, cannon
     droppod: [{ pts: [[exports.DP.gunTip, exports.DP.gunY, exports.DP.gunZ], [exports.DP.gunTip, exports.DP.gunY, -exports.DP.gunZ]], turret: true }, { pts: [[2.98, 5.12, exports.DP.podZ]], turret: true }], // ruling 130: twin guns; designer 21 Nov: a cannon (was 4 rocket tubes)
     bike: [{ pts: [[2.3, 0.45, 0.42], [2.3, 0.45, -0.42]], turret: false }, { pts: [[0.45, 1.4, 0]], turret: false }],
     bikewreck: [], // wrecks: never fire

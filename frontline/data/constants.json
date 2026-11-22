@@ -593,7 +593,7 @@
       "requires": [
         "tech-lab"
       ],
-      "suppliedPoints": 5
+      "suppliedPoints": 3
     }
   },
   "network": {
@@ -894,20 +894,23 @@
       ],
       "2": [
         "bastion",
-        "lancer",
-        "bastion",
-        "flak",
         "hammer",
-        "bastion",
-        "sapper-team",
+        "salvo",
+        "flak",
+        "lancer",
+        "carrier",
         "wasp",
-        "carrier"
+        "sapper-team",
+        "bastion",
+        "hammer"
       ],
       "3": [
         "strider",
+        "hammer",
         "bastion",
+        "salvo",
         "strider",
-        "bastion"
+        "flak"
       ]
     },
     "counters": [
@@ -1177,7 +1180,14 @@
       "silo-targeter": "Missile silo"
     },
     "slot3Empty": "slot3-empty",
-    "slot3RechargeSeconds": { "guided-missile-launcher": 60, "rocket-tube": 75, "heavy-grenade-launcher": 120, "flak-gun": 180, "pilot-laser-cannon": 180, "silo-targeter": 180 },
+    "slot3RechargeSeconds": {
+      "guided-missile-launcher": 60,
+      "rocket-tube": 75,
+      "heavy-grenade-launcher": 120,
+      "flak-gun": 180,
+      "pilot-laser-cannon": 180,
+      "silo-targeter": 180
+    },
     "frontlineCalls": [
       "sentry-gun",
       "precision-strike",
@@ -1232,7 +1242,8 @@
       "extraProducersAtFraction": 0.6,
       "producers": {
         "foundry": 3,
-        "barracks": 2
+        "barracks": 2,
+        "air-pad": 1
       }
     },
     "aiPilots": {
