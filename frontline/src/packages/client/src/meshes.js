@@ -2392,69 +2392,117 @@ function flRocket() {
  */
 function rrStation() {
     const b = new MeshBuilder();
+    b.grit = exports.GRIT;
+    const R8 = Math.PI / 8, WHITE = [0.86, 0.87, 0.85], GREEN = [0.35, 1, 0.45], CRANE = [0.85, 0.66, 0.14], DECK = [0.7, 0.72, 0.71];
     b.set(CON2);
-    b.cyl(0, 0, 0, 4.2, 4.2, 0.35, 8, "y", true, Math.PI / 8); // pad
+    b.cyl(0, 0, 0, 4.2, 4.2, 0.35, 8, "y", true, R8); // pad
     b.set(HAZARD, 0);
-    b.cyl(0, 0.36, 0, 4.25, 4.25, 0.06, 8, "y", false, Math.PI / 8);
-    // the capsule
+    b.cyl(0, 0.2, 0, 4.25, 4.25, 0.17, 8, "y", false, R8);
+    // the capsule's core, left standing once the petals have dropped: heat-shield skirt, equipment column, roof
+    b.set(DARK, 0);
+    b.cyl(0, 0.3, 0, 2.0, 1.85, 0.6, 8, "y", true, R8);
     b.set(STEEL, 0);
-    b.cyl(0, 0.35, 0, 1.55, 1.45, 2.6, 12, "y", false);
-    b.cyl(0, 2.95, 0, 1.45, 0.5, 1.2, 12, "y", true);
-    b.set(DARK, 0);
-    for (const y of [0.9, 2.0])
-        b.cyl(0, y, 0, 1.58, 1.58, 0.16, 12, "y", false);
-    b.set([0.86, 0.87, 0.85], 0);
-    b.box(1.5, 1.6, 0, 0.06, 0.55, 0.55); // panel for the cross
-    b.set([0.35, 1, 0.45], 4);
-    b.box(1.57, 1.6, 0, 0.02, 0.42, 0.12);
-    b.box(1.57, 1.6, 0, 0.02, 0.12, 0.42); // green cross
-    b.mirrored((sd) => { b.box(-1.5, 1.6, sd * 0.0, 0.06, 0.55, 0.55); });
-    b.set([0.35, 1, 0.45], 4);
-    b.box(-1.57, 1.6, 0, 0.02, 0.42, 0.12);
-    b.box(-1.57, 1.6, 0, 0.02, 0.12, 0.42);
-    // four petals folded open onto the pad, carrying the supplies
-    for (let i = 0; i < 4; i++) {
-        const a = i * Math.PI / 2 + Math.PI / 4, c = Math.cos(a), sn = Math.sin(a), tx = -sn, tz = c;
-        const P = (r, h, w) => [c * r + tx * w, h, sn * r + tz * w];
-        b.set(STEEL, 0);
-        b.poly([P(1.5, 0.45, -0.9), P(3.7, 0.4, -1.2), P(3.7, 0.4, 1.2), P(1.5, 0.45, 0.9)], [c * 2.6, -1, sn * 2.6]);
-        b.set(DARK, 0);
-        b.poly([P(1.5, 0.38, -0.9), P(3.7, 0.37, -1.2), P(3.7, 0.37, 1.2), P(1.5, 0.38, 0.9)], [c * 2.6, 2, sn * 2.6]);
-        // stacked crates on two petals, fuel drums on the others
-        if (i % 2 === 0) {
-            b.set(OLIVE, 0);
-            b.box(c * 2.6, 0.75, sn * 2.6, 0.5, 0.32, 0.4);
-            b.box(c * 2.6 + tx * 0.2, 1.38, sn * 2.6 + tz * 0.2, 0.42, 0.3, 0.34);
-            b.set([0.9, 0.75, 0.2], 0);
-            b.box(c * 2.6, 0.75, sn * 2.6, 0.51, 0.06, 0.41); // band
-            b.set([0.86, 0.87, 0.85], 0);
-            b.box(c * 3.0, 0.75 , sn * 3.0, 0.08, 0.2, 0.2); // stencil plate
-        }
-        else {
-            b.set([0.7, 0.18, 0.12], 0);
-            for (const w of [-0.4, 0.4])
-                b.cyl(c * 2.7 + tx * w, 0.45, sn * 2.7 + tz * w, 0.3, 0.3, 0.95, 10, "y", true);
-            b.set(DARK, 0);
-            for (const w of [-0.4, 0.4])
-                b.cyl(c * 2.7 + tx * w, 0.95, sn * 2.7 + tz * w, 0.31, 0.31, 0.06, 10, "y", false);
-        }
-    }
-    // the repair crane: a post, a boom over the pad, a hanging welding head with a lit lamp
+    b.cyl(0, 0.6, 0, 1.25, 1.25, 2.45, 8, "y", false, R8);
     b.set(GUN, 0);
-    b.cyl(-2.3, 0.4, 2.3, 0.14, 0.12, 4.8, 6, "y", false);
-    rod(b, [-2.3, 5.1, 2.3], [2.6, 4.4, 2.1], 0.11, 6);
-    b.set(DARK, 0);
-    b.cyl(2.6, 3.3, 2.1, 0.03, 0.03, 1.1, 4, "y", false); // cable
-    b.box(2.6, 3.15, 2.1, 0.18, 0.15, 0.18); // welding head
-    b.set([1, 0.82, 0.4], 4);
-    b.ball(2.6, 2.98, 2.1, 0.09, 0);
-    // beacon mast
-    b.set(GUN, 0);
-    b.cyl(0.6, 3.6, -0.6, 0.05, 0.05, 2.0, 6, "y", false);
-    b.set([0.35, 1, 0.45], 5);
-    b.ball(0.6, 5.7, -0.6, 0.16, 0);
+    b.cyl(0, 1.25, 0, 1.29, 1.29, 0.14, 8, "y", false, R8);
     b.set([1, 1, 1], 2);
-    b.cyl(0, 2.55, 0, 1.47, 1.47, 0.1, 12, "y", false); // team band
+    b.cyl(0, 2.45, 0, 1.3, 1.3, 0.16, 8, "y", false, R8); // team band
+    b.set(P2, 1);
+    b.cyl(0, 3.0, 0, 1.72, 1.55, 0.32, 8, "y", true, R8); // roof
+    // the sign on the roof (read from the game camera): a white disc with a lit green cross
+    b.set(WHITE, 0);
+    b.cyl(0, 3.3, 0, 1.3, 1.3, 0.07, 12, "y", true, R12);
+    b.set(GREEN, 4);
+    b.box(0, 3.4, 0, 0.95, 0.05, 0.27);
+    b.mirrored((s) => b.box(0, 3.4, s * 0.61, 0.27, 0.05, 0.34));
+    // beacon mast on the roof's rim
+    b.set(GUN, 0);
+    b.cyl(-1.0, 3.3, -1.0, 0.13, 0.1, 0.25, 6, "y", false);
+    b.cyl(-1.0, 3.5, -1.0, 0.045, 0.045, 1.75, 5, "y", false);
+    b.set(GREEN, 5);
+    b.ball(-1.0, 5.33, -1.0, 0.17, 0);
+    for (let k = 0; k < 4; k++) {
+        // the fixed ribs between the petals (on the axes): white, each with a lit cross; a marker stripe on the pad
+        let m = b.mark();
+        b.set(WHITE, 0);
+        b.box(1.3, 1.8, 0, 0.14, 1.22, 0.42);
+        b.set(GREEN, 4);
+        b.box(1.45, 1.85, 0, 0.03, 0.33, 0.1);
+        b.mirrored((s) => b.box(1.45, 1.85, s * 0.215, 0.03, 0.1, 0.115));
+        b.set(HAZARD, 0);
+        b.box(3.45, 0.33, 0, 0.14, 0.05, 0.7);
+        b.rotY(m, k * Math.PI / 2);
+        // the petals (on the diagonals): hinged on the skirt, dropped onto the pad, held by a pair of struts
+        m = b.mark();
+        const yT = (x) => 0.86 - 0.18 * (x - 1.75), hw = (x) => 1.05 - 0.2 * (x - 1.75);
+        const X0 = 1.75, X1 = 3.95, T = (x, s) => [x, yT(x), s * hw(x)], U = (x, s) => [x, yT(x) - 0.13, s * hw(x)], C = [2.85, yT(2.85) - 0.06, 0];
+        b.set(DECK, 0);
+        b.poly([T(X0, -1), T(X1, -1), T(X1, 1), T(X0, 1)], C); // the inner face, now the deck
+        b.set(P2, 1);
+        b.poly([U(X0, -1), U(X1, -1), U(X1, 1), U(X0, 1)], C); // the outer skin, face down
+        b.mirrored((s) => b.poly([T(X0, s), T(X1, s), U(X1, s), U(X0, s)], C));
+        b.poly([T(X1, -1), T(X1, 1), U(X1, 1), U(X1, -1)], C);
+        b.set(HAZARD, 0);
+        b.box(3.78, yT(3.78), 0, 0.09, 0.03, 0.56); // tip stripe
+        b.set(GUN, 0);
+        b.mirrored((s) => {
+            b.cyl(1.78, 0.84, s * 0.75 - 0.18, 0.11, 0.11, 0.36, 6, "z", true); // hinge knuckle
+            rod(b, [0.95, 2.05, s * 0.72], [2.75, yT(2.75) - 0.03, s * 0.8], 0.05, 4); // strut
+        });
+        if (k === 0) { // ammunition crates
+            b.set(OLIVE, 0);
+            b.box(2.95, 0.9, 0, 0.5, 0.34, 0.52);
+            b.box(2.9, 1.44, 0.06, 0.4, 0.24, 0.4);
+            b.set(HAZARD, 0);
+            b.box(2.95, 0.9, 0, 0.52, 0.05, 0.54);
+            b.set(DARK, 0);
+            b.box(2.9, 1.69, 0.06, 0.3, 0.02, 0.07); // lid handle
+            b.set(WHITE, 0);
+            b.box(3.31, 1.44, 0.06, 0.02, 0.12, 0.2); // stencil plate
+        }
+        else if (k === 2) { // a rack of shells
+            b.set(DARK, 0);
+            b.box(2.95, 0.72, 0, 0.42, 0.22, 0.58);
+            for (const x of [2.75, 3.15])
+                for (const z of [-0.36, 0, 0.36]) {
+                    b.set([0.72, 0.56, 0.22], 0);
+                    b.cyl(x, 0.9, z, 0.13, 0.13, 0.55, 6, "y", false);
+                    b.set([0.75, 0.2, 0.14], 0);
+                    b.cyl(x, 1.45, z, 0.13, 0.02, 0.3, 6, "y", false);
+                }
+        }
+        else if (k === 3) { // fuel drums and a hose to the column
+            for (const [x, z] of [[2.7, -0.3], [3.2, 0.25]]) {
+                b.set([0.7, 0.18, 0.12], 0);
+                b.cyl(x, 0.5, z, 0.3, 0.3, 1.0, 8, "y", true);
+                b.set(DARK, 0);
+                b.cyl(x, 1.0, z, 0.32, 0.32, 0.07, 8, "y", false);
+            }
+            b.set(BLACK, 0);
+            rod(b, [2.7, 1.5, -0.3], [2.1, 1.9, -0.1], 0.05, 4);
+            rod(b, [2.1, 1.9, -0.1], [1.1, 1.6, 0], 0.05, 4);
+        }
+        else { // the repair arm: pedestal, slewing ring, post, a two-part arm reaching out past the pad, a welding head
+            b.set(GUN, 0);
+            b.box(2.9, 0.76, 0, 0.42, 0.26, 0.42);
+            b.set(DARK, 0);
+            b.cyl(2.9, 1.0, 0, 0.34, 0.3, 0.2, 8, "y", true);
+            b.set(CRANE, 0);
+            b.cyl(2.9, 1.18, 0, 0.17, 0.15, 2.0, 6, "y", false);
+            const S = [2.9, 3.2, 0], E = [2.3, 4.85, 0.25], Wr = [3.75, 4.05, 1.55];
+            rod(b, S, E, 0.13, 5);
+            rod(b, E, Wr, 0.1, 5);
+            b.set(DARK, 0);
+            b.ball(S[0], S[1], S[2], 0.26, 0);
+            b.ball(E[0], E[1], E[2], 0.21, 0);
+            rod(b, [2.9, 2.0, 0], [2.6, 4.0, 0.12], 0.05, 4); // ram
+            b.cyl(Wr[0], Wr[1] - 0.5, Wr[2], 0.04, 0.04, 0.55, 4, "y", false);
+            b.box(Wr[0], Wr[1] - 0.62, Wr[2], 0.17, 0.14, 0.17); // welding head
+            b.set([1, 0.82, 0.4], 4);
+            b.ball(Wr[0], Wr[1] - 0.8, Wr[2], 0.1, 0);
+        }
+        b.rotY(m, Math.PI / 4 + k * Math.PI / 2);
+    }
     return b.build([0, 0, 0], 0, 0);
 }
 /** Foundry (the concept's): a chamfered hall with a raised upper block, roof vents, a tall chimney, a big shuttered
