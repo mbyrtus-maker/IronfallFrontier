@@ -72,6 +72,8 @@ if (role === "host") {
         result("players", players);
         const g = players.find((p) => p.player === 1), h = players.find((p) => p.player === 0);
         check("guest has a pilot", !!g);
+        if (g) { const gp = s.pilot(g.id), vs = gp.state === 0 ? s.idToSlot.get(gp.vehicle) : undefined;
+            check("guest starts seated in its own Dart scout", vs !== undefined && s.d.typeIds[s.etype[vs]] === "dart" && gp.vehicle !== s.pilot(h.id).vehicle, { state: gp.state, type: vs !== undefined ? s.d.typeIds[s.etype[vs]] : null }); }
         if (g) {
             const k = s.fkit.kitOf(1), hk = s.fkit.kitOf(0);
             check("guest kit reached the host (marksman / sniper / heavy)", k.gun === "marksman" && k.role === "sniper" && k.armour === "heavy", k);

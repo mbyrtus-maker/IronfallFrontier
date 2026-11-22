@@ -426,6 +426,8 @@ class FKit {
             const p = sim.pilots.get(pid), ms = sim.idToSlot.get(f.mule);
             if (!p || ms === undefined || !sim.alive[ms] || p.state !== 0 || p.vehicle !== f.mule) {
                 this.ferry.delete(pid);
+                if (ms !== undefined && sim.alive[ms])
+                    this.sendHome(sim, f.mule, p ? p.team : sim.team[ms]); // the rider got out early: the Mule still leaves
                 continue;
             }
             const dx = sim.x[ms] - f.drop[0], dz = sim.z[ms] - f.drop[1];
@@ -440,14 +442,48 @@ class FKit {
                 sim.velY[bs] = 0;
                 sim.airborne[bs] = 0;
             }
-            // the Mule flies home
-            let core = -1;
-            for (let o = 0; o < sim.hi; o++)
-                if (sim.alive[o] && sim.team[o] === p.team && sim.tCore && sim.tCore[sim.etype[o]])
-                    core = o;
-            if (core >= 0)
-                sim.queueOrder(sim.tick + 1, [f.mule], { type: "move", x: sim.x[core] + 40, z: sim.z[core] - 40 }, p.team);
+            this.sendHome(sim, f.mule, p.team); // the Mule flies home and is gone (designer 21 Nov: no empty Mules piling up)
         }
+        // homebound ferry Mules: removed (quietly, no wreck) once home or after HOME_SECONDS; one a player took over stays
+        for (const [mule, h] of [...this.homebound]) {
+            const ms = sim.idToSlot.get(mule);
+            if (ms === undefined || !sim.alive[ms] || sim.hp[ms] <= 0) {
+                this.homebound.delete(mule);
+                continue;
+            }
+            let player = false;
+            for (let j = 0; j < sim.d.tSeatCount[sim.etype[ms]]; j++) {
+                const q = sim.pilots.get(sim.occ[ms * data_ts_1.MAX_SEATS + j]);
+                if (q && q.player >= 0)
+                    player = true;
+            }
+            if (player) {
+                this.homebound.delete(mule);
+                continue;
+            }
+            const dx = sim.x[ms] - h.x, dz = sim.z[ms] - h.z;
+            if (dx * dx + dz * dz > 60 * 60 && sim.tick < h.until)
+                continue;
+            this.homebound.delete(mule);
+            sim.quietRemove(ms);
+        }
+    }
+    /** mule id -> {x, z, until}: ferry Mules on their way back to the Core, removed there (21 Nov). */
+    homebound = new Map();
+    sendHome(sim, mule, team) {
+        let core = -1;
+        for (let o = 0; o < sim.hi; o++)
+            if (sim.alive[o] && sim.team[o] === team && sim.tCore && sim.tCore[sim.etype[o]])
+                core = o;
+        const tr = sim.d.constants.tickRate;
+        if (core < 0) { // no Core to fly to: it lifts off and is gone shortly
+            const ms = sim.idToSlot.get(mule);
+            this.homebound.set(mule, { x: ms !== undefined ? sim.x[ms] : 0, z: ms !== undefined ? sim.z[ms] : 0, until: sim.tick + 8 * tr });
+            return;
+        }
+        const x = sim.x[core] + 40, z = sim.z[core] - 40;
+        sim.queueOrder(sim.tick + 1, [mule], { type: "move", x, z }, team);
+        this.homebound.set(mule, { x, z, until: sim.tick + 75 * tr });
     }
     /** Full rounds on every limited mount of body s (ammo record created when missing). */
     fill(sim, s) {

@@ -77,7 +77,7 @@
         "weapon": "sentry-turret-gun",
         "rocketWeapon": "sentry-rocket-pod",
         "deploySeconds": 1.5,
-        "hp": 880,
+        "hp": 1450,
         "mannable": true
       }
     },

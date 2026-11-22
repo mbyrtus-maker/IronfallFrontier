@@ -232,8 +232,10 @@ void main() {
   // ruling 106: team 3 = a burnt hull (client-only destruction effect): charred black, its lights become embers that
   // cool with the phase (heat 1 -> 0)
   bool burnt = vTeam > 2.5 && vTeam < 3.5;
+  // 21 Nov: team 4 = another human player of the own side (co-op squadmate): green lights and a green-tinted hull
+  bool mate = vTeam > 3.5 && vTeam < 4.5;
   float heat = clamp(vPhase, 0.0, 1.0);
-  vec3 glow = burnt ? mix(vec3(0.05, 0.04, 0.035), vec3(1.6, 0.55, 0.12), heat * (0.75 + 0.25 * sin(uTime * 9.0 + vWP.x))) : dark ? vec3(0.07, 0.075, 0.08) : vTeam < 0.5 ? uGlowA : uGlowB;
+  vec3 glow = mate ? vec3(0.35, 1.25, 0.5) : burnt ? mix(vec3(0.05, 0.04, 0.035), vec3(1.6, 0.55, 0.12), heat * (0.75 + 0.25 * sin(uTime * 9.0 + vWP.x))) : dark ? vec3(0.07, 0.075, 0.08) : vTeam < 0.5 ? uGlowA : uGlowB;
   vec3 c;
   // G1: material 4, self-lit vertex colour (ore crystals, gas, lamps, lava): half lit, half emissive, a slow pulse
   // G2: material 5, a blinking beacon (off on an empty or burnt hull)
@@ -242,7 +244,7 @@ void main() {
   else if (vMat > 2.5) { c = applyFog(glow * 1.05, vWP, 0.8); }
   else if (vMat > 1.5) { c = applyFog(glow * 1.5, vWP, 0.55); }
   else {
-    vec3 hull = dark ? vec3(0.3, 0.31, 0.31) : vTeam < 0.5 ? uHullA : uHullB;
+    vec3 hull = mate ? uHullA * vec3(0.62, 1.12, 0.7) : dark ? vec3(0.3, 0.31, 0.31) : vTeam < 0.5 ? uHullA : uHullB;
     vec3 albedo = burnt ? vCol * vec3(0.1, 0.09, 0.085) + vec3(0.02, 0.017, 0.015) : vMat > 0.5 ? vCol * hull : vCol;
     float ao = 0.5 + 0.5 * smoothstep(0.0, 1.4, vLY);
     c = applyFog(lit(albedo, normalize(vN), ao), vWP, 1.0);

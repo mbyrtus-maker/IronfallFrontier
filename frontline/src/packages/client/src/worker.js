@@ -102,8 +102,11 @@ function joinPilot(s, slot) {
 }
 function guestJoin(slot) {
     const s = sim;
+    const had = [...s.pilotIds(0)].some((id) => s.pilot(id).player === slot); // a rejoin (handover, reconnect) keeps its place
     const pilotId = joinPilot(s, slot);
     c7aHost.joined(s, slot); // C7a hook
+    if (!had)
+        flStartDart(s, pilotId);
     const every = Math.max(1, Math.round(1 / (s.d.constants.snapshotRate * s.d.dt)));
     const p = s.pilot(pilotId), e = s.entity(p.state === sim_ts_1.P_FOOT ? p.entity : p.vehicle);
     guests.set(slot, { slot, pilotId, enc: guestEncoder(s), viewer: { x: e ? e.x : startPos().x, z: e ? e.z : startPos().z }, viewerSet: false, ctl: null, ctlDirty: true, ctlPlace: "", every, n: every, orders: [], snaps: [] });
@@ -129,6 +132,38 @@ function guestLags(lags) {
             s.lagTicks = new Map();
         s.lagTicks.set(g.pilotId, ticks);
         g.lag = ticks;
+    }
+}
+/** Frontline (21 Nov): a guest starts in its own Dart scout like the host (once per pilot per match), parked beside its body. */
+const flDartGiven = new Set(), flDartWait = new Set();
+function flStartDart(s, pilotId) {
+    if (!s.lanes || flDartGiven.has(pilotId))
+        return;
+    const p = s.pilot(pilotId);
+    if (!p)
+        return;
+    if (p.state !== sim_ts_1.P_FOOT) { // a joining pilot comes in through the respawn: the Dart waits for its body
+        if (p.state === sim_ts_1.P_DEAD)
+            flDartWait.add(pilotId);
+        return;
+    }
+    flDartWait.delete(pilotId);
+    const ps = s.idToSlot.get(p.entity);
+    if (ps === undefined)
+        return;
+    flDartGiven.add(pilotId);
+    const r = s.spawnUnit("dart", p.team, s.x[ps] + 7, s.z[ps] + 4);
+    const dart = typeof r === "number" ? r : r && r.ids ? r.ids[0] : 0;
+    if (!dart)
+        return;
+    const e = s.enter(pilotId, dart, undefined, p.team);
+    if (!e.ok) { // too far or blocked: park it at the pilot's feet and try once more
+        const vs = s.idToSlot.get(dart);
+        if (vs !== undefined) {
+            s.x[vs] = s.x[ps] + s.d.tRadius[s.etype[vs]] + s.d.tRadius[s.etype[ps]] + 0.5;
+            s.z[vs] = s.z[ps];
+            s.enter(pilotId, dart, undefined, p.team);
+        }
     }
 }
 function guestLeave(slot) {
@@ -199,7 +234,9 @@ function guestMsg(slot, m) {
         // Frontline (21 Nov, Ace of the Airways co-op lessons): the guest's own kit, lane, give-up and cell swap act on the
         // guest's pilot and player slot (they were the host's only); lane requests and the priority are the team's
         case "flKit":
-            if (s.fkit && m.kit && (!g.kitSet || flAtCore(s, g.pilotId))) { // the first kit (with the join) at once; later ones at the Core
+            if (s.fkit && m.kit && (!g.kitSet || (m.confirm && !g.kitConfirmed) || flAtCore(s, g.pilotId))) { // the first kit (with the join) and the confirmed one at once; later ones at the Core
+                if (m.confirm)
+                    g.kitConfirmed = true;
                 if (s.fkit.setKit(s, g.slot, m.kit))
                     g.kitSet = true;
             }
@@ -263,6 +300,8 @@ function init(m) {
     gameData = m.data;
     capped = m.capped;
     guests.clear();
+    flDartGiven.clear();
+    flDartWait.clear();
     pageHm = m.heightmap;
     if ((0, scenario_ts_1.isSkirmish)(m.scenario, m.units)) {
         // C3 / C6: the battle's scenario (battles.ts: the sim's fixtures), built as createScenarioSim does (map with its
@@ -327,6 +366,8 @@ function initState(m) {
     gameData = m.data;
     capped = false;
     guests.clear();
+    flDartGiven.clear();
+    flDartWait.clear();
     if (m.heightmap)
         pageHm = m.heightmap;
     sim = (0, index_ts_1.createSimFromState)(new Uint8Array(m.state), m.data, pageHm ? { heightmap: pageHm } : {});
@@ -418,6 +459,14 @@ function stepOnce() {
     const st0 = station(s);
     const t0 = performance.now();
     s.step();
+    if (flDartWait.size)
+        for (const id of [...flDartWait]) {
+            const q = s.pilot(id);
+            if (!q || q.state === sim_ts_1.P_FOOT || q.state !== sim_ts_1.P_DEAD)
+                flDartWait.delete(id);
+            if (q && q.state === sim_ts_1.P_FOOT)
+                flStartDart(s, id);
+        }
     const ms = performance.now() - t0;
     // watched entities: a shot per mount whose cooldown re-armed this step
     for (const [id, counts] of fireWatch) {
@@ -985,7 +1034,8 @@ ctx.onmessage = (ev) => {
                 initState(m);
                 break;
             case "gjoin":
-                guestJoin(m.slot);
+                if (sim) // no battle loaded yet: the host's start (readyWaiters -> rejoinAll) joins the guest then
+                    guestJoin(m.slot);
                 break;
             case "gleave":
                 guestLeave(m.slot);

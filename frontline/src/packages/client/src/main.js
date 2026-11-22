@@ -1172,6 +1172,8 @@ function applyPilot(p, now) {
         deadAt = bodyRender ? { x: bodyRender.x, z: bodyRender.z } : deadAt;
         specFocus = null;
         killCam = null;
+        if (isFrontline())
+            send({ t: "flLane", lane: flLane }); // 21 Nov: the host rides this pilot to the lane its own screen shows (a guest's choice was the host's lane until a key was pressed)
         if (lastAttacker && now - lastAttacker.t < 4000) {
             const fy = (0, terrain_gen_ts_1.sampleHeight)(hm, deadAt.x, deadAt.z) + 5;
             killCam = { id: lastAttacker.id, type: lastAttacker.type, x: lastAttacker.x, z: lastAttacker.z, from: [deadAt.x, fy, deadAt.z] };
@@ -1690,6 +1692,21 @@ function shieldHitDir(e, now) {
 }
 /** Line-colour index of a sim team: 0 own side (cyan), 1 enemy (red-orange), 2 neutral / empty (grey). */
 function teamIndex(team) { return team === 0 ? 0 : team === 1 ? 1 : 2; }
+/** 21 Nov: entities carrying another human player (their body on foot, or the vehicle they sit in): drawn in the squad colour (shader team 4). */
+let mateCacheView = null, mateCache = new Set();
+function mateEntities() {
+    const v = views[views.length - 1];
+    if (v === mateCacheView)
+        return mateCache;
+    mateCacheView = v;
+    mateCache = new Set();
+    if (v && v.players)
+        for (const p of v.players.values())
+            if (p.pilotId !== pilotId && p.player >= 0 && p.state !== sim_ts_1.P_DEAD && p.entity)
+                mateCache.add(p.entity);
+    return mateCache;
+}
+function unitTeamIndex(eb) { return eb.team === 0 && mateEntities().has(eb.id) ? 4 : teamIndex(eb.team); }
 // ------------------------------------------------------------------ HUD message feed
 const feed = [];
 function notify(text, kind = "info") {
@@ -3124,6 +3141,13 @@ window.addEventListener("keydown", (e) => {
             setPause(true);
         return;
     }
+    // 21 Nov: dead or downed in Frontline, 1-4 always choose the respawn lane (also with the pause menu open or in the map view)
+    if (isFrontline() && !e.repeat && (dead() || flDownedNow()) && /^(Digit|Numpad)[1-4]$/.test(e.code)) {
+        flLane = Number(e.code.slice(-1)) - 1;
+        send({ t: "flLane", lane: flLane });
+        snd.ui("click");
+        return;
+    }
     if (pauseOn)
         return;
     if (e.repeat) {
@@ -3591,10 +3615,37 @@ function startWith(c) {
     ready = false;
     scenMap = (0, scenario_ts_1.mapFor)(config.scenario, config.units, config.battle);
     ptStatics = (0, c2_ts_1.pointStatics)(scenMap, RING_R);
-    readyWaiters.push(go);
+    readyWaiters.push(() => { go(); if (mp.role === "host") mp.rejoinAll(); }); // 21 Nov: squadmates who joined while the host was still on the start card join the battle it loaded
     sendInit();
 }
-$("startBtn").addEventListener("click", () => startWith({ ...URL_CONFIG, battle: chosenBattle }));
+/**
+ * 21 Nov: a squad match starts only once the player confirms the loadout on the start card (hosting or joining used to
+ * drop the player straight in with whatever kit the card last held). pendingStart: what the deploy button does then.
+ */
+let pendingStart = null;
+function awaitLoadout(label, sub, fn) {
+    pendingStart = fn;
+    const b = $("startBtn");
+    if (!b.dataset.label)
+        b.dataset.label = b.innerHTML;
+    b.innerHTML = `${label}<small>${sub}</small>`;
+    b.classList.add("confirmPulse");
+    $("start").style.display = "";
+    notify("Check your loadout, then press the deploy button to confirm it", "info");
+}
+$("startBtn").addEventListener("click", () => {
+    const f = pendingStart;
+    if (f) {
+        pendingStart = null;
+        const b = $("startBtn");
+        if (b.dataset.label)
+            b.innerHTML = b.dataset.label;
+        b.classList.remove("confirmPulse");
+        f();
+        return;
+    }
+    startWith({ ...URL_CONFIG, battle: chosenBattle });
+});
 // the scripted runs are on the reference terrain: from a page on the symmetric map they reload with their URL option
 $("bigBtn").addEventListener("click", () => (GEO === "ref" ? startWith({ ...URL_CONFIG, units: 300, scenario: "default", showcaseFire: false }) : reloadWith({ units: "300", battle: null })));
 { // designer 20 Nov: the controls open over the start card (it no longer scrolls past the window)
@@ -6038,9 +6089,9 @@ function assemble(now, frameDt) {
                 fb1Stats.moving++;
             fb1Stats.lastOpen = u;
         }
-        putInst(kb.a, kb.n * render_ts_1.INST_FLOATS, x, y + liftY, z, yaw, shown, (empty || faint ? 2 : teamIndex(eb.team)) + (selected.has(eb.id) || eb.id === selBuilding ? 10 : 0), phase, scale, walk, walkAmp, recoil);
+        putInst(kb.a, kb.n * render_ts_1.INST_FLOATS, x, y + liftY, z, yaw, shown, (empty || faint ? 2 : unitTeamIndex(eb)) + (selected.has(eb.id) || eb.id === selBuilding ? 10 : 0), phase, scale, walk, walkAmp, recoil);
         if (gaitG) { // W1: the four legs, hip (on the tilted hull) to the planted / swinging sole (render.ts walkerLeg IK)
-            const W = gaitG.W, lb = kindBuf.get(W.biped ? "mleg" : "sleg"), team = (empty || faint ? 2 : teamIndex(eb.team)) + (selected.has(eb.id) ? 10 : 0);
+            const W = gaitG.W, lb = kindBuf.get(W.biped ? "mleg" : "sleg"), team = (empty || faint ? 2 : unitTeamIndex(eb)) + (selected.has(eb.id) ? 10 : 0);
             const NL = W.hips.length;
             lb.a = grow(lb.a, (lb.n + NL) * render_ts_1.INST_FLOATS);
             for (let i = 0; i < NL; i++) {
@@ -6237,7 +6288,12 @@ function assemble(now, frameDt) {
     let np = 0;
     const live = new Set();
     let fireSounds = 0, impactSounds = 0;
-    for (const p of B.projectiles.values()) {
+    for (let p of B.projectiles.values()) {
+        { // 21 Nov: a homing shot's record is re-based when resent (co-op guest snapshots against older baselines): keep the newest, never flip back to an older one (the guest's zig-zag)
+            const q = seenProj.get(p.id);
+            if (q && q.rec && q.rec !== p && (q.rec.at ?? 0) > (p.at ?? 0))
+                p = q.rec;
+        }
         const ballistic = cd.wBallistic[p.weapon] === 1;
         if (rt < p.launchTick)
             continue;
@@ -6313,7 +6369,15 @@ function assemble(now, frameDt) {
         }
         pv.lastTick = B.tick;
         const k = muzzleFade(age, Math.hypot(p.vx, p.vy, p.vz));
-        const dp = [pos[0] + pv.off[0] * k, pos[1] + pv.off[1] * k, pos[2] + pv.off[2] * k];
+        if (pv.rec !== p) { // a newer record (homing re-base): glide from where it is drawn to the new path over 0.2 s instead of jumping
+            if (pv.pos)
+                pv.blend = { d: [pv.pos[0] - pos[0] - pv.off[0] * k, pv.pos[1] - pos[1] - pv.off[1] * k, pv.pos[2] - pos[2] - pv.off[2] * k], t: now };
+            pv.rec = p;
+        }
+        const bk = pv.blend ? Math.max(0, 1 - (now - pv.blend.t) / 200) : 0, bd = pv.blend ? pv.blend.d : null;
+        if (pv.blend && bk <= 0)
+            pv.blend = null;
+        const dp = [pos[0] + pv.off[0] * k + (bd ? bd[0] * bk : 0), pos[1] + pv.off[1] * k + (bd ? bd[1] * bk : 0), pos[2] + pv.off[2] * k + (bd ? bd[2] * bk : 0)];
         pv.pos = dp;
         fx_p2_ts_1.p2Fx.proj(p.id, p.weapon, p.team, dp, vx, vy, vz, p.shooter === myBody && myBody !== 0 && !b1Stats.bunkerCam); // P2 hook (B1: the bunker's own shots as seen from beside the gun)
         projBuf = grow(projBuf, (np + 1) * render_ts_1.PROJ_FLOATS);
@@ -10602,10 +10666,12 @@ const mp = new mp_ts_1.Mp(NETCFG, {
             return;
         }
         readyWaiters.push(() => res(pilotId));
-        const before = ready;
-        startWith(URL_CONFIG);
-        if (started && before && sameConfig(URL_CONFIG, config))
-            res(pilotId); // same battle already loaded: started at once
+        awaitLoadout("CONFIRM LOADOUT · HOST", "your squad joins you in the battle", () => { // 21 Nov: the host confirms the kit first
+            const before = ready;
+            startWith({ ...URL_CONFIG, battle: chosenBattle });
+            if (started && before && sameConfig({ ...URL_CONFIG, battle: chosenBattle }, config))
+                res(pilotId); // same battle already loaded: started at once
+        });
     }),
     welcomeInfo: () => ({ terrainSeed: SEED, simSeed, difficulty: runningDifficulty, cfg: { ...config } }),
     beginGuest: (port, w) => {
@@ -10635,8 +10701,11 @@ const mp = new mp_ts_1.Mp(NETCFG, {
         pilotId = w.pilotId;
         ready = true;
         started = false;
-        startWith(config);
         notify(`Joined “${mp.code}” as player ${w.slot + 1}. The host runs the battle.`, "good");
+        if (isFrontline()) // 21 Nov: the guest confirms its loadout before it drops in
+            awaitLoadout("CONFIRM LOADOUT · JOIN", `player ${w.slot + 1} in “${mp.code}” · in a Dart at the Command Core`, () => { send({ t: "flKit", kit: flKit, confirm: true }); startWith(config); });
+        else
+            startWith(config);
     },
     becomeHostFrom: (init) => {
         const w = makeWorker();

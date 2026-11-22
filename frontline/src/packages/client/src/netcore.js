@@ -342,7 +342,7 @@ function validateGuestMsg(raw) {
                     return null;
                 kit.calls = c;
             }
-            return { t: "flKit", kit };
+            return m.confirm === true ? { t: "flKit", kit, confirm: true } : { t: "flKit", kit }; // confirm: the start card's deploy (21 Nov)
         }
         case "flLane": {
             const lane = int(m.lane, 0, 3);

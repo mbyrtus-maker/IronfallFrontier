@@ -1946,7 +1946,7 @@ class SnapshotDecoder {
             const weapon = r.u8(), team = r.u8(), age = r.varint();
             const x0 = r.u16() * pq, z0 = r.u16() * pq, y0 = r.i16() / 4;
             const vx = r.i16() / 10, vy = r.i16() / 10, vz = r.i16() / 10, shooter = r.varint();
-            projs.set(id, { id, weapon, team, launchTick: tick - age, x0, y0, z0, vx, vy, vz, shooter });
+            projs.set(id, { id, weapon, team, launchTick: tick - age, x0, y0, z0, vx, vy, vz, shooter, at: tick }); // at: the snapshot tick that carried this record (a homing shot resent later is re-based: the newest record wins)
         }
         // side sections
         let pilot = base ? base.pilot : null, team = base ? base.team : null;
