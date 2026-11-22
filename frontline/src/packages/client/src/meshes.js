@@ -6554,8 +6554,9 @@ function vmPistol(laser = false) {
     vmGrip(b, 0.0, -0.01, 0.075, 0.02);
     // extended magazine sticking out of the grip, with a grip sleeve
     b.set(VM_BLK, 0);
-    b.hull([[-0.032, -0.084], [-0.008, -0.084], [-0.018, -0.17], [-0.042, -0.168]], 0.011, 0.011);
-    b.box(-0.03, -0.172, 0, 0.016, 0.004, 0.0125);
+    // designer 21 Nov: the magazine runs down the grip's own rake (it sat forward of it), seated inside the grip
+    b.hull([[-0.0337, -0.06], [-0.0097, -0.06], [-0.055, -0.17], [-0.079, -0.17]], 0.011, 0.011);
+    b.box(-0.067, -0.173, 0, 0.016, 0.004, 0.0125);
     // threaded barrel with a ported compensator
     b.set(VM_STEEL, 0);
     b.cyl(0.215, 0.024, 0, 0.0065, 0.0065, 0.012, 8, "x");
