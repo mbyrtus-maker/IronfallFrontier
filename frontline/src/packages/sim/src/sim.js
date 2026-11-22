@@ -3875,12 +3875,16 @@ class Sim {
      * (except: the pilot `except` already there).
      */
     gunSeatable(s, team, except = 0) {
-        if (!this.d.crewOn || !this.alive[s] || this.hp[s] <= 0 || this.team[s] !== team || !this.d.tStructure[this.etype[s]] || this.mCount[s] === 0)
+        if (!this.d.crewOn || !this.alive[s] || this.hp[s] <= 0 || this.team[s] !== team || !this.d.tStructure[this.etype[s]])
             return false;
         if (this.con && this.con.underConstruction(this.eid[s]))
             return false;
         const o = this.occ[s * data_ts_1.MAX_SEATS];
         if ((this.ctlMask[s] & exports.GUN_SEAT_BIT) !== 0 && o !== except)
+            return false;
+        if (this.anyManned(s))
+            return true; // designer 21 Nov: a player can man every own building (its guns, else from its roof with the pilot's own)
+        if (this.mCount[s] === 0)
             return false;
         if (this.tGunSeat !== null && this.tGunSeat[this.etype[s]] === 1)
             return true;
@@ -3961,6 +3965,36 @@ class Sim {
         this.events.push(events_ts_1.EV.SHELTER, this.tick, p.team, p.id, structureId, exports.SH_ENTER, 0, 0, 0, events_ts_1.F_PLAYER | exports.SHF_GUN);
         return { ok: true, seat: 0 };
     }
+    /**
+     * Designer 21 Nov: may a player man building slot s? Every own standing building except the command seats (Citadel,
+     * Command Core: those are entered), bunkers (their own crew), walls and pipeline pieces.
+     */
+    anyManned(s) {
+        const t = this.etype[s], d = this.d;
+        if (this.tShelter !== null && this.tShelter[t] === 1)
+            return false;
+        if (d.tBunker[t] === 1)
+            return false;
+        const id = d.typeIds[t];
+        return !/wall|pipeline|mine|beacon/.test(id) && d.tRadius[t] >= 1.5;
+    }
+    /**
+     * Designer 21 Nov: the gunner of an unarmed building fires the pilot's own weapons from its roof: [slot 1, slot 2]
+     * weapon indices (Frontline: the kit; otherwise the pilot's default weapons).
+     */
+    perchWeapons(pid) {
+        const p = this.pilots.get(pid), d = this.d;
+        if (!p)
+            return [];
+        if (this.fkit && p.player >= 0) {
+            const R = this.fkit.R, k = this.fkit.kitOf(p.player), g = R.guns[k.gun];
+            return [k.laser ? g.laser : g.kinetic, R.roles[k.role].weapon].filter((w) => w >= 0);
+        }
+        const pt = d.pilotType, out = [];
+        for (let m = 0; m < Math.min(2, d.tMountCount[pt]); m++)
+            out.push(d.tMounts[pt * data_ts_1.MAX_MOUNTS + m]);
+        return out.filter((w) => w >= 0);
+    }
     /** Ruling 125: turret slot vs has no gunner any more: its mounts go back to the turret AI. */
     gunRelease(vs) {
         const i = vs * data_ts_1.MAX_SEATS;
@@ -3989,10 +4023,11 @@ class Sim {
      */
     fireGunSeat(s) {
         const d = this.d, dt = d.dt, q = this.sc, i = s * data_ts_1.MAX_SEATS, pid = this.occ[i];
-        const yaw = this.gYaw[i], ax = (0, fmath_ts_1.dcos)(yaw), az = (0, fmath_ts_1.dsin)(yaw), w0 = this.mWeapon[s * data_ts_1.MAX_MOUNTS];
+        const perch = this.mCount[s] === 0 ? this.perchWeapons(pid) : null; // designer 21 Nov: the pilot's own guns from the roof
+        const yaw = this.gYaw[i], ax = (0, fmath_ts_1.dcos)(yaw), az = (0, fmath_ts_1.dsin)(yaw), w0 = perch ? (perch[0] ?? -1) : this.mWeapon[s * data_ts_1.MAX_MOUNTS];
         this.hitShooter = this.eid[s];
-        for (let m = 0; m < this.mCount[s]; m++) {
-            const ci = s * data_ts_1.MAX_MOUNTS + m, w = this.mWeapon[ci];
+        for (let m = 0; m < (perch ? perch.length : this.mCount[s]); m++) {
+            const ci = s * data_ts_1.MAX_MOUNTS + m, w = perch ? perch[m] : this.mWeapon[ci];
             if (w < 0)
                 continue;
             let fx = this.mDX[ci], fz = this.mDZ[ci];
@@ -4037,6 +4072,12 @@ class Sim {
                 q[S_HX] = ax;
                 q[S_HZ] = az;
                 this.setMuzzle(s, ci);
+                if (perch) { // from the roof's edge toward the aim
+                    const R = d.tRadius[this.etype[s]];
+                    q[S_MX] = this.x[s] + ax * R * 0.6;
+                    q[S_MY] = this.y[s] + Math.max(4, R * 1.15);
+                    q[S_MZ] = this.z[s] + az * R * 0.6;
+                }
                 r = this.fireAimed(s, w, false);
             }
             if (r === 1) {
@@ -8484,8 +8525,11 @@ class Sim {
     fireWeapons(s) {
         const d = this.d, dt = d.dt;
         const mc = this.mCount[s];
-        if (mc === 0)
+        if (mc === 0) {
+            if ((this.ctlMask[s] & exports.GUN_SEAT_BIT) !== 0 && d.tStructure[this.etype[s]])
+                this.fireGunSeat(s); // designer 21 Nov: a manned unarmed building: the pilot's own weapons from its roof
             return;
+        }
         // a crewed vehicle in its critical window (hull at zero since an earlier tick) fires nothing; one that reached
         // zero this tick still fires, like every unit alive at the start of the weapons phase (simultaneous resolution)
         if (this.critTick[s] >= 0 && this.critTick[s] < this.tick)

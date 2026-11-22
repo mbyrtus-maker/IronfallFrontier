@@ -200,8 +200,8 @@
     "sensorRange": 300,
     "buildTime": 20,
     "weapons": [
-      "gun-tower-cannon",
-      "gun-tower-mg"
+      "gun-tower-mg",
+      "gun-tower-cannon"
     ],
     "defence": true,
     "pointTypes": [
@@ -216,7 +216,7 @@
       "rangeMultiplier": 1.2,
       "spreadMultiplier": 0.5
     },
-    "muzzles": [[5.63, 9.3, 0], [3.72, 9.0, 1.85]]
+    "muzzles": [[3.72, 9.0, 1.85], [5.63, 9.3, 0]]
   },
   {
     "id": "relay-tower",

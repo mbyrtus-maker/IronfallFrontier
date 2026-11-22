@@ -6286,7 +6286,7 @@ exports.MUZZLES = {
     economy: [{ pts: [[4.5, 1.05, 0]], turret: true }],
     hauler: [{ pts: [[3.7, 0.6, 0]], turret: false }], constructor: [{ pts: [[4.5, 1.05, 0]], turret: true }], fbv: [{ pts: [[3.7, 0.6, 0]], turret: false }],
     structure: [{ pts: [[0, 6.2, 0]], turret: false }],
-    tower: [{ pts: [[5.63, 9.3, 0]], turret: true }, { pts: [[3.72, 9.0, 1.85], [3.72, 9.0, -1.85]], turret: true }], // designer 21 Nov: cannon, twin machine guns
+    tower: [{ pts: [[3.72, 9.0, 1.85], [3.72, 9.0, -1.85]], turret: true }, { pts: [[5.63, 9.3, 0]], turret: true }], // designer 21 Nov: twin machine guns (LMB when manned), cannon (RMB)
     mast: [{ pts: [[0, 13, 0]], turret: false }],
     silo: [{ pts: [[0, 9, 0]], turret: false }], extractor: [{ pts: [[0, 10, 0]], turret: false }], gastank: [{ pts: [[0, 8, 0]], turret: false }],
     battery: [{ pts: [[1.7, 4.75, -0.82], [1.7, 4.75, 0.82], [1.7, 5.5, -0.82], [1.7, 5.5, 0.82], [1.7, 4.75, 0], [1.7, 5.5, 0]], turret: true }],

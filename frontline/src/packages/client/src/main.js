@@ -2907,7 +2907,37 @@ function sentryNear() {
     }
     return best;
 }
-function gunSeatEnter(t) { act({ kind: "manGun", turret: t.id }, "MAN SENTRY"); c1Stats.manSent++; snd.cue("seat"); }
+/** Designer 21 Nov: every own building a player can man (its guns, or from its roof with the pilot's own): the sim's anyManned. */
+function mannableType(t) {
+    if (!cd.tStructure[t] || SEAT_KINDS[t] || cd.tBunker?.[t] === 1)
+        return false;
+    return !/wall|pipeline|mine|beacon/.test(cd.typeIds[t]) && cd.tRadius[t] >= 1.5;
+}
+/** The own building the pilot on foot could man now (F): a sentry, a tower, or any other building, nearest first. */
+function mannableNear() {
+    if (!bodyRender || !onFoot())
+        return null;
+    let best = null, bd = Infinity;
+    for (const e of rendered) {
+        if (e.team !== 0 || !(mannableType(e.type) || (cd.tStructure[e.type] && (0, c1_crew_ts_1.sentryAt)(zonesNow, e.x, e.z))))
+            continue;
+        const d = Math.hypot(e.x - bodyRender.x, e.z - bodyRender.z) - cd.tRadius[e.type] - PILOT_R;
+        if (d <= SHELTER_REACH && d < bd) {
+            bd = d;
+            best = e;
+        }
+    }
+    return best;
+}
+/** Does building type t carry weapons of its own (else a manned one fires the pilot's own)? */
+function gunTypeArmed(t) { return (cd.tMountCount?.[t] ?? 0) > 0; }
+/** The name shown for the building being manned (or about to be). */
+function mannedName(e) {
+    if (!e)
+        return SENTRY_NAME;
+    return kindOfType[e.type] === "droppod" ? SENTRY_NAME : typeName[e.type] ?? "building";
+}
+function gunSeatEnter(t) { act({ kind: "manGun", turret: t.id }, `MAN ${mannedName(t).toUpperCase()}`); c1Stats.manSent++; snd.cue("seat"); }
 function gunSeatLeave() { act({ kind: "shelter", enter: false, building: 0 }, "LEAVE SENTRY"); c1Stats.leaveSent++; snd.ui("click"); lmb = false; }
 /** Ruling 125: the eye inside the gun head (as the manned Gun Tower's view), turning with the aim. */
 function gunSeatEye() {
@@ -2916,7 +2946,12 @@ function gunSeatEye() {
     const t = renderedById.get(me.entity);
     if (t && kindOfType[t.type] === "droppod")
         return [t.x + Math.cos(camYaw) * 0.9, t.y + 6.15, t.z + Math.sin(camYaw) * 0.9]; // designer 21 Nov: over the head's roof, the guns below the sight (inside it the hull hid the view)
-    return t ? [t.x + Math.cos(camYaw) * 0.6, t.y + 10.95, t.z + Math.sin(camYaw) * 0.6] : null; // over the tower head's roof
+    if (t && kindOfType[t.type] === "tower")
+        return [t.x + Math.cos(camYaw) * 0.6, t.y + 10.95, t.z + Math.sin(camYaw) * 0.6]; // over the tower head's roof
+    if (!t)
+        return null;
+    const R = cd.tRadius[t.type]; // designer 21 Nov: any other building: on its roof, at the edge facing the aim (the shots leave from there)
+    return [t.x + Math.cos(camYaw) * R * 0.6, t.y + Math.max(4, R * 1.15) + 1.7, t.z + Math.sin(camYaw) * R * 0.6];
 }
 /** Ruling 124: "CREW THIS": the nearest free AI pilot (on foot or from the reserve) walks to the own vehicle under the reticle. */
 function crewThis() {
@@ -3402,8 +3437,8 @@ function fpKey(code) {
             return;
         } // C1 ruling 124
         if (code === "KeyF") {
-            const sg = sentryNear(); // C1 ruling 125: man an own sentry gun
-            if (sg && !nearVehicle()) {
+            const sg = mannableNear(); // C1 ruling 125: man an own sentry gun; designer 21 Nov: any own building
+            if (sg && !nearVehicle() && !shelterNear()) {
                 gunSeatEnter(sg);
                 return;
             }
@@ -9540,7 +9575,7 @@ function updateHud(now, frameDt) {
     // ---- status panel: pilot on foot or the vehicle and seat
     if (p) {
         const vt = veh ? veh.type : -1;
-        $("stName").textContent = isDead ? "PILOT DOWN" : gunSeated() ? `PILOT · ${SENTRY_NAME.toUpperCase()} GUNNER` : sheltered() ? `PILOT · IN THE ${shelterName.toUpperCase()}` : foot ? "PILOT · ON FOOT" : veh ? `${typeName[vt]} · ${seatLabel(vt, p.seat)}` : "PILOT";
+        $("stName").textContent = isDead ? "PILOT DOWN" : gunSeated() ? `PILOT · ${mannedName(me ? renderedById.get(me.entity) : null).toUpperCase()} GUNNER` : sheltered() ? `PILOT · IN THE ${shelterName.toUpperCase()}` : foot ? "PILOT · ON FOOT" : veh ? `${typeName[vt]} · ${seatLabel(vt, p.seat)}` : "PILOT";
         $("stState").textContent = isDead ? (p.respawnTicks > 0 ? `${pods.some((q) => q.pilot === pilotId && !q.landed) ? "PILOT INBOUND · drop pod lands" : "respawn"} in ${Math.ceil(p.respawnTicks * dt)} s` : "waiting for a Barracks or Command Core") : gunSeated() ? (me && kindOfType[renderedById.get(me.entity)?.type ?? -1] === "droppod" ? s2_pod_ts_1.POD_STATUS : "inside the gun · mouse aims, LMB fires · F / E leave") : sheltered() ? `inside the ${shelterName} · cannot be hit` : mode === "cmd" ? (foot ? "holding position · returning fire" : "seat on autopilot · holding, returning fire") : foot ? (p.airborne === 2 ? "EJECTED · descending" : p.airborne === 1 ? "airborne" : crouchHeld() ? "crouched" : "on the ground") : veh && veh.driverless && p.seat === cd.tDriverSeat[vt] ? "sliding into the driver seat…" : seatRoleNow() === data_ts_2.SEAT_PASSENGER ? "passenger · your personal weapon where the seat mounts it" : "direct control";
         document.body.classList.toggle("inVehicle", !!veh);
         if (veh)
@@ -9724,9 +9759,9 @@ function updateHud(now, frameDt) {
         if (nv && de && !hijack)
             prompt = enterPrompt(nv, de); // during a hijack the ring and its banner say it all
         else {
-            const sg = sentryNear();
+            const sg = shelterNear() ? null : mannableNear();
             if (sg) {
-                prompt = (0, c1_crew_ts_1.gunSeatPrompt)(SENTRY_NAME, false);
+                prompt = (0, c1_crew_ts_1.gunSeatPrompt)(mannedName(sg), false) + (!gunTypeArmed(sg.type) ? " <small>· your own guns from the roof: LMB slot 1, RMB slot 2</small>" : "");
                 c1Stats.prompt = prompt;
             }
             else {
@@ -11063,7 +11098,7 @@ function unitPrompt(prompt) {
     document.body.classList.toggle("towerslit", mode === "fp" && (c9Manning() || gunSeated())); // C1: the sentry gunner looks out through the same slit frame
     if (mode === "fp" && gunSeated() && started) {
         const gt = me ? renderedById.get(me.entity) : undefined;
-        prompt = gt && kindOfType[gt.type] === "droppod" ? (0, s2_pod_ts_1.podGunnerBar)(podReloadLeft(gt.id, performance.now()), POD_RELOAD_S, POD_SALVO) : (0, c1_crew_ts_1.gunSeatBar)(SENTRY_NAME, null); // ruling 130: both weapons and the rocket reload
+        prompt = gt && kindOfType[gt.type] === "droppod" ? (0, s2_pod_ts_1.podGunnerBar)(podReloadLeft(gt.id, performance.now()), POD_RELOAD_S, POD_SALVO) : (gt && kindOfType[gt.type] === "tower" ? `MANNING THE GUN TOWER · mouse aims (the head turns at its own speed) · <b>LMB</b> machine guns · <b>RMB</b> cannon · F / E: leave (it goes back to automatic)` : gt && !gunTypeArmed(gt.type) ? `MANNING THE ${mannedName(gt).toUpperCase()} · from the roof with your own weapons · <b>LMB</b> slot 1 · <b>RMB</b> slot 2 · F / E: leave` : (0, c1_crew_ts_1.gunSeatBar)(mannedName(gt), null)); // ruling 130: both weapons and the rocket reload
         c1Stats.prompt = prompt;
         podStats.bar = prompt;
     }
@@ -13568,7 +13603,7 @@ function c11Event(e, v, now) {
             if (e.a !== pilotId)
                 break;
             if (e.flags & 1) { // C1 ruling 125: the sentry's gun seat
-                const n = (0, c1_crew_ts_1.gunSeatNotice)(e.c, SENTRY_NAME);
+                const n = (0, c1_crew_ts_1.gunSeatNotice)(e.c, mannedName(renderedById.get(e.b) ?? null));
                 if (n)
                     notify(n.text, n.kind);
                 if (e.c === 1) {
