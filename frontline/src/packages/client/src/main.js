@@ -1179,8 +1179,6 @@ function applyPilot(p, now) {
         deadAt = bodyRender ? { x: bodyRender.x, z: bodyRender.z } : deadAt;
         specFocus = null;
         killCam = null;
-        if (isFrontline())
-            send({ t: "flLane", lane: flLane }); // 21 Nov: the host rides this pilot to the lane its own screen shows (a guest's choice was the host's lane until a key was pressed)
         if (lastAttacker && now - lastAttacker.t < 4000) {
             const fy = (0, terrain_gen_ts_1.sampleHeight)(hm, deadAt.x, deadAt.z) + 5;
             killCam = { id: lastAttacker.id, type: lastAttacker.type, x: lastAttacker.x, z: lastAttacker.z, from: [deadAt.x, fy, deadAt.z] };
@@ -3188,13 +3186,6 @@ window.addEventListener("keydown", (e) => {
             setPause(true);
         return;
     }
-    // 21 Nov: dead or downed in Frontline, 1-4 always choose the respawn lane (also with the pause menu open or in the map view)
-    if (isFrontline() && !e.repeat && (dead() || flDownedNow()) && /^(Digit|Numpad)[1-4]$/.test(e.code)) {
-        flLane = Number(e.code.slice(-1)) - 1;
-        send({ t: "flLane", lane: flLane });
-        snd.ui("click");
-        return;
-    }
     if (pauseOn)
         return;
     if (e.repeat) {
@@ -3382,12 +3373,6 @@ function fpKey(code) {
         }
         else
             notify("Call a ride on foot", "warn");
-        return;
-    }
-    if ((dead() || flDownedNow()) && isFrontline() && digit >= 1 && digit <= 4) { // Frontline: respawn lane (4: at the Core), also while downed
-        flLane = digit - 1;
-        send({ t: "flLane", lane: flLane });
-        snd.ui("click");
         return;
     }
     if (dead())
@@ -9829,9 +9814,9 @@ function updateHud(now, frameDt) {
     deadEl.style.display = isDead && started ? "flex" : "none";
     if (isDead && started && p) {
         hudSeen.dead++;
-        $("deadText").innerHTML = p.respawnTicks > 0 ? `Respawn on foot in <b>${Math.ceil(p.respawnTicks * dt)} s</b> at the nearest Barracks or Command Core · spectating` : `Waiting for a Barracks or Command Core to respawn at`;
-        if (isFrontline()) // Frontline: the Mule ride to the chosen lane
-            $("deadText").innerHTML += `<br>${flLane === 3 ? "You respawn at the <b>COMMAND CORE</b> (no ride)" : `A Mule flies you to the <b>${["TOP", "MID", "BOTTOM"][flLane]}</b> lane front`} · press <b>1</b> top · <b>2</b> mid · <b>3</b> bottom · <b>4</b> stay at the Core`;
+        $("deadText").innerHTML = isFrontline() // designer 21 Nov: everyone respawns inside the Command Core, then picks a loadout and where to drop
+            ? (p.respawnTicks > 0 ? `Respawn in <b>${Math.ceil(p.respawnTicks * dt)} s</b> inside the <b>COMMAND CORE</b> · then confirm your loadout and pick where your drop pod lands · spectating` : `Waiting for a Command Core to respawn in`)
+            : p.respawnTicks > 0 ? `Respawn on foot in <b>${Math.ceil(p.respawnTicks * dt)} s</b> at the nearest Barracks or Command Core · spectating` : `Waiting for a Barracks or Command Core to respawn at`;
     }
     // ---- top bar: stockpile, pilot reserve (C11: in place of Command Points), units (both views)
     const units = rendered.filter((e) => e.team === 0 && !cd.tStructure[e.type] && !cd.tPilot[e.type]).length;
@@ -12455,8 +12440,7 @@ function flDownedExtras(show) {
         send({ t: "flGiveUp" });
         snd.ui("click");
     }
-    const lane = flLane === 3 ? "the <b>COMMAND CORE</b>" : `the <b>${["TOP", "MID", "BOTTOM"][flLane]}</b> lane (Mule ride)`;
-    const html = `Respawn at ${lane} · <b>1</b> top · <b>2</b> mid · <b>3</b> bottom · <b>4</b> Core<br>`
+    const html = `If you go down for good you respawn inside the <b>COMMAND CORE</b><br>`
         + `<span style="color:${flGaveUp ? "#ff9a6a" : "#ffd23c"}">${flGaveUp ? "GIVING UP…" : "HOLD <b>SPACE</b> TO GIVE UP"}</span>`
         + `<div style="width:200px;height:3px;margin:6px auto 0;background:rgba(255,255,255,0.15)"><div style="height:3px;width:${Math.round(k * 100)}%;background:#ffd23c"></div></div>`;
     if (el.dataset.h !== html) {

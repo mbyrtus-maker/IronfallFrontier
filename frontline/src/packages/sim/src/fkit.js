@@ -389,6 +389,8 @@ class FKit {
             if (p.state !== 1)
                 continue; // still dead (or already in a seat)
             this.pending.delete(pid);
+            if (p.player < 100 && this.respawnInCore(sim, p))
+                continue; // designer 21 Nov: a player respawns inside the Command Core (loadout, then the drop pod), no lane ride
             const lane = this.laneOf.get(pid) ?? this.lane; // 4c: an AI pilot rides to its own lane
             if (lane === 3)
                 continue; // lane 3: the player chose to stay at the Command Core (no ride)
@@ -536,6 +538,28 @@ class FKit {
                 sim.dropOut(p, q.x, q.z);
             return false;
         });
+    }
+    /** A respawned player pilot goes straight inside its team's Command Core. */
+    respawnInCore(sim, p) {
+        const b = sim.idToSlot.get(p.entity);
+        if (b === undefined)
+            return false;
+        let core = -1, best = Infinity;
+        for (let o = 0; o < sim.hi; o++)
+            if (sim.alive[o] && sim.hp[o] > 0 && sim.team[o] === p.team && sim.tCore && sim.tCore[sim.etype[o]]) {
+                const d = Math.hypot(sim.x[o] - sim.x[b], sim.z[o] - sim.z[b]);
+                if (d < best) {
+                    best = d;
+                    core = o;
+                }
+            }
+        if (core < 0)
+            return false;
+        const off = sim.d.tRadius[sim.etype[core]] + sim.d.tRadius[sim.etype[b]] + 0.5;
+        sim.x[b] = sim.x[core] + sim.dirX[core] * off;
+        sim.z[b] = sim.z[core] + sim.dirZ[core] * off;
+        sim.y[b] = sim.terrain.height(sim.x[b], sim.z[b]);
+        return sim.enterShelter(p.id, sim.eid[core], p.team).ok;
     }
     /** Pilots whose loadout was confirmed at the Core: their waiting ferry Mule takes off on the next step (21 Nov). */
     goNow = new Set();
