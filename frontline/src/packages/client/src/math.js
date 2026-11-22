@@ -110,3 +110,29 @@ function lerpAngle(a, b, t) {
 }
 function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
 function smoothstep(t) { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); }
+/**
+ * Perf (22 Nov): the six clip planes of a column-major view-projection matrix (Gribb-Hartmann), as
+ * (a, b, c, d) quadruples with a point inside when a x + b y + c z + d >= 0, into out (24 floats).
+ */
+function frustumPlanes(vp, out) {
+    const r = (i) => [vp[i], vp[4 + i], vp[8 + i], vp[12 + i]];
+    const X = r(0), Y = r(1), Z = r(2), W = r(3);
+    const P = [[1, X], [-1, X], [1, Y], [-1, Y], [1, Z], [-1, Z]];
+    for (let p = 0; p < 6; p++) {
+        const [s, R] = P[p];
+        for (let k = 0; k < 4; k++)
+            out[p * 4 + k] = W[k] + s * R[k];
+    }
+    return out;
+}
+exports.frustumPlanes = frustumPlanes;
+/** Perf: is the axis-aligned box wholly outside one of the planes (so nothing in it can be on screen)? */
+function boxCulled(pl, x0, y0, z0, x1, y1, z1) {
+    for (let p = 0; p < 24; p += 4) {
+        const a = pl[p], b = pl[p + 1], c = pl[p + 2];
+        if (a * (a > 0 ? x1 : x0) + b * (b > 0 ? y1 : y0) + c * (c > 0 ? z1 : z0) + pl[p + 3] < 0)
+            return true;
+    }
+    return false;
+}
+exports.boxCulled = boxCulled;

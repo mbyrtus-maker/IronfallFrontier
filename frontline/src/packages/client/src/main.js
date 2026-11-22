@@ -285,6 +285,12 @@ for (const k of meshes_ts_1.KINDS) {
         LOD_KIND.set(k, `${k}~lo`);
     }
 }
+/** Perf (22 Nov): copies one instance (INST_FLOATS) from src at so into dst at d (no subarray per instance: that was
+ * thousands of short-lived views a frame for the garbage collector). */
+function copyInst(dst, d, src, so) {
+    for (let i = 0; i < render_ts_1.INST_FLOATS; i++)
+        dst[d + i] = src[so + i];
+}
 const lodScratch = { hi: new Float32Array(render_ts_1.INST_FLOATS * 64), lo: new Float32Array(render_ts_1.INST_FLOATS * 64) };
 const lodStats = { hi: 0, lo: 0 };
 /** Draws a kind's instances: detailed within the distance at which its detail still covers pixels, the base mesh beyond. */
@@ -310,9 +316,9 @@ function drawKindLod(k, a, n, edges) {
     for (let i = 0; i < n; i++) {
         const o = i * render_ts_1.INST_FLOATS, d = Math.hypot(a[o] - eye[0], a[o + 1] - eye[1], a[o + 2] - eye[2]);
         if (d < lim * a[o + 7])
-            lodScratch.hi.set(a.subarray(o, o + render_ts_1.INST_FLOATS), nh++ * render_ts_1.INST_FLOATS);
+            copyInst(lodScratch.hi, nh++ * render_ts_1.INST_FLOATS, a, o);
         else
-            lodScratch.lo.set(a.subarray(o, o + render_ts_1.INST_FLOATS), nl++ * render_ts_1.INST_FLOATS);
+            copyInst(lodScratch.lo, nl++ * render_ts_1.INST_FLOATS, a, o);
     }
     R.drawKind(k, lodScratch.hi, nh);
     R.drawKind(lk, lodScratch.lo, nl);
@@ -328,11 +334,17 @@ R.addKind("tree", (0, meshes_ts_1.treeMesh)(PLANET));
 R.addKind("stump", (0, meshes_ts_1.stumpMesh)(PLANET));
 R.addKind("spire", (0, meshes_ts_1.spireMesh)(PLANET));
 R.addKind("broadleaf", (0, meshes_ts_1.broadleafMesh)(PLANET));
+R.addKind("tree~lo", (0, meshes_ts_1.treeMeshLo)(PLANET)); // perf (22 Nov): the far trees
+R.addKind("broadleaf~lo", (0, meshes_ts_1.broadleafMeshLo)(PLANET));
+R.addKind("tree~far", (0, meshes_ts_1.treeMeshFar)(PLANET));
+R.addKind("broadleaf~far", (0, meshes_ts_1.broadleafMeshFar)(PLANET));
 R.addKind("bush", (0, meshes_ts_1.bushMesh)(PLANET));
 R.addKind("tuft", (0, meshes_ts_1.grassTuftMesh)(PLANET));
 R.addKind("pebble", (0, meshes_ts_1.pebbleMesh)(PLANET));
 for (const k of ["crates", "sandbags", "lamp", "debris"])
     R.addKind(k, (0, meshes_ts_1.dressingMesh)(k));
+for (const k of [...PROP_KINDS, "tree~lo", "broadleaf~lo", "tree~far", "broadleaf~far"])
+    R.setSolid(k); // perf (22 Nov): the props draw with the no-discard shader (they never build up or spin rotors)
 R.addKind("ore", (0, meshes_ts_1.oreMesh)(), true);
 R.addKind("ore-spent", (0, meshes_ts_1.oreMesh)(true), true);
 R.addKind("geyser", (0, meshes_ts_1.geyserMesh)(), true); // G1: resource fields
@@ -551,7 +563,7 @@ function gatherNearProps() {
             if (dx * dx + dz * dz > r2)
                 continue;
             nb.a = grow(nb.a, (nb.n + 1) * render_ts_1.INST_FLOATS);
-            nb.a.set(src.subarray(o, o + render_ts_1.INST_FLOATS), nb.n++ * render_ts_1.INST_FLOATS);
+            copyInst(nb.a, nb.n++ * render_ts_1.INST_FLOATS, src, o);
         }
     }
     tuftN = 0;
@@ -579,6 +591,83 @@ function gatherNearProps() {
                 putInst(pebbleBuf, pebbleN++ * render_ts_1.INST_FLOATS, c.pebble[k], c.pebble[k + 1], c.pebble[k + 2], c.pebble[k + 3], c.pebble[k + 3], 0, 0, c.pebble[k + 4]);
             }
         }
+}
+/**
+ * Perf (22 Nov): the trees, stumps and spires (thousands, drawn at any distance) are bucketed once into square cells
+ * with their bounding boxes; a frame draws only the cells inside the camera's view (a copy of their instances).
+ */
+const BIG_CELL = 160, BIG_CULL = ["tree", "stump", "broadleaf", "spire"];
+const bigCells = {}, bigView = {};
+for (const k of BIG_CULL) {
+    const src = props.big[k], m = R.kindMesh(k), rad = (m?.radius ?? 3) + 1, ht = (m?.height ?? 8) + 1.5, byCell = new Map();
+    for (let o = 0; o < src.length; o += render_ts_1.INST_FLOATS) {
+        const key = Math.floor(src[o] / BIG_CELL) + Math.floor(src[o + 2] / BIG_CELL) * 4096;
+        let c = byCell.get(key);
+        if (!c)
+            byCell.set(key, c = { list: [], box: [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity] });
+        c.list.push(o);
+        const sc = src[o + 7] || 1, b = c.box;
+        b[0] = Math.min(b[0], src[o] - rad * sc); b[3] = Math.max(b[3], src[o] + rad * sc);
+        b[1] = Math.min(b[1], src[o + 1] - 14); b[4] = Math.max(b[4], src[o + 1] + ht * sc); // (y - 14: the props sink up to 12 m in the tactical display blend)
+        b[2] = Math.min(b[2], src[o + 2] - rad * sc); b[5] = Math.max(b[5], src[o + 2] + rad * sc);
+    }
+    // the instances re-laid cell by cell, so a cell is one contiguous slice
+    const sorted = new Float32Array(src.length), cells = [];
+    let n = 0;
+    for (const c of byCell.values()) {
+        const start = n;
+        for (const o of c.list)
+            sorted.set(src.subarray(o, o + render_ts_1.INST_FLOATS), n++ * render_ts_1.INST_FLOATS);
+        cells.push({ start, n: n - start, box: c.box });
+    }
+    bigCells[k] = { sorted, cells };
+    bigView[k] = { a: new Float32Array(src.length || render_ts_1.INST_FLOATS), n: 0 };
+}
+const bigStats = { cells: 0, culled: 0, drawn: 0, lo: 0, far: 0 };
+/** Perf: the far meshes of the trees, and the screen footprints (px) under which a tree drops to them. */
+const BIG_LO = { tree: "tree~lo", broadleaf: "broadleaf~lo" }, BIG_FAR = { tree: "tree~far", broadleaf: "broadleaf~far" }, BIG_LO_PX = 14, BIG_FAR_PX = 4;
+const bigLod = { hi: new Float32Array(render_ts_1.INST_FLOATS * 64), lo: new Float32Array(render_ts_1.INST_FLOATS * 64), far: new Float32Array(render_ts_1.INST_FLOATS * 64), nh: 0, nl: 0, nf: 0 };
+/** Perf: splits the visible instances of kind k into near (full mesh), far (~lo) and farthest (~far). */
+function splitBigLod(k, V) {
+    const F = render_ts_1.INST_FLOATS, m = R.kindMesh(k), px = 2 * (m?.radius ?? 2) * R.focalPx, lim = px / BIG_LO_PX, limF = px / BIG_FAR_PX, a = V.a;
+    if (bigLod.hi.length < V.n * F) {
+        bigLod.hi = new Float32Array(V.n * F * 2);
+        bigLod.lo = new Float32Array(V.n * F * 2);
+        bigLod.far = new Float32Array(V.n * F * 2);
+    }
+    let nh = 0, nl = 0, nf = 0;
+    for (let i = 0; i < V.n; i++) {
+        const o = i * F, dx = a[o] - eye[0], dy = a[o + 1] - eye[1], dz = a[o + 2] - eye[2], sc = a[o + 7] || 1, d2 = dx * dx + dy * dy + dz * dz;
+        if (d2 < lim * lim * sc * sc)
+            copyInst(bigLod.hi, nh++ * F, a, o);
+        else if (d2 < limF * limF * sc * sc)
+            copyInst(bigLod.lo, nl++ * F, a, o);
+        else
+            copyInst(bigLod.far, nf++ * F, a, o);
+    }
+    bigLod.nh = nh;
+    bigLod.nl = nl;
+    bigLod.nf = nf;
+    bigStats.lo += nl;
+    bigStats.far += nf;
+    return bigLod;
+}
+/** Perf: copies the cells of kind k that the camera can see into bigView[k]. */
+function gatherBigProps(k) {
+    const B = bigCells[k], V = bigView[k], pl = R.planes, F = render_ts_1.INST_FLOATS;
+    V.n = 0;
+    for (const c of B.cells) {
+        bigStats.cells++;
+        const b = c.box;
+        if ((0, math_ts_1.boxCulled)(pl, b[0], b[1], b[2], b[3], b[4], b[5])) {
+            bigStats.culled++;
+            continue;
+        }
+        V.a.set(B.sorted.subarray(c.start * F, (c.start + c.n) * F), V.n * F);
+        V.n += c.n;
+    }
+    bigStats.drawn += V.n;
+    return V;
 }
 // ------------------------------------------------------------------ worker
 function makeWorker() {
@@ -10663,8 +10752,18 @@ function frame(now) {
             // props have no place on the tactical display: they sink into the ground during the blend
             const sink = wire * 12;
             gatherNearProps();
-            for (const k of ["tree", "stump", "broadleaf", "spire"])
-                R.drawKind(k, props.big[k], props.big[k].length / render_ts_1.INST_FLOATS, 1, sink);
+            bigStats.cells = bigStats.culled = bigStats.drawn = bigStats.lo = bigStats.far = 0;
+            for (const k of BIG_CULL) {
+                const V = gatherBigProps(k);
+                if (!BIG_LO[k] || !R.terrainLod) {
+                    R.drawKind(k, V.a, V.n, 1, sink);
+                    continue;
+                }
+                const L = splitBigLod(k, V);
+                R.drawKind(k, L.hi, L.nh, 1, sink);
+                R.drawKind(BIG_LO[k], L.lo, L.nl, 1, sink);
+                R.drawKind(BIG_FAR[k], L.far, L.nf, 1, sink);
+            }
             for (const k of ["rock", "bush", "debris"])
                 R.drawKind(k, nearBuf[k].a, nearBuf[k].n, 1, sink);
             drawDressing(sink); // G1: crates, sandbags and lamps round the structures
@@ -13477,6 +13576,9 @@ G.__ironfall = {
     flDropDbg() { const gt = cd.typeIds.indexOf("gunship"), out = [...flPodLand.entries()].map(([id, la]) => ({ id, drop: !!la.drop, S: la.S, landedAt: la.landedAt ? Math.round(performance.now() - la.landedAt) : null, x: Math.round(la.x), z: Math.round(la.z) })); const g = [...renderedById.values()].filter((e) => e.type === gt).map((e) => [Math.round(e.x), Math.round(e.y), Math.round(e.z)]); return { land: out, gunships: g, eye: eye.map(Math.round) }; },
     flTestArm(callId) { const ci = callRules ? callRules.ids.indexOf(callId) : -1; if (ci < 0) return false; armedCall = { call: ci, id: callId, name: callId, at: performance.now() }; return true; },
     flShots() { return { own: playerShotsSeen, armed: !!armedCall, vm: vmInfo.kind }; },
+    terrainLod(on) { R.terrainLod = !!on; return R.terrainLod; },
+    cullStats() { return { terrainLod: [...R.terrainLodN], terrainCulled: R.terrainCulled, terrainChunks: R.terrainChunks?.length ?? 0, ...bigStats }; },
+    triBy(on) { if (on && !R.triBy) R.triBy = {}; return R.triBy ? { ...R.triBy } : null; }, // perf: triangles drawn per kind last frame
     flDropSlow(k) { flDropTimeK = k; return k; },
     /** Opening cinematic: state; seek to t (s, the music's clock: an offset added); clock speed; skip. */
     cine() { return { paused: !!cine?.paused, error: cineStats.error ?? null, on: !!cine, t: cine ? cine.lastT : -1, P: cine?.P ?? null, E: cine?.E ?? null, revealed: !!cine?.Ereal, started: cineStats.started, ended: cineStats.ended, skipped: cineStats.skipped, shots: [...cineStats.shots], pods: cineStats.pods, crates: cineStats.crates, music: cineStats.music, hud: getComputedStyle($("hud")).visibility }; },

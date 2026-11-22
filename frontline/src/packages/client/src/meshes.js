@@ -14,6 +14,10 @@ exports.geyserMesh = geyserMesh;
 exports.propPalette = propPalette;
 exports.rockMesh = rockMesh;
 exports.treeMesh = treeMesh;
+exports.treeMeshLo = treeMeshLo;
+exports.treeMeshFar = treeMeshFar;
+exports.broadleafMeshFar = broadleafMeshFar;
+exports.broadleafMeshLo = broadleafMeshLo;
 exports.stumpMesh = stumpMesh;
 exports.grassTuftMesh = grassTuftMesh;
 exports.bushMesh = bushMesh;
@@ -7925,6 +7929,57 @@ function treeMesh(planet = "halcyon") {
         r *= 0.76;
         y += 1.2;
     }
+    return b.build([0, 0, 0], 0, 0);
+}
+/** Perf (22 Nov): the far tree (drawn once it spans under ~18 px): the same tiers and colours, 5-sided, no caps or trunk base. */
+function treeMeshLo(planet = "halcyon") {
+    const b = new MeshBuilder(), P = propPalette(planet);
+    b.set(P.trunk, 0);
+    b.cyl(0, -0.3, 0, 0.42, 0.28, 2.4, 3, "y", false); // (radii widened so the fewer sides cover the same width)
+    let r = 2.1, y = 1.2;
+    for (let i = 0; i < 4; i++) {
+        b.set(P.g[i], 0);
+        b.cyl(Math.sin(i * 2.1) * 0.1, y, Math.cos(i * 1.7) * 0.1, r * 1.11, 0, 2.1, 5, "y", false, i * 0.7);
+        r *= 0.76;
+        y += 1.2;
+    }
+    return b.build([0, 0, 0], 0, 0);
+}
+/** Perf (22 Nov): the farthest tree (a few pixels tall): one five-sided cone in the canopy's middle shade. */
+function treeMeshFar(planet = "halcyon") {
+    const b = new MeshBuilder(), P = propPalette(planet);
+    b.set(P.g[1], 0);
+    b.cyl(0, 0.6, 0, 2.35, 0, 6.6, 5, "y", false, 0.4);
+    return b.build([0, 0, 0], 0, 0);
+}
+/** Perf: the farthest broadleaf: one eight-faced blob on the canopy (trunk dropped). */
+function broadleafMeshFar(planet = "halcyon") {
+    const b = new MeshBuilder(), P = propPalette(planet);
+    b.set(P.g[2], 0);
+    blobLo(b, 0, 3.7, 0, 2.0, [1.1, 0.95, 1.1]);
+    return b.build([0, 0, 0], 0, 0);
+}
+/** Perf: an eight-faced blob standing in for a small boulder() at a distance (same centre and squash, a little larger). */
+function blobLo(b, x, y, z, r, sq) {
+    const X = r * sq[0] * 1.3, Y = r * sq[1] * 1.2, Z = r * sq[2] * 1.3;
+    const top = [x, y + Y, z], bot = [x, y - Y, z], ring = [[x + X, y, z], [x, y, z + Z], [x - X, y, z], [x, y, z - Z]];
+    for (let k = 0; k < 4; k++) {
+        const a = ring[k], c = ring[(k + 1) % 4];
+        b.tri(a, c, top);
+        b.tri(c, a, bot);
+    }
+}
+/** Perf: the far broadleaf (the main canopy boulder as is, blobs for the two small ones, a 3-sided trunk). */
+function broadleafMeshLo(planet = "halcyon") {
+    const b = new MeshBuilder(), P = propPalette(planet);
+    b.set(P.trunk, 0);
+    b.cyl(0, -0.3, 0, 0.24, 0.15, 3.4, 3, "y", false);
+    b.set(P.g[2], 0);
+    boulder(b, 0, 3.9, 0, 1.9, [1, 0.8, 1], 6);
+    b.set(P.g[3], 0);
+    blobLo(b, 0.8, 3.3, 0.5, 1.2, [1, 0.8, 1]);
+    b.set(P.g[1], 0);
+    blobLo(b, -0.7, 3.4, -0.6, 1.1, [1, 0.85, 1]);
     return b.build([0, 0, 0], 0, 0);
 }
 function stumpMesh(planet = "halcyon") {

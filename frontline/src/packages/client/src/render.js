@@ -6,6 +6,11 @@ exports.projCode = projCode;
 // selection rings, tracers and effect puffs. One draw call per mesh kind; every
 // per-unit value is an instance attribute. Counts draw calls and triangles.
 const meshes_ts_1 = require("./meshes.js");
+const math_ts_1 = require("./math.js");
+/** Perf (22 Nov): terrain cells per chunk side, and the slack (m) added above and below a chunk's heights when culling. */
+const TERRAIN_CHUNK = 32, TERRAIN_SLACK = 2;
+/** Perf: the coarse terrain steps (cells per block side), and the most screen pixels a drawn terrain cell may span. */
+const TERRAIN_LOD_STEPS = [2, 4], TERRAIN_LOD_PX = 20;
 const terrain_gen_ts_1 = require("./terrain-gen.js");
 const w1_walker_ts_1 = require("./w1-walker.js");
 exports.INST_FLOATS = 12; // unit / prop instance: x, y, z, hullYaw, turretYaw, team, phase, scale, walkPhase, walkAmp, recoil, build (C4: 0 = finished, else the built fraction 0..1)
@@ -339,10 +344,17 @@ void main() {
     albedo = mix(albedo, mix(ROCK, vColF, uContour > 1.0 ? 0.88 : 0.35) * (0.85 + 0.3 * mid), rock * 0.75); // T1: a relief planet's own rock colour on its walls
     vec2 qr = mat2(0.8, -0.6, 0.6, 0.8) * q; // rotated, so no octave lines up with the world axes
     float f1 = octFade(q / 3.1), f2 = octFade(q / 0.9), f3 = octFade(qr / 0.28);
-    float grain = (vn(q / 3.1) - 0.5) * 0.06 * f1 + (vn(qr / 0.9 + 7.3) - 0.5) * 0.06 * f2 + (vn(qr / 0.28 + 3.1) - 0.5) * 0.1 * f3;
-    albedo *= 1.0 + grain * (1.0 - smoothstep(120.0, 400.0, dist));
-    float fleck = smoothstep(0.76, 0.84, vn(qr / 0.33 + 11.0)) * f3 * (1.0 - rock) * (1.0 - smoothstep(60.0, 200.0, dist));
-    albedo = mix(albedo, albedo * vec3(1.3, 1.2, 0.85), fleck * 0.3);
+    // perf (22 Nov): the near grain and flecks are only worked out where they show (their noise has no derivatives,
+    // so the branches are safe; the octave fades above are taken outside them)
+    float gk = 1.0 - smoothstep(120.0, 400.0, dist), fk = (1.0 - smoothstep(60.0, 200.0, dist)) * (1.0 - rock);
+    if (gk > 0.0) {
+      float grain = (vn(q / 3.1) - 0.5) * 0.06 * f1 + (vn(qr / 0.9 + 7.3) - 0.5) * 0.06 * f2 + (vn(qr / 0.28 + 3.1) - 0.5) * 0.1 * f3;
+      albedo *= 1.0 + grain * gk;
+    }
+    if (fk > 0.0) {
+      float fleck = smoothstep(0.76, 0.84, vn(qr / 0.33 + 11.0)) * f3 * fk;
+      albedo = mix(albedo, albedo * vec3(1.3, 1.2, 0.85), fleck * 0.3);
+    }
     vec3 Nf = normalize(cross(dFdx(vWP), dFdy(vWP)));
     if (Nf.y < 0.0) Nf = -Nf;
     vec3 n = normalize(mix(N, Nf, (0.35 + 0.35 * rock) * (1.0 - smoothstep(500.0, 1500.0, dist))));
@@ -884,6 +896,10 @@ class Renderer {
     viewH = 1;
     kinds = new Map();
     terrainVao = null;
+    terrainChunks = null;
+    outerChunks = null;
+    /** Perf: this frame's clip planes (frustumPlanes of the view-projection). */
+    planes = new Float32Array(24);
     terrainCount = 0;
     outerVao = null;
     outerCount = 0;
@@ -902,6 +918,9 @@ class Renderer {
         this.gl = gl;
         this.look = look;
         this.unit = this.program(UNIT_VS, UNIT_FS);
+        // perf (22 Nov): the same shader with no discard, for kinds that never need one (props): a shader that can
+        // discard loses the early depth test, so forests paid for every hidden fragment
+        this.unitSolid = this.program(UNIT_VS, UNIT_FS.replace(/discard;/g, "{}"));
         this.terrain = this.program(TERRAIN_VS, TERRAIN_FS);
         this.shadow = this.program(DISC_VS, SHADOW_FS);
         this.ring = this.program(DISC_VS, RING_FS);
@@ -1053,11 +1072,15 @@ class Renderer {
     setPuffMesh(mesh) { this.fxK = this.instanced(mesh, meshes_ts_1.VERTEX_FLOATS, 0, exports.FX_FLOATS); }
     setShieldMesh(mesh) { this.shieldK = this.instanced(mesh, meshes_ts_1.VERTEX_FLOATS, 0, exports.SHIELD_FLOATS); }
     kindMesh(name) { return this.kinds.get(name)?.mesh; }
+    /** Perf: draw kind name with the no-discard shader (no rotors, never built up, no ghost). */
+    setSolid(name) { const k = this.kinds.get(name); if (k) k.solid = true; }
     /** Terrain mesh from the shared heightmap: smooth normals, vertex colours from `colour(x, z, h, slope)`. */
     setTerrain(hm, colour) {
-        const r = this.gridMesh(hm.cols, hm.rows, hm.cellSize, 0, 0, (i, j) => hm.heights[j * hm.cols + i], colour, () => true);
+        const r = this.gridMesh(hm.cols, hm.rows, hm.cellSize, 0, 0, (i, j) => hm.heights[j * hm.cols + i], colour, () => true, true);
+        this.terrainCell = hm.cellSize;
         this.terrainVao = r.vao;
         this.terrainCount = r.count;
+        this.terrainChunks = r.chunks;
     }
     /**
      * Coarse scenery beyond the playable map (the heightfield continued with the
@@ -1078,8 +1101,33 @@ class Renderer {
         const r = this.gridMesh(n, n, cell, o, o, (i, j) => hs[j * n + i], colour, keep);
         this.outerVao = r.vao;
         this.outerCount = r.count;
+        this.outerChunks = r.chunks;
     }
-    gridMesh(nx, nz, cs, ox, oz, H, colour, keep) {
+    /**
+     * Perf (22 Nov): a terrain chunk at step st: each st x st block is a fan about its centre vertex. Block sides on the
+     * chunk's edge keep every vertex (so any two neighbouring chunks meet without cracks, whatever their steps);
+     * inner sides keep only their ends. Winding matches the full grid (counter-clockwise seen from above).
+     */
+    coarseChunk(out, nx, ci, cj, w, h, st) {
+        const half = st / 2, at = (i, j) => j * nx + i;
+        for (let bj = cj; bj < cj + h; bj += st)
+            for (let bi = ci; bi < ci + w; bi += st) {
+                const c = at(bi + half, bj + half), ring = [];
+                // perimeter: (bi, bj) -> (bi, bj + st) -> (bi + st, bj + st) -> (bi + st, bj) -> back
+                const side = (i0, j0, di, dj, onEdge) => {
+                    const n = onEdge ? st : 1, step = onEdge ? 1 : st;
+                    for (let k = 0; k < n; k++)
+                        ring.push(at(i0 + di * k * step, j0 + dj * k * step));
+                };
+                side(bi, bj, 0, 1, bi === ci);
+                side(bi, bj + st, 1, 0, bj + st === cj + h);
+                side(bi + st, bj + st, 0, -1, bi + st === ci + w);
+                side(bi + st, bj, -1, 0, bj === cj);
+                for (let k = 0; k < ring.length; k++)
+                    out.push(c, ring[k], ring[(k + 1) % ring.length]);
+            }
+    }
+    gridMesh(nx, nz, cs, ox, oz, H, colour, keep, lod = false) {
         const gl = this.gl;
         const v = new Float32Array(nx * nz * 12);
         const c = [0, 0, 0, 0, 0, 0];
@@ -1110,15 +1158,53 @@ class Renderer {
                 v[k + 10] = c[4];
                 v[k + 11] = c[5];
             }
-        const tmp = [];
-        for (let j = 0; j < nz - 1; j++)
-            for (let i = 0; i < nx - 1; i++) {
-                if (!keep(i, j))
-                    continue;
-                const a = j * nx + i, b = a + 1, d = a + nx, e = d + 1;
-                // counter-clockwise seen from above (+y): a, d, b and b, d, e
-                tmp.push(a, d, b, b, d, e);
+        // perf (22 Nov): the cells go in square chunks of TERRAIN_CHUNK, each a contiguous index range with its bounding
+        // box, so the frame draws only the chunks inside the view (adjacent visible chunks merge into one draw)
+        const tmp = [], chunks = [], C = TERRAIN_CHUNK, lodIdx = [];
+        for (let cj = 0; cj < nz - 1; cj += C)
+            for (let ci = 0; ci < nx - 1; ci += C) {
+                const start = tmp.length;
+                let y0 = Infinity, y1 = -Infinity;
+                for (let j = cj; j < Math.min(nz - 1, cj + C); j++)
+                    for (let i = ci; i < Math.min(nx - 1, ci + C); i++) {
+                        if (!keep(i, j))
+                            continue;
+                        const a = j * nx + i, b = a + 1, d = a + nx, e = d + 1;
+                        // counter-clockwise seen from above (+y): a, d, b and b, d, e
+                        tmp.push(a, d, b, b, d, e);
+                        for (const q of [a, b, d, e]) {
+                            const y = v[q * 12 + 1];
+                            if (y < y0)
+                                y0 = y;
+                            if (y > y1)
+                                y1 = y;
+                        }
+                    }
+                if (tmp.length > start) {
+                    const w = Math.min(nx - 1, ci + C) - ci, h = Math.min(nz - 1, cj + C) - cj, lv = [{ start, count: tmp.length - start }];
+                    if (lod)
+                        for (const st of TERRAIN_LOD_STEPS) {
+                            if (w % st || h % st) {
+                                lv.push(null);
+                                continue;
+                            }
+                            const L = lodIdx[lv.length - 1] ??= [], s0 = L.length;
+                            this.coarseChunk(L, nx, ci, cj, w, h, st);
+                            lv.push({ start: s0, count: L.length - s0, level: lv.length });
+                        }
+                    chunks.push({ start, count: tmp.length - start, lv, box: [ox + ci * cs, y0, oz + cj * cs, ox + (ci + w) * cs, y1, oz + (cj + h) * cs] });
+                }
             }
+        // the coarse levels follow the full one in the index buffer, each in chunk order
+        let base = tmp.length;
+        for (let l = 0; l < lodIdx.length; l++) {
+            for (const c of chunks)
+                if (c.lv[l + 1])
+                    c.lv[l + 1].start += base;
+            for (const q of lodIdx[l])
+                tmp.push(q);
+            base = tmp.length;
+        }
         const idx = new Uint32Array(tmp);
         const vao = gl.createVertexArray();
         gl.bindVertexArray(vao);
@@ -1137,7 +1223,7 @@ class Renderer {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, idx, gl.STATIC_DRAW);
         gl.bindVertexArray(null);
-        return { vao, count: idx.length };
+        return { vao, count: idx.length, chunks };
     }
     setCommon(pr) {
         const gl = this.gl, L = this.look, u = pr.u;
@@ -1200,11 +1286,15 @@ class Renderer {
         const gl = this.gl;
         this.vp.set(vp);
         this.invVP.set(invVP);
+        (0, math_ts_1.frustumPlanes)(vp, this.planes);
+        this.terrainCulled = 0;
+        this.terrainLodN = [0, 0, 0];
         this.eye = eye;
         this.fogDensity = fogDensity;
         this.fogStart = fogStart;
         this.drawCalls = 0;
         this.triangles = 0;
+        if (this.triBy) this.triBy = {};
         this.lines = 0;
         this.vertices = 0;
         this.viewW = w;
@@ -1256,17 +1346,68 @@ class Renderer {
         const gl = this.gl;
         this.setCommon(this.terrain);
         gl.bindVertexArray(this.terrainVao);
-        gl.drawElements(gl.TRIANGLES, this.terrainCount, gl.UNSIGNED_INT, 0);
-        this.drawCalls++;
-        this.triangles += this.terrainCount / 3;
-        this.vertices += this.terrainCount;
+        let tris = this.drawChunks(this.terrainChunks, this.terrainCount);
         if (this.outerVao) {
             gl.bindVertexArray(this.outerVao);
-            gl.drawElements(gl.TRIANGLES, this.outerCount, gl.UNSIGNED_INT, 0);
-            this.drawCalls++;
-            this.triangles += this.outerCount / 3;
-            this.vertices += this.outerCount;
+            tris += this.drawChunks(this.outerChunks, this.outerCount);
         }
+        if (this.triBy)
+            this.triBy.terrain = tris;
+    }
+    /** Perf: terrain chunks seen by the camera (culled against this frame's planes), consecutive ones as one draw. */
+    terrainCulled = 0;
+    /** Perf: coarse terrain chunks drawn this frame per level (1: step 2, 2: step 4); terrainLod switches the levels on. */
+    terrainLodN = [0, 0, 0];
+    terrainLod = true;
+    drawChunks(chunks, count) {
+        const gl = this.gl, pl = this.planes;
+        if (!chunks || !chunks.length) {
+            gl.drawElements(gl.TRIANGLES, count, gl.UNSIGNED_INT, 0);
+            this.drawCalls++;
+            this.triangles += count / 3;
+            this.vertices += count;
+            return count / 3;
+        }
+        let run0 = -1, runN = 0, n = 0;
+        const flush = () => {
+            if (runN > 0) {
+                gl.drawElements(gl.TRIANGLES, runN, gl.UNSIGNED_INT, run0 * 4);
+                this.drawCalls++;
+                n += runN;
+            }
+            runN = 0;
+        };
+        const E = this.eye, cellPx = (this.terrainCell ?? 0) * this.focalPx;
+        for (const c of chunks) {
+            const b = c.box;
+            if ((0, math_ts_1.boxCulled)(pl, b[0], b[1] - TERRAIN_SLACK, b[2], b[3], b[4] + TERRAIN_SLACK, b[5])) {
+                flush();
+                this.terrainCulled++;
+                continue;
+            }
+            let r = c;
+            if (c.lv && c.lv.length > 1 && this.terrainLod) { // the coarsest step whose cells stay under TERRAIN_LOD_PX on screen
+                const dx = Math.max(b[0] - E[0], 0, E[0] - b[3]), dy = Math.max(b[1] - E[1], 0, E[1] - b[4]), dz = Math.max(b[2] - E[2], 0, E[2] - b[5]);
+                const d = Math.hypot(dx, dy, dz);
+                for (let l = c.lv.length - 1; l > 0; l--)
+                    if (c.lv[l] && cellPx * TERRAIN_LOD_STEPS[l - 1] <= TERRAIN_LOD_PX * d) {
+                        r = c.lv[l];
+                        this.terrainLodN[l]++;
+                        break;
+                    }
+            }
+            if (runN > 0 && run0 + runN === r.start)
+                runN += r.count;
+            else {
+                flush();
+                run0 = r.start;
+                runN = r.count;
+            }
+        }
+        flush();
+        this.triangles += n / 3;
+        this.vertices += n;
+        return n / 3;
     }
     upload(k, data, n, floats) {
         const gl = this.gl;
@@ -1312,16 +1453,16 @@ class Renderer {
         const k = this.kinds.get(name);
         if (!k || n === 0)
             return;
-        const gl = this.gl;
-        this.setCommon(this.unit);
-        gl.uniform3fv(this.unit.u.uPivot, k.mesh.pivot);
-        gl.uniform1f(this.unit.u.uHover, k.mesh.hover * hoverScale);
-        gl.uniform1f(this.unit.u.uBob, k.mesh.bob * hoverScale);
-        gl.uniform1f(this.unit.u.uRecoil, k.mesh.recoil);
-        gl.uniform1f(this.unit.u.uHeight, k.mesh.height);
+        const gl = this.gl, P = k.solid ? this.unitSolid : this.unit;
+        this.setCommon(P);
+        gl.uniform3fv(P.u.uPivot, k.mesh.pivot);
+        gl.uniform1f(P.u.uHover, k.mesh.hover * hoverScale);
+        gl.uniform1f(P.u.uBob, k.mesh.bob * hoverScale);
+        gl.uniform1f(P.u.uRecoil, k.mesh.recoil);
+        gl.uniform1f(P.u.uHeight, k.mesh.height);
         if (sink)
-            gl.uniform1f(this.unit.u.uSink, sink);
-        const nr = this.setRotors(this.unit.u, k.mesh);
+            gl.uniform1f(P.u.uSink, sink);
+        const nr = k.solid ? 0 : this.setRotors(this.unit.u, k.mesh);
         this.upload(k, inst, n, exports.INST_FLOATS);
         if (this.wire > 0) {
             gl.enable(gl.POLYGON_OFFSET_FILL);
@@ -1333,6 +1474,7 @@ class Renderer {
             gl.disable(gl.POLYGON_OFFSET_FILL);
         this.drawCalls++;
         this.triangles += (k.mesh.count / 3) * n;
+        if (this.triBy) this.triBy[name] = (this.triBy[name] ?? 0) + (k.mesh.count / 3) * n;
         this.vertices += k.mesh.count * n;
         if (nr > 0 && this.wire < 0.6) { // F3: the rotor blur discs, blended over (depth-tested, not written)
             gl.uniform1f(this.unit.u.uBlur, 1);
