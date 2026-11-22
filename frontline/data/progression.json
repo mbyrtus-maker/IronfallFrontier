@@ -225,6 +225,20 @@
         "strider-drop": 2,
         "lancer-drop": 2,
         "carrier-drop": 3
+      },
+      "flGuns": {
+        "pistol": 1,
+        "trooper": 1
+      },
+      "flSlot2": {
+        "antimateriel": 2
+      },
+      "flGrenades": {
+        "demo": 2
+      },
+      "flSlot3": {
+        "pilot-rail-driver": 2,
+        "pilot-mortar": 2
       }
     },
     "_shelved": {
@@ -355,26 +369,6 @@
           "name": "Weapons",
           "items": [
             {
-              "name": "Anti-materiel rifle",
-              "what": "Slot 2 · 410 damage at 600 m",
-              "cost": 2
-            },
-            {
-              "name": "Pulse pistol",
-              "what": "Slot 1 · a laser sidearm",
-              "cost": 1
-            },
-            {
-              "name": "Trooper rifle",
-              "what": "Slot 1 · steady, mid-range",
-              "cost": 1
-            },
-            {
-              "name": "Demo charge",
-              "what": "Grenade · 1,320 damage placed by hand",
-              "cost": 2
-            },
-            {
               "name": "Arc rifle",
               "what": "Slot 1 · chains an arc between enemies",
               "cost": 2
@@ -393,16 +387,6 @@
               "name": "Satchel charges",
               "what": "Grenade · thrown, set off by hand",
               "cost": 1
-            },
-            {
-              "name": "Rail driver",
-              "what": "Slot 3 · a charged shot that pierces a line",
-              "cost": 2
-            },
-            {
-              "name": "Mortar tube",
-              "what": "Slot 3 · arcing fire onto a pinged spot",
-              "cost": 2
             }
           ]
         },

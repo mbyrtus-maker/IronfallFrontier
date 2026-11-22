@@ -4703,7 +4703,7 @@ class Sim {
                     this.despawn(s);
                     continue;
                 }
-                if (home >= 0 && (tick + s) % this.retryTicks === 0) {
+                if (home >= 0 && (tick + s) % this.retryTicks === 0 && !(this.fkit && this.fkit.claimOf(this, p.id) !== undefined)) { // (designer 22 Nov: not while heading for an empty vehicle)
                     const wp = this.waypoints[s];
                     if (this.ordType[s] !== exports.ORD_MOVE || !wp || wp[wp.length - 2] !== this.x[home] || wp[wp.length - 1] !== this.z[home]) {
                         this.quietOrders = true;

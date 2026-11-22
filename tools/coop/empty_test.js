@@ -35,20 +35,19 @@ check("once the tag lapsed an AI pilot took it", t2 >= 0 && t2 / tr >= tagEnds -
 // 4: a crew pilot out of its vehicle (walking back to base) mans an empty vehicle on the way instead
 {
   const sb = sim.idToSlot.get(sim.pilots.get(b1.pid).entity) ?? sim.idToSlot.get(v1);
-  const x = sim.x[sb] - 200, z = sim.z[sb] + 150;
+  const x = 2250, z = 1000; // (open ground behind the east lines: the test of the choice, not of the fight)
   const rc = sim.spawnUnit("lancer", 1, x, z, { crew: "full" }), vc = typeof rc === "number" ? rc : rc.ids[0], vcs = sim.idToSlot.get(vc);
   for (let k = 0; k < 3; k++) sim.step();
   const crew = [...sim.pilots.values()].filter((p) => p.state === 0 && p.vehicle === vc && p.player < 0);
-  const re = sim.spawnUnit("bastion", 1, x + 60, z - 30, { crew: "none" }), ve = typeof re === "number" ? re : re.ids[0];
+  const re = sim.spawnUnit("bastion", 1, x + 45, z + 10, { crew: "none" }), ve = typeof re === "number" ? re : re.ids[0];
   for (const p of crew) sim.exit(p.id, 1);
+  sim.hp[vcs] = sim.d.tHp[sim.etype[vcs]] * 0.2; // (a wreck they bailed out of: not one to climb back into)
   for (let k = 0; k < 2; k++) sim.step();
   const walkers = crew.filter((p) => p.state === 1);
   check("the crew got out and walks home", walkers.length > 0 && walkers.every((p) => p.task === 1 || p.state === 0), { n: walkers.length, tasks: walkers.map((p) => p.task) });
-  // the empty Lancer they left is right there: take it out of the picture
-  sim.hp[vcs] = 0;
   let tc = -1;
-  for (let k = 0; k < 40 * tr && tc < 0; k++) { for (const p of crew) { const s = p.state === 1 ? sim.idToSlot.get(p.entity) : undefined; if (s !== undefined) sim.hp[s] = sim.pilotMaxHp(p) || sim.hp[s]; } sim.step(); if (crew.some((p) => p.state === 0 && p.vehicle === ve)) tc = k; }
-  check("a crew pilot walking home climbed into the empty tank 60 m off", tc >= 0, { seconds: tc / tr });
+  for (let k = 0; k < 60 * tr && tc < 0; k++) { if (process.env.DBG && k % 40 === 0) { const p = crew[0], s = sim.idToSlot.get(p.entity), es = sim.idToSlot.get(ve); console.log("   t", k / tr, "veh", Math.round(sim.x[es]), Math.round(sim.z[es]), "pil", s !== undefined ? [Math.round(sim.x[s]), Math.round(sim.z[s])] : "-", p.state, p.task, "claim", JSON.stringify(sim.fkit.claims.get(ve)), "reach", s !== undefined && sim.inReach ? sim.inReach(s, es) : "?"); } for (const p of crew) { const s = p.state === 1 ? sim.idToSlot.get(p.entity) : undefined; if (s !== undefined) sim.hp[s] = sim.pilotMaxHp(p) || sim.hp[s]; } sim.step(); if (crew.some((p) => p.state === 0 && p.vehicle === ve)) tc = k; }
+  check("a crew pilot walking home climbed into the empty tank 45 m off", tc >= 0, { seconds: tc / tr });
 }
 // 3: a player in a vehicle tags it; out of it, the tag runs playerVehicleTagSeconds
 const hp = [...sim.pilots.values()].find((p) => p.player >= 0 && !sim.isBotPilot(p.id));

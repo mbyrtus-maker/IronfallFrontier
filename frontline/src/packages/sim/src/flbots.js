@@ -20,13 +20,13 @@ const pilotkit_ts_1 = require("./pilotkit.js");
 exports.BOT_PLAYER_MIN = 100;
 function isBotPlayer(player) { return player >= exports.BOT_PLAYER_MIN; }
 const ROSTER = [
-    { team: 0, player: 100, name: "Vance", lane: 0, kit: { role: "sniper", gun: "marksman", laser: false, grenade: "sticky", armour: "light", calls: ["precision-strike", "repair-resupply", "sentry-gun", "tank-drop"] } },
-    { team: 0, player: 101, name: "Okoro", lane: 1, kit: { role: "heavy", gun: "shotgun", laser: false, grenade: "he", armour: "heavy", calls: ["barrage", "shield-bubble", "mech-drop", "reinforcements"] } },
-    { team: 0, player: 102, name: "Reyes", lane: 2, kit: { role: "medic", gun: "carbine", laser: true, grenade: "area", armour: "medium", calls: ["repair-resupply", "sentry-gun", "precision-strike", "flak-turret"] } },
-    { team: 1, player: 110, name: "Kade", lane: 0, kit: { role: "assault", gun: "carbine", laser: false, grenade: "he", armour: "medium", calls: ["precision-strike", "repair-resupply", "sentry-gun", "tank-drop"] } },
-    { team: 1, player: 111, name: "Morrow", lane: 1, kit: { role: "heavy", gun: "shotgun", laser: false, grenade: "sticky", armour: "heavy", calls: ["barrage", "shield-bubble", "mech-drop", "reinforcements"] } },
-    { team: 1, player: 112, name: "Ishi", lane: 2, kit: { role: "sniper", gun: "marksman", laser: true, grenade: "seeker", armour: "light", calls: ["precision-strike", "sentry-gun", "repair-resupply", "tank-drop"] } },
-    { team: 1, player: 113, name: "Brask", lane: 1, kit: { role: "medic", gun: "carbine", laser: false, grenade: "area", armour: "medium", calls: ["repair-resupply", "barrage", "flak-turret", "mech-drop"] } },
+    { team: 0, player: 100, name: "Vance", lane: 0, kit: { role: "sniper", gun: "marksman", laser: false, grenade: "sticky", armour: "light", calls: ["precision-strike", "sensor-sweep", "smoke-screen", "scout-drop"] } },
+    { team: 0, player: 101, name: "Okoro", lane: 1, kit: { role: "heavy", gun: "shotgun", laser: false, grenade: "he", armour: "heavy", calls: ["barrage", "shield-bubble", "hammer-drop", "minefield"] } },
+    { team: 0, player: 102, name: "Reyes", lane: 2, kit: { role: "medic", gun: "carbine", laser: true, grenade: "area", armour: "medium", calls: ["repair-resupply", "smoke-screen", "sentry-gun", "flak-turret"] } },
+    { team: 1, player: 110, name: "Kade", lane: 0, kit: { role: "assault", gun: "carbine", laser: false, grenade: "he", armour: "medium", calls: ["precision-strike", "strafing-run", "emp-burst", "tank-drop"] } },
+    { team: 1, player: 111, name: "Morrow", lane: 1, kit: { role: "heavy", gun: "shotgun", laser: false, grenade: "sticky", armour: "heavy", calls: ["bomb-run", "shield-bubble", "strider-drop", "reinforcements"] } },
+    { team: 1, player: 112, name: "Ishi", lane: 2, kit: { role: "sniper", gun: "marksman", laser: true, grenade: "seeker", armour: "light", calls: ["precision-strike", "recon-drone", "sentry-gun", "lancer-drop"] } },
+    { team: 1, player: 113, name: "Brask", lane: 1, kit: { role: "medic", gun: "carbine", laser: false, grenade: "area", armour: "medium", calls: ["repair-resupply", "minefield", "flak-drop", "salvo-drop"] } },
 ];
 const THINK = 20; // ticks between decisions per bot (staggered)
 class FlBots {
@@ -267,7 +267,7 @@ class FlBots {
         let vid = ownOk ? own : undefined, vs = ownOk ? os : undefined;
         if (!ownOk) {
             const gs = b.grab !== undefined ? sim.idToSlot.get(b.grab) : undefined;
-            if (gs !== undefined && F.freeForAi(sim, gs, team, b.pid, true) && sim.gap(s, gs) <= F.R.emptyRadius * 1.5) {
+            if (gs !== undefined && F.freeForAi(sim, gs, team, b.pid, true, s) && sim.gap(s, gs) <= F.R.emptyRadius * 1.5) {
                 vs = gs;
                 vid = b.grab;
             }
@@ -496,7 +496,7 @@ class FlBots {
         };
         const kitCalls = b.r.kit.calls;
         // a strike on an enemy group 20 m - throw range away with no friend within 22 m of it
-        for (const id of ["precision-strike", "barrage"]) {
+        for (const id of ["precision-strike", "barrage", "bomb-run", "strafing-run"]) { // (designer 22 Nov: the named pilots use every call-down)
             if (!kitCalls.includes(id) || ready(id) < 0)
                 continue;
             const tgt = enemyGroup(sim, team, x, z, 20, range);
@@ -526,10 +526,43 @@ class FlBots {
             call("shield-bubble", x, z);
             return;
         }
-        // a ground vehicle (never more than one alive: callRefusal)
+        // smoke when pulling back hurt with foes about, or over a downed friend under fire
+        if (kitCalls.includes("smoke-screen") && ready("smoke-screen") >= 0 && foes >= 2 && b.mode === "retreat") {
+            call("smoke-screen", x + 8, z);
+            return;
+        }
+        // eyes: a sweep or a drone when foes are about but none close enough to see
+        for (const id of ["sensor-sweep", "recon-drone"])
+            if (kitCalls.includes(id) && ready(id) >= 0 && foes === 0 && countFoes(sim, team, x, z, 320) >= 3) {
+                call(id, x, z);
+                return;
+            }
+        // mines in the path of enemy armour; an EMP on enemy vehicles with none of ours under it
+        const armour = foeVehicles(sim, team, x, z, 160);
+        if (kitCalls.includes("minefield") && ready("minefield") >= 0 && armour.length > 0) {
+            const o = armour[0], d = Math.hypot(sim.x[o] - x, sim.z[o] - z) || 1, t = Math.min(range, d * 0.5);
+            call("minefield", x + (sim.x[o] - x) / d * t, z + (sim.z[o] - z) / d * t);
+            return;
+        }
+        if (kitCalls.includes("emp-burst") && ready("emp-burst") >= 0)
+            for (const o of armour) {
+                const d = Math.hypot(sim.x[o] - x, sim.z[o] - z);
+                if (d > range || d < 20)
+                    continue;
+                let ours = false;
+                for (let q = 0; q < sim.hi && !ours; q++)
+                    if (sim.alive[q] && sim.team[q] === team && !sim.d.tStructure[sim.etype[q]] && sim.etype[q] !== sim.d.pilotType && (sim.x[q] - sim.x[o]) ** 2 + (sim.z[q] - sim.z[o]) ** 2 < 34 * 34)
+                        ours = true;
+                if (!ours) {
+                    call("emp-burst", sim.x[o], sim.z[o]);
+                    return;
+                }
+            }
+        // a ground vehicle (never more than one alive: callRefusal). Designer 22 Nov: the named AI pilots use every
+        // vehicle drop in their kit (the ones they can drive: ground); the other AI never call vehicle drops
         const early = sim.tick < (90 + b.i * 25) * tr; // pacing: no armour in the opening minute and a half, then staggered
-        for (const id of ["tank-drop", "mech-drop"])
-            if (!early && sim.d.raw.constants.frontline?.aiVehicleDrops !== false && kitCalls.includes(id) && ready(id) >= 0 && b.mode !== "retreat") { // (designer 22 Nov: vehicle drops are player only)
+        for (const id of kitCalls.filter((c) => { const ci = R.ids.indexOf(c); return ci >= 0 && R.calls[ci].fx === 3 && R.calls[ci].unitType >= 0 && !sim.d.tAir[R.calls[ci].unitType]; }))
+            if (!early && kitCalls.includes(id) && ready(id) >= 0 && b.mode !== "retreat") {
                 const a = (b.i * 1.7 + sim.tick * 0.001) % (Math.PI * 2);
                 call(id, x + Math.cos(a) * 16, z + Math.sin(a) * 16);
                 return;
@@ -601,6 +634,16 @@ function coreSlot(sim, team) {
         if (sim.alive[s] && sim.team[s] === team && tc[sim.etype[s]] && sim.hp[s] > 0 && (best < 0 || sim.eid[s] < sim.eid[best]))
             best = s;
     return best;
+}
+/** Enemy vehicles (not pilots, troops or structures) within r of (x, z), nearest first. */
+function foeVehicles(sim, team, x, z, r) {
+    const out = [];
+    for (let o = 0; o < sim.hi; o++) {
+        const t = sim.etype[o];
+        if (sim.alive[o] && sim.hp[o] > 0 && sim.team[o] !== team && sim.team[o] < 4 && !sim.d.tStructure[t] && t !== sim.d.pilotType && sim.d.tDriverSeat[t] >= 0 && (sim.x[o] - x) ** 2 + (sim.z[o] - z) ** 2 < r * r)
+            out.push(o);
+    }
+    return out.sort((a, b) => Math.hypot(sim.x[a] - x, sim.z[a] - z) - Math.hypot(sim.x[b] - x, sim.z[b] - z));
 }
 function countFoes(sim, team, x, z, r) {
     let n = 0;

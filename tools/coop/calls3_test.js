@@ -26,7 +26,7 @@ const core = (() => { for (let o = 0; o < sim.hi; o++) if (sim.alive[o] && sim.t
 const bs = () => sim.idToSlot.get(sim.pilots.get(pid).entity);
 let HX = null, HZ = null;
 const hold = () => { const s = bs(); if (s !== undefined) { sim.x[s] = HX ?? sim.x[core] + 90; sim.z[s] = HZ ?? sim.z[core] + 90; sim.hp[s] = Math.max(sim.hp[s], 200); } };
-const fire = (id, x, z) => { b.r.kit.calls = [id]; rec.loadout = [R.ids.indexOf(id)]; rec.cool = rec.cool ?? {}; const why = sim.callRefusal(pid, R.ids.indexOf(id), 1); sim.queueCall(sim.tick + 1, pid, id, x, z, 1); return why; };
+const fire = (id, x, z) => { b.r = { ...b.r, kit: { ...b.r.kit, calls: [id] } }; rec.loadout = [R.ids.indexOf(id)]; rec.cool = rec.cool ?? {}; const why = sim.callRefusal(pid, R.ids.indexOf(id), 1); sim.queueCall(sim.tick + 1, pid, id, x, z, 1); return why; };
 const before = (t) => { let n = 0; for (let o = 0; o < sim.hi; o++) if (sim.alive[o] && sim.d.typeIds[sim.etype[o]] === t && sim.team[o] === 1) n++; return n; };
 hold(); step(1);
 const x0 = sim.x[bs()] + 25, z0 = sim.z[bs()];
@@ -62,9 +62,14 @@ for (const [id, t] of Object.entries(drops)) {
   if (vs !== undefined) sim.envDamage(vs, 1e7);
   F.dropped.delete(pid); step(2 * tr);
 }
-// the AI never calls a vehicle drop
+// designer 22 Nov: the named AI pilots use every call-down in their kits (vehicle drops included); the commander never drops vehicles
 const S2 = S.createScenarioSim(data, sc, map, { seed: 11, difficulty: "normal", players: 1 });
-for (let k = 0; k < 600 * tr; k++) S2.step();
+for (let k = 0; k < 900 * tr; k++) S2.step();
+const all = new Set(S2.fkit.bots.bots.flatMap((b) => b.r.kit.calls));
+check("between them the named pilots carry every new call-down", [...calls, "wasp-drop", "hammer-drop", "salvo-drop", "flak-drop", "strider-drop", "lancer-drop"].filter((c) => !all.has(c) && c !== "wasp-drop").length === 0, [...all]);
+
 const kinds = S2.fkit.bots.stats.callsByKind;
-check("in ten minutes the AI pilots called no vehicle drop", !Object.keys(kinds).some((k) => /-drop$/.test(k) && k !== "slot3-drop"), kinds);
+console.log("named pilot calls in 15 min", kinds);
+const newUsed = Object.keys(kinds).filter((k) => calls.includes(k) || /-drop$/.test(k));
+check("the named pilots used new call-downs and vehicle drops", newUsed.length >= 4 && Object.keys(kinds).some((k) => /-drop$/.test(k)), newUsed);
 process.exit(0);

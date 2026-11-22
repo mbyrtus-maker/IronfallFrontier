@@ -1062,6 +1062,10 @@
       "medic": {
         "name": "Medic",
         "weapon": "medic-gun"
+      },
+      "antimateriel": {
+        "name": "Anti-materiel",
+        "weapon": "pilot-amr"
       }
     },
     "guns": {
@@ -1089,6 +1093,16 @@
         "name": "Grenade launcher",
         "kinetic": "grenade-launcher",
         "laser": "plasma-launcher"
+      },
+      "pistol": {
+        "name": "Pulse pistol",
+        "kinetic": "machine-pistol",
+        "laser": "pulse-pistol"
+      },
+      "trooper": {
+        "name": "Trooper rifle",
+        "kinetic": "pilot-trooper-rifle",
+        "laser": "pulse-rifle"
       }
     },
     "grenades": {
@@ -1107,6 +1121,10 @@
       "seeker": {
         "name": "Seeker grenade",
         "weapon": "grenade-seeker"
+      },
+      "demo": {
+        "name": "Demo charge",
+        "weapon": "pilot-demo-grenade"
       }
     },
     "armour": {
@@ -1144,7 +1162,11 @@
       "scatter-laser",
       "beam-marksman",
       "heavy-machine-gun",
-      "pulse-carbine"
+      "pulse-carbine",
+      "machine-pistol",
+      "pulse-pistol",
+      "pilot-trooper-rifle",
+      "pulse-rifle"
     ],
     "smallArmsHullMul": {
       "light": 0.25,
@@ -1177,7 +1199,9 @@
       "flak-gun": "Anti-air flak gun",
       "pilot-laser-cannon": "Laser cannon",
       "guided-missile-launcher": "Guided missile launcher",
-      "silo-targeter": "Missile silo"
+      "silo-targeter": "Missile silo",
+      "pilot-rail-driver": "Rail driver",
+      "pilot-mortar": "Mortar tube"
     },
     "slot3Empty": "slot3-empty",
     "slot3RechargeSeconds": {
@@ -1186,7 +1210,9 @@
       "heavy-grenade-launcher": 120,
       "flak-gun": 180,
       "pilot-laser-cannon": 180,
-      "silo-targeter": 180
+      "silo-targeter": 180,
+      "pilot-rail-driver": 120,
+      "pilot-mortar": 120
     },
     "frontlineCalls": [
       "sentry-gun",
@@ -1221,7 +1247,9 @@
       "scatter-laser",
       "beam-marksman",
       "plasma-launcher",
-      "pilot-laser-cannon"
+      "pilot-laser-cannon",
+      "pulse-pistol",
+      "pulse-rifle"
     ],
     "silo": {
       "structure": "silo",
@@ -1300,7 +1328,7 @@
     "aiEmptyVehicleRadiusMetres": 120,
     "playerVehicleTagSeconds": 45,
     "_emptyVehiclesNote": "Designer 22 Nov: AI pilots of both sides man an empty vehicle within aiEmptyVehicleRadiusMetres before running back to base (or one they pass); a vehicle a player summoned or was in is left alone until playerVehicleTagSeconds after the player was last aboard.",
-    "aiVehicleDrops": false,
-    "_aiVehicleDropsNote": "Designer 22 Nov: every vehicle drop is player only (the AI pilots man empty vehicles instead)."
+    "aiVehicleDrops": "named",
+    "_aiVehicleDropsNote": "Designer 22 Nov: the named AI pilots use every call-down in their kit, vehicle drops included (ground ones: they cannot fly); the other AI (commander, crews) never call vehicle drops."
   }
 }

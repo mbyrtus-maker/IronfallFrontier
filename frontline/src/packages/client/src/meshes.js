@@ -7272,26 +7272,107 @@ function vmLance() {
     b.box(0.06, -0.07, 0, 0.02, 0.035, 0.014); // grip
     return b.build([0, 0, 0], 0, 0);
 }
-/** Anti-materiel rifle: a long heavy barrel with a big muzzle brake, a bipod, a box magazine and a fat scope. */
+/** Anti-materiel rifle (HD): chassis stock with a thick recoil pad and padded cheek rest, a tube action with a bolt handle,
+ * a big box magazine, a large scope, a long fluted barrel with a two-port muzzle brake and a bipod folded under the handguard.
+ * Bore at y 0.004, muzzle tip at x 0.86. */
 function vmAmr() {
-    const b = new MeshBuilder();
+    const b = new MeshBuilder(), Y = 0.004;
+    // chassis stock, recoil pad, cheek rest on posts, monopod
     b.set(VM_DARK, 0);
-    b.hull([[-0.4, -0.08], [-0.06, -0.045], [-0.06, 0.035], [-0.4, 0.04]], 0.026, 0.024); // stock
+    b.hull([[-0.385, -0.085], [-0.24, -0.06], [-0.1, -0.045], [-0.1, 0.03], [-0.385, 0.036]], 0.025, 0.022);
+    b.set(VM_GRIP, 0);
+    vmBox(b, -0.391, -0.024, 0, 0.009, 0.062, 0.027); // thick recoil pad
+    vmBox(b, -0.25, 0.047, 0, 0.075, 0.009, 0.016); // padded cheek rest
+    b.set(VM_BLK, 0);
+    for (const y of [-0.05, -0.024, 0.002])
+        vmBox(b, -0.391, y, 0, 0.0095, 0.003, 0.0275); // pad ribs
+    b.mirrored((sd) => vmBox(b, -0.25, 0.032, sd * 0.017, 0.005, 0.01, 0.002)); // cheek rest posts
+    b.mirrored((sd) => vmBox(b, -0.22, -0.016, sd * 0.0232, 0.06, 0.012, 0.001)); // lightening cut
+    b.cyl(-0.33, -0.112, 0, 0.006, 0.006, 0.04, 12, "y"); // monopod
+    b.cyl(-0.33, -0.118, 0, 0.011, 0.011, 0.006, 12, "y");
+    // lower chassis and the tube action over it, coaxial with the bore
+    b.set(VM_GUN, 0);
+    vmBox(b, 0.07, -0.018, 0, 0.17, 0.022, 0.027);
+    b.set(VM_DARK, 0);
+    b.cyl(-0.12, Y, 0, 0.03, 0.03, 0.37, 16, "x");
     b.set(VM_STEEL, 0);
-    b.box(0.08, 0.0, 0, 0.15, 0.045, 0.034); // receiver
+    b.cyl(-0.145, Y, 0, 0.018, 0.025, 0.025, 16, "x"); // bolt shroud
+    rod(b, [-0.03, 0.008, 0.026], [-0.046, -0.02, 0.06], 0.005, 6); // bolt handle
+    b.ball(-0.047, -0.022, 0.064, 0.012, 0); // bolt knob
+    b.set(VM_BLK, 0);
+    vmBox(b, 0.09, 0.012, 0.0292, 0.045, 0.009, 0.001); // ejection port
+    vmBox(b, 0.0, -0.014, -0.0275, 0.007, 0.007, 0.001); // safety
+    b.mirrored((sd) => vmBox(b, 0.19, -0.018, sd * 0.0275, 0.03, 0.01, 0.001)); // chassis panel
+    vmGrip(b, -0.05, -0.04, 0.09, 0.035);
+    // box magazine: well, body with side grooves, a hazard stripe, base plate
+    b.set(VM_BLK, 0);
+    vmBox(b, 0.085, -0.046, 0, 0.05, 0.008, 0.024);
     b.set(VM_DARK, 0);
-    b.cyl(-0.05, 0.085, 0, 0.022, 0.022, 0.24, 10, "x");
-    b.cyl(0.19, 0.085, 0, 0.022, 0.03, 0.05, 10, "x"); // scope
-    b.set([1, 1, 1], 2);
-    b.cyl(0.24, 0.085, 0, 0.026, 0.026, 0.003, 10, "x");
+    vmBox(b, 0.085, -0.09, 0, 0.045, 0.04, 0.02);
+    b.set(VM_BLK, 0);
+    for (const y of [-0.07, -0.085, -0.1])
+        b.mirrored((sd) => vmBox(b, 0.085, y, sd * 0.0203, 0.036, 0.003, 0.001));
+    vmBox(b, 0.085, -0.133, 0, 0.048, 0.004, 0.022);
+    b.set([1, 0.8, 0.1], 0);
+    b.mirrored((sd) => vmBox(b, 0.085, -0.118, sd * 0.0204, 0.04, 0.004, 0.0008));
+    // scope rail, rings, and a large scope: eyecup, eyepiece, tube, turrets, objective bell, sunshade
+    vmRail(b, -0.09, 0.27, 0.04, 0.011);
+    b.set(VM_BLK, 0);
+    for (const x of [0.0, 0.125]) {
+        vmBox(b, x, 0.062, 0, 0.008, 0.016, 0.015);
+        b.cyl(x - 0.008, 0.092, 0, 0.0215, 0.0215, 0.016, 16, "x", false);
+    }
+    b.cyl(-0.105, 0.092, 0, 0.024, 0.024, 0.015, 16, "x"); // eyecup
+    b.set(VM_DARK, 0);
+    b.cyl(-0.09, 0.092, 0, 0.022, 0.018, 0.065, 16, "x"); // eyepiece
+    b.cyl(-0.025, 0.092, 0, 0.018, 0.018, 0.2, 16, "x"); // main tube
+    b.cyl(0.175, 0.092, 0, 0.018, 0.031, 0.055, 16, "x"); // objective bell
+    b.cyl(0.23, 0.092, 0, 0.031, 0.031, 0.055, 16, "x"); // objective and sunshade
+    b.set(VM_BLK, 0);
+    b.cyl(0.062, 0.106, 0, 0.011, 0.011, 0.02, 12, "y"); // elevation turret
+    b.cyl(0.062, 0.092, 0.014, 0.011, 0.011, 0.018, 12, "z"); // windage turret
+    b.cyl(0.062, 0.092, -0.032, 0.012, 0.012, 0.018, 12, "z"); // parallax wheel
+    b.cyl(0.228, 0.092, 0, 0.0325, 0.0325, 0.006, 16, "x"); // objective ring
+    b.set(VM_WHITE, 0);
+    b.cyl(0.062, 0.1262, 0, 0.004, 0.004, 0.0006, 8, "y"); // turret cap mark
+    b.set([0.6, 0.85, 1], 4);
+    b.disc(0.2852, 0.092, 0, 0.027, 16, "x", 1); // objective lens
+    b.set([0.1, 0.14, 0.18], 0);
+    b.disc(-0.1052, 0.092, 0, 0.018, 16, "x", -1); // eyepiece glass
+    // handguard with vent slots, barrel nut
+    b.set(VM_DARK, 0);
+    b.cyl(0.25, Y, 0, 0.03, 0.028, 0.25, 16, "x", true, Math.PI / 16);
+    b.set(VM_BLK, 0);
+    for (let i = 0; i < 5; i++)
+        b.mirrored((sd) => vmBox(b, 0.29 + i * 0.045, Y, sd * 0.0282, 0.014, 0.005, 0.002));
+    vmBox(b, 0.38, 0.034, 0, 0.1, 0.004, 0.008); // top strip
+    b.cyl(0.495, Y, 0, 0.024, 0.024, 0.02, 16, "x");
+    // long fluted barrel
     b.set(VM_STEEL, 0);
-    b.cyl(0.22, 0.004, 0, 0.02, 0.017, 0.56, 8, "x"); // heavy barrel
-    b.set(VM_DARK, 0);
-    b.box(0.81, 0.004, 0, 0.045, 0.03, 0.03); // muzzle brake
-    b.set(VM_DARK, 0);
-    b.box(0.08, -0.075, 0, 0.03, 0.04, 0.016); // magazine
-    b.set(VM_DARK, 0);
-    b.mirrored((s) => rod(b, [0.5, -0.01, 0], [0.47, -0.12, s * 0.04], 0.006, 3)); // bipod (folded down)
+    b.cyl(0.5, Y, 0, 0.0175, 0.0175, 0.275, 16, "x");
+    b.set([0.36, 0.38, 0.38], 0);
+    for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2;
+        b.box(0.645, Y + Math.sin(a) * 0.0158, Math.cos(a) * 0.0158, 0.105, 0.0026, 0.0026); // flutes
+    }
+    // two-port muzzle brake: collar, three baffles, top and bottom straps, the bore tube showing through the ports
+    b.set(VM_BLK, 0);
+    b.cyl(0.768, Y, 0, 0.022, 0.022, 0.016, 16, "x");
+    for (const x of [0.789, 0.822, 0.855])
+        vmBox(b, x, Y, 0, 0.005, 0.024, 0.038);
+    b.mirrored((sd) => vmBox(b, 0.822, Y + sd * 0.018, 0, 0.038, 0.006, 0.02));
+    b.set([0.1, 0.1, 0.1], 0);
+    b.cyl(0.784, Y, 0, 0.011, 0.011, 0.076, 12, "x");
+    b.set([0.03, 0.03, 0.03], 0);
+    b.disc(0.8602, Y, 0, 0.0075, 12, "x", 1); // bore
+    // bipod folded back under the handguard
+    b.set(VM_BLK, 0);
+    vmBox(b, 0.46, -0.031, 0, 0.014, 0.007, 0.018);
+    b.mirrored((sd) => {
+        rod(b, [0.46, -0.037, sd * 0.014], [0.275, -0.041, sd * 0.021], 0.0055, 6);
+        b.cyl(0.33, -0.04, sd * 0.0195, 0.0075, 0.0075, 0.03, 8, "x"); // leg extension collar
+        vmBox(b, 0.268, -0.041, sd * 0.021, 0.01, 0.008, 0.008); // foot
+    });
     return b.build([0, 0, 0], 0, 0);
 }
 
@@ -7748,6 +7829,274 @@ function vmMedic() {
     b.cyl(0.32, 0.006, 0, 0.018, 0.018, 0.006, 20, "x");
     return b.build([0, 0, 0], 0, 0);
 }
+/** A ring (annulus) along x from x over len: outer and inner wall and both faces, so what it surrounds stays open. */
+function vmRing(b, x, y, z, ro, ri, len, n) {
+    const P = (r, a, h) => [x + h, y + Math.cos(a) * r, z + Math.sin(a) * r];
+    for (let i = 0; i < n; i++) {
+        const a0 = (i / n) * Math.PI * 2, a1 = ((i + 1) / n) * Math.PI * 2, mid = P((ro + ri) / 2, (a0 + a1) / 2, len / 2);
+        b.poly([P(ro, a0, 0), P(ro, a1, 0), P(ro, a1, len), P(ro, a0, len)], mid);
+        b.poly([P(ri, a0, 0), P(ri, a1, 0), P(ri, a1, len), P(ri, a0, len)], mid);
+        b.poly([P(ri, a0, 0), P(ri, a1, 0), P(ro, a1, 0), P(ro, a0, 0)], mid);
+        b.poly([P(ri, a0, len), P(ri, a1, len), P(ro, a1, len), P(ro, a0, len)], mid);
+    }
+}
+/** Trooper rifle: a conventional battle rifle. Blued steel receiver (taller and longer than the carbine's), brown furniture,
+ * a tube red-dot sight, a curved magazine, a boxy handguard with a vertical fore-grip. Bore at y 0.012, muzzle tip at x 0.56. */
+function vmTrooperRifle() {
+    const b = new MeshBuilder(), Y = 0.012, BODY = [0.42, 0.47, 0.5], FURN = [0.52, 0.4, 0.26];
+    // fixed stock with a butt pad and cheek riser
+    b.set(FURN, 0);
+    b.hull([[-0.32, -0.07], [-0.2, -0.05], [-0.09, -0.03], [-0.09, 0.03], [-0.32, 0.034]], 0.022, 0.02);
+    b.set(VM_BLK, 0);
+    vmBox(b, -0.322, -0.018, 0, 0.004, 0.054, 0.023); // butt pad
+    vmBox(b, -0.22, 0.04, 0, 0.06, 0.007, 0.013); // cheek riser
+    b.mirrored((sd) => vmBox(b, -0.21, -0.012, sd * 0.0212, 0.05, 0.01, 0.001)); // stock cut
+    vmBox(b, -0.28, -0.058, 0, 0.012, 0.003, 0.016); // sling loop
+    // heavy two-piece receiver, dust cover, controls on the left, ejection port on the right
+    b.set(BODY, 0);
+    vmBox(b, 0.04, -0.014, 0, 0.13, 0.024, 0.025); // lower
+    vmBox(b, 0.06, 0.03, 0, 0.15, 0.022, 0.026); // upper
+    b.set(VM_DARK, 0);
+    vmBox(b, 0.05, 0.054, 0, 0.13, 0.004, 0.02); // dust cover
+    b.set(VM_BLK, 0);
+    vmBox(b, 0.09, 0.034, -0.0262, 0.075, 0.003, 0.0008); // charging slot
+    vmBox(b, 0.13, 0.034, -0.029, 0.01, 0.005, 0.004); // charging handle
+    vmBox(b, 0.05, -0.006, -0.0255, 0.008, 0.01, 0.001); // bolt release
+    b.cyl(-0.035, -0.006, -0.028, 0.006, 0.006, 0.003, 12, "z"); // selector
+    vmBox(b, -0.027, -0.004, -0.0285, 0.008, 0.002, 0.001);
+    vmBox(b, 0.07, 0.032, 0.0262, 0.035, 0.009, 0.001); // ejection port
+    vmBox(b, 0.115, 0.03, 0.028, 0.006, 0.008, 0.003); // case deflector
+    b.set(VM_STEEL, 0);
+    for (const x of [-0.06, 0.15])
+        b.mirrored((sd) => b.cyl(x, -0.02, sd * 0.0252 - (sd > 0 ? 0 : 0.001), 0.004, 0.004, 0.001, 10, "z")); // receiver pins
+    vmGrip(b, -0.04, -0.036);
+    // curved magazine in two sections, ribs, base plate
+    b.set(VM_BLK, 0);
+    vmBox(b, 0.085, -0.042, 0, 0.032, 0.008, 0.02); // magazine well
+    b.set(VM_DARK, 0);
+    b.hull([[0.058, -0.045], [0.112, -0.045], [0.124, -0.097], [0.07, -0.102]], 0.016, 0.016);
+    b.hull([[0.07, -0.102], [0.124, -0.097], [0.152, -0.146], [0.1, -0.158]], 0.016, 0.016);
+    b.set(VM_BLK, 0);
+    b.hull([[0.097, -0.158], [0.154, -0.145], [0.157, -0.153], [0.099, -0.167]], 0.0178, 0.0178); // base plate
+    for (const [x, y] of [[0.09, -0.065], [0.094, -0.083], [0.1, -0.101], [0.11, -0.119], [0.121, -0.136]])
+        vmBox(b, x, y, 0, 0.024, 0.002, 0.0168); // ribs
+    // boxy handguard with vent slots, heat shield and rail, vertical fore-grip
+    b.set(FURN, 0);
+    vmBox(b, 0.305, Y, 0, 0.095, 0.027, 0.025);
+    b.set(VM_BLK, 0);
+    for (let i = 0; i < 5; i++)
+        b.mirrored((sd) => vmBox(b, 0.235 + i * 0.035, 0.022, sd * 0.0252, 0.011, 0.005, 0.0015));
+    b.mirrored((sd) => vmBox(b, 0.305, -0.004, sd * 0.0252, 0.085, 0.002, 0.001)); // grip line
+    b.set(VM_DARK, 0);
+    vmBox(b, 0.305, 0.043, 0, 0.095, 0.006, 0.018); // heat shield
+    vmRail(b, -0.08, 0.28, 0.061);
+    vmRail(b, 0.22, 0.17, 0.053, 0.008);
+    b.set(VM_BLK, 0);
+    vmBox(b, 0.31, -0.019, 0, 0.022, 0.005, 0.014); // fore-grip clamp
+    b.set(VM_GRIP, 0);
+    b.cyl(0.31, -0.102, 0, 0.0115, 0.0135, 0.08, 12, "y"); // vertical fore-grip
+    b.set(VM_BLK, 0);
+    b.cyl(0.31, -0.107, 0, 0.0135, 0.0135, 0.006, 12, "y"); // its cap
+    for (const y of [-0.085, -0.066, -0.047])
+        b.cyl(0.31, y, 0, 0.0142, 0.0142, 0.004, 12, "y", false); // grip rings
+    // red-dot sight: mount, tube with end rings, brightness turret, battery cap, lit dot on the rear glass
+    b.set(VM_BLK, 0);
+    vmBox(b, 0.035, 0.073, 0, 0.03, 0.007, 0.012);
+    b.cyl(0.0, 0.098, 0, 0.0185, 0.0185, 0.075, 16, "x");
+    b.cyl(-0.004, 0.098, 0, 0.0205, 0.0205, 0.01, 16, "x");
+    b.cyl(0.069, 0.098, 0, 0.0205, 0.0205, 0.01, 16, "x");
+    b.set(VM_GUN, 0);
+    b.cyl(0.036, 0.114, 0, 0.008, 0.008, 0.01, 12, "y"); // brightness turret
+    b.cyl(0.036, 0.098, 0.016, 0.008, 0.008, 0.009, 12, "z"); // battery cap
+    b.set([0.13, 0.1, 0.1], 0);
+    b.disc(-0.0042, 0.098, 0, 0.016, 16, "x", -1); // rear glass
+    b.set([1, 0.25, 0.15], 4);
+    b.disc(-0.0048, 0.098, 0, 0.003, 8, "x", -1); // the dot
+    b.set([0.8, 0.32, 0.25], 4);
+    b.disc(0.0792, 0.098, 0, 0.016, 16, "x", 1); // coated front lens
+    // barrel, gas block with a hooded front sight, gas tube, bayonet lug, slotted muzzle device
+    b.set(VM_STEEL, 0);
+    b.cyl(0.4, Y, 0, 0.011, 0.0105, 0.12, 16, "x");
+    b.cyl(0.4, 0.034, 0, 0.006, 0.006, 0.04, 10, "x"); // gas tube
+    b.set(VM_BLK, 0);
+    vmBox(b, 0.44, 0.021, 0, 0.012, 0.021, 0.012); // gas block
+    b.mirrored((sd) => vmBox(b, 0.44, 0.052, sd * 0.009, 0.007, 0.012, 0.0015)); // sight wings
+    vmBox(b, 0.44, 0.05, 0, 0.002, 0.009, 0.002); // post
+    vmBox(b, 0.485, -0.003, 0, 0.01, 0.004, 0.004); // bayonet lug
+    b.cyl(0.512, Y, 0, 0.015, 0.015, 0.048, 16, "x"); // muzzle device
+    b.set([0.08, 0.08, 0.08], 0);
+    b.mirrored((sd) => vmBox(b, 0.537, Y, sd * 0.0146, 0.013, 0.004, 0.001));
+    vmBox(b, 0.537, Y + 0.0146, 0, 0.013, 0.001, 0.004);
+    b.set([0.03, 0.03, 0.03], 0);
+    b.disc(0.5602, Y, 0, 0.006, 12, "x", 1); // bore
+    return b.build([0, 0, 0], 0, 0);
+}
+/** Rail driver (slot 3 heavy, carried like the rocket tube): a capacitor pack with three lit capacitor cans behind, a breech
+ * body, two parallel rails (upper and lower) with glowing coil rings between them, a top carry handle, a side sight.
+ * Bore at y 0.02 between the rails, muzzle between the rail ends at x 0.62. */
+function vmRailDriver() {
+    const b = new MeshBuilder(), Y = 0.02, COPPER = [0.85, 0.52, 0.25];
+    // capacitor pack: body, end frames, three cans on top with lit bands, charge gauge on the left, shoulder pad
+    b.set(VM_DARK, 0);
+    vmBox(b, -0.29, Y, 0, 0.125, 0.056, 0.05);
+    b.set(VM_BLK, 0);
+    vmBox(b, -0.412, Y, 0, 0.008, 0.06, 0.054);
+    vmBox(b, -0.168, Y, 0, 0.008, 0.06, 0.054);
+    for (let i = 0; i < 4; i++)
+        b.mirrored((sd) => vmBox(b, -0.37 + i * 0.03, -0.012, sd * 0.0505, 0.008, 0.02, 0.0012)); // cooling slots
+    for (const z of [-0.031, 0, 0.031]) {
+        b.set(VM_GUN, 0);
+        b.cyl(-0.4, 0.09, z, 0.0145, 0.0145, 0.22, 12, "x");
+        b.set(VM_LASER, 2);
+        for (const x of [-0.35, -0.24])
+            b.cyl(x, 0.09, z, 0.0152, 0.0152, 0.01, 12, "x", false);
+        b.disc(-0.4004, 0.09, z, 0.008, 10, "x", -1); // lit end cap, facing the player
+    }
+    b.set(VM_LASER, 2);
+    for (let i = 0; i < 5; i++)
+        vmBox(b, -0.37 + i * 0.036, 0.046, -0.0508, 0.013, 0.007, 0.0008); // charge gauge
+    b.set([1, 0.8, 0.1], 0);
+    b.mirrored((sd) => vmBox(b, -0.23, -0.012, sd * 0.0506, 0.03, 0.02, 0.0008)); // hazard plate
+    b.set(VM_GRIP, 0);
+    vmBox(b, -0.3, -0.046, 0, 0.1, 0.01, 0.04); // shoulder pad
+    // breech body with olive side panels
+    b.set(VM_GUN, 0);
+    vmBox(b, -0.06, Y, 0, 0.1, 0.052, 0.042);
+    b.set(VM_OLIVE, 0);
+    b.mirrored((sd) => vmBox(b, -0.06, Y, sd * 0.043, 0.075, 0.032, 0.002));
+    b.set(VM_BLK, 0);
+    for (const x of [-0.12, 0.0])
+        for (const y of [-0.004, 0.044])
+            b.mirrored((sd) => vmBox(b, x, y, sd * 0.0452, 0.004, 0.004, 0.001)); // panel bolts
+    b.set(VM_LASER, 2);
+    b.disc(0.0403, Y, 0, 0.016, 14, "x", 1); // breech emitter, glowing down the bore
+    // the two rails with copper liners on their inner faces, tips
+    b.set(VM_STEEL, 0);
+    b.mirrored((sd) => vmBox(b, 0.315, Y + sd * 0.04, 0, 0.275, 0.012, 0.022));
+    b.set(COPPER, 0);
+    b.mirrored((sd) => b.box(0.32, Y + sd * 0.0272, 0, 0.27, 0.0012, 0.013));
+    b.set(VM_BLK, 0);
+    b.mirrored((sd) => vmBox(b, 0.605, Y + sd * 0.041, 0, 0.015, 0.015, 0.025)); // rail tips, ending at the muzzle
+    b.set(VM_LASER, 2);
+    b.mirrored((sd) => b.box(0.606, Y + sd * 0.0252, 0, 0.012, 0.0012, 0.014)); // lit emitter pads at the muzzle
+    // clamps tying the rails together, and the glowing coil rings between them around the bore
+    b.set(VM_DARK, 0);
+    for (const x of [0.12, 0.24, 0.38, 0.52]) {
+        b.mirrored((sd) => b.box(x, Y, sd * 0.0245, 0.009, 0.054, 0.003));
+        b.mirrored((sd) => b.box(x, Y + sd * 0.0535, 0, 0.009, 0.003, 0.0275));
+    }
+    b.set(VM_LASER, 2);
+    for (const x of [0.065, 0.18, 0.31, 0.45, 0.565])
+        vmRing(b, x - 0.007, Y, 0, 0.0272, 0.017, 0.014, 14);
+    // top carry handle
+    b.set(VM_BLK, 0);
+    rod(b, [-0.12, 0.07, 0], [-0.09, 0.126, 0], 0.007, 6);
+    rod(b, [0.12, 0.07, 0], [0.09, 0.126, 0], 0.007, 6);
+    vmBox(b, 0.0, 0.127, 0, 0.1, 0.008, 0.011);
+    b.set(VM_GRIP, 0);
+    b.cyl(-0.055, 0.127, 0, 0.0125, 0.0125, 0.11, 12, "x");
+    // sight on the left: bracket, box, lit reticle towards the player, lens
+    b.set(VM_BLK, 0);
+    vmBox(b, 0.2, 0.068, -0.03, 0.015, 0.006, 0.014);
+    vmBox(b, 0.2, 0.088, -0.04, 0.04, 0.014, 0.013);
+    b.set([0.1, 0.12, 0.14], 0);
+    b.box(0.1596, 0.088, -0.04, 0.0004, 0.01, 0.009);
+    b.set([1, 0.3, 0.2], 4);
+    b.box(0.159, 0.088, -0.04, 0.0004, 0.003, 0.003);
+    b.set([0.6, 0.85, 1], 4);
+    b.box(0.2404, 0.088, -0.04, 0.0004, 0.01, 0.009);
+    // grip and trigger under the breech, fore-grip under the lower rail, power cable on the left
+    vmGrip(b, -0.06, -0.032, 0.085);
+    b.set(VM_BLK, 0);
+    vmBox(b, 0.26, -0.037, 0, 0.022, 0.005, 0.014);
+    b.set(VM_GRIP, 0);
+    b.hull([[0.243, -0.04], [0.277, -0.04], [0.272, -0.105], [0.247, -0.105]], 0.012, 0.012);
+    b.set(VM_BLK, 0);
+    rod(b, [-0.17, -0.02, -0.05], [-0.02, -0.034, -0.05], 0.006, 6);
+    rod(b, [-0.02, -0.034, -0.05], [0.07, -0.02, -0.026], 0.006, 6);
+    b.set(VM_HOT, 4);
+    b.cyl(0.062, -0.02, -0.027, 0.0075, 0.0075, 0.012, 8, "x"); // lit cable connector
+    return b.build([0, 0, 0], 0, 0);
+}
+/** Man-portable mortar (slot 3 heavy, carried like the rocket tube): a short fat tube with a flared muzzle, a breech cap,
+ * the base plate folded up against the underside, a sight with an elevation quadrant on the left, a trigger housing with
+ * grip and a fore-grip. Bore at y 0.02, muzzle at x 0.42. */
+function vmMortar() {
+    const b = new MeshBuilder(), Y = 0.02, R = 0.07, BRASS = [0.82, 0.66, 0.3], B = Y - R; // B: the underside of the tube
+    // tube, flare and lip, reinforcing bands, hazard band, aiming stripe
+    b.set(VM_OLIVE, 0);
+    b.cyl(-0.28, Y, 0, R, R, 0.61, 20, "x");
+    b.cyl(0.33, Y, 0, R, 0.094, 0.08, 20, "x", false);
+    b.set(VM_DARK, 0);
+    vmRing(b, 0.406, Y, 0, 0.099, 0.08, 0.014, 20); // muzzle lip
+    for (const [x, l] of [[-0.12, 0.03], [0.085, 0.03], [0.21, 0.03], [0.318, 0.016]])
+        b.cyl(x, Y, 0, R + 0.004, R + 0.004, l, 20, "x");
+    b.set([0.04, 0.04, 0.04], 0);
+    b.disc(0.408, Y, 0, 0.081, 20, "x", 1); // bore
+    b.set([1, 0.8, 0.1], 0);
+    b.cyl(-0.235, Y, 0, R + 0.001, R + 0.001, 0.02, 20, "x", false);
+    b.set(VM_WHITE, 0);
+    b.box(0.28, Y + R + 0.0003, 0, 0.035, 0.0006, 0.003); // aiming stripe
+    // breech: rounded stepped cap and the firing knob
+    b.set(VM_DARK, 0);
+    b.cyl(-0.3, Y, 0, 0.064, R + 0.004, 0.025, 20, "x");
+    b.cyl(-0.325, Y, 0, 0.048, 0.064, 0.025, 20, "x");
+    b.cyl(-0.34, Y, 0, 0.03, 0.048, 0.015, 20, "x");
+    b.set(VM_STEEL, 0);
+    b.cyl(-0.37, Y, 0, 0.017, 0.017, 0.03, 12, "x");
+    // base plate folded against the underside: plate with rim rails, ribs below, hinge yoke, retaining strap
+    b.set(VM_DARK, 0);
+    b.cyl(-0.155, B - 0.022, 0, 0.108, 0.114, 0.014, 8, "y", true, Math.PI / 8);
+    b.set(VM_BLK, 0);
+    b.mirrored((sd) => vmBox(b, -0.155, B - 0.004, sd * 0.094, 0.05, 0.004, 0.007)); // raised rim rails
+    b.mirrored((sd) => b.box(-0.155, B - 0.0075, sd * 0.08, 0.022, 0.0006, 0.005)); // carry cut-outs
+    for (const a of [0, 1])
+        b.box(-0.155, B - 0.028, 0, a ? 0.006 : 0.098, 0.008, a ? 0.098 : 0.006); // ribs below
+    vmBox(b, -0.272, B - 0.008, 0, 0.012, 0.014, 0.03); // hinge yoke
+    b.mirrored((sd) => b.box(-0.155, B + 0.03, sd * (R + 0.004), 0.009, 0.036, 0.002)); // strap sides
+    b.cyl(-0.164, Y, 0, R + 0.003, R + 0.003, 0.018, 20, "x", false); // strap
+    b.set(VM_HOT, 0);
+    b.box(-0.155, 0.0, -(R + 0.0065), 0.007, 0.007, 0.001); // strap buckle
+    // sight on the left: post off the band, sight body with an eyepiece, a brass elevation quadrant with ticks, a level
+    const sz = -(R - 0.004), qz = -(R + 0.012);
+    b.set(VM_BLK, 0);
+    vmBox(b, 0.1, 0.08, sz + 0.006, 0.012, 0.022, 0.008);
+    vmBox(b, 0.1, 0.114, sz, 0.03, 0.013, 0.013);
+    b.cyl(0.055, 0.114, sz, 0.009, 0.009, 0.016, 12, "x");
+    b.cyl(0.1, 0.093, qz - 0.003, 0.007, 0.007, 0.016, 10, "z"); // quadrant pivot
+    b.set([0.6, 0.85, 1], 4);
+    b.disc(0.0548, 0.114, sz, 0.0065, 12, "x", -1);
+    b.disc(0.1302, 0.114, sz, 0.009, 12, "x", 1);
+    b.set([0.35, 1, 0.45], 4);
+    b.cyl(0.085, 0.1285, sz, 0.0035, 0.0035, 0.03, 8, "x"); // bubble level
+    const qx = 0.1, qy = 0.093, qr = 0.066, arc = [];
+    for (let i = 0; i <= 6; i++) {
+        const a = (195 + i * 15) * Math.PI / 180;
+        arc.push([qx + Math.cos(a) * qr, qy + Math.sin(a) * qr]);
+    }
+    b.set(BRASS, 0);
+    b.hull([[qx, qy + 0.006], ...arc, [qx + 0.008, qy]], 0.0015, 0.0015, qz); // elevation quadrant
+    b.set(VM_BLK, 0);
+    for (let i = 0; i <= 12; i++) {
+        const a = (198 + i * 7) * Math.PI / 180, r = qr - (i % 3 ? 0.005 : 0.008), h = i % 3 ? 0.0025 : 0.005;
+        b.box(qx + Math.cos(a) * r, qy + Math.sin(a) * r, qz - 0.0017, 0.0009, h, 0.0004); // scale ticks
+    }
+    b.set([0.85, 0.15, 0.15], 0);
+    rod(b, [qx, qy, qz - 0.0024], [qx + Math.cos(4.2) * 0.056, qy + Math.sin(4.2) * 0.056, qz - 0.0024], 0.0018, 4); // pointer
+    // trigger housing with grip, safety and a firing-link rod to the breech; fore-grip on a clamp
+    b.set(VM_GUN, 0);
+    vmBox(b, 0.03, B - 0.014, 0, 0.08, 0.016, 0.022);
+    vmGrip(b, -0.01, B - 0.028, 0.08);
+    b.set(VM_BLK, 0);
+    b.cyl(0.07, B - 0.014, -0.025, 0.006, 0.006, 0.003, 10, "z"); // safety
+    b.set(VM_STEEL, 0);
+    rod(b, [-0.05, B - 0.008, -0.024], [-0.29, Y - 0.03, -(R + 0.002)], 0.003, 5); // firing link
+    b.set(VM_BLK, 0);
+    vmBox(b, 0.21, B - 0.008, 0, 0.022, 0.008, 0.016);
+    b.set(VM_GRIP, 0);
+    b.hull([[0.193, B - 0.014], [0.227, B - 0.014], [0.222, B - 0.08], [0.197, B - 0.08]], 0.012, 0.012);
+    return b.build([0, 0, 0], 0, 0);
+}
 function flViewModels() {
     const o = {};
     for (const [k, f] of [["carbine", vmCarbineHD], ["pistol", vmPistol], ["shotgun", vmShotgun], ["marksman", vmMarksman], ["launcher", vmLauncher]]) {
@@ -7761,10 +8110,11 @@ function flViewModels() {
 }
 Object.assign(exports.VIEWMODEL_AXIS, { "vm-carbine-k": [-0.3, 0.505], "vm-carbine-l": [-0.3, 0.505], "vm-pistol-k": [-0.04, 0.263], "vm-pistol-l": [-0.04, 0.266],
     "vm-shotgun-k": [-0.32, 0.61], "vm-shotgun-l": [-0.32, 0.615], "vm-marksman-k": [-0.36, 0.697], "vm-marksman-l": [-0.36, 0.7], "vm-launcher-k": [-0.3, 0.42], "vm-launcher-l": [-0.3, 0.42],
-    "vm-longrifle": [-0.38, 0.775], "vm-hmg": [-0.34, 0.77], "vm-medic": [-0.25, 0.326] });
+    "vm-longrifle": [-0.38, 0.775], "vm-hmg": [-0.34, 0.77], "vm-medic": [-0.25, 0.326] ,
+    "vm-trooper": [-0.32, 0.56], "vm-rail": [-0.42, 0.62], "vm-mortar": [-0.37, 0.42] });
 function viewModelMeshes() {
     return { ...flViewModels(), "vm-carbine": vmSmooth(vmCarbine()), "vm-rifle": vmSmooth(vmRifle()), "vm-torch": vmTorch(), "vm-build": vmBuild(), "vm-beacon": vmBeacon(),
-        "vm-beacon-supply": vmBeacon([0.35, 1, 0.45]), "vm-beacon-defensive": vmBeacon([0.3, 0.75, 1]), "vm-beacon-recon": vmBeacon([1, 0.9, 0.3]), "vm-beacon-orbital": vmBeacon([1, 0.32, 0.18]), "vm-beacon-air": vmBeacon([1, 0.6, 0.15]), "vm-flash": vmFlash(), "vm-tube": vmSmooth(vmTube()), "vm-lance": vmSmooth(vmLance()), "vm-amr": vmSmooth(vmAmr()), "vm-lcannon": vmSmooth(vmLaserCannon()) };
+        "vm-beacon-supply": vmBeacon([0.35, 1, 0.45]), "vm-beacon-defensive": vmBeacon([0.3, 0.75, 1]), "vm-beacon-recon": vmBeacon([1, 0.9, 0.3]), "vm-beacon-orbital": vmBeacon([1, 0.32, 0.18]), "vm-beacon-air": vmBeacon([1, 0.6, 0.15]), "vm-flash": vmFlash(), "vm-tube": vmSmooth(vmTube()), "vm-lance": vmSmooth(vmLance()), "vm-amr": vmSmooth(vmAmr()), "vm-trooper": vmSmooth(vmTrooperRifle()), "vm-rail": vmSmooth(vmRailDriver()), "vm-mortar": vmSmooth(vmMortar()), "vm-lcannon": vmSmooth(vmLaserCannon()) };
 }
 // ---------------------------------------------------------------- G1: resource fields (ore deposits, gas geysers)
 /** A rotated crystal: an n-sided prism from the ground with a pointed tip, tilted by (tx, tz) and turned by yaw. */

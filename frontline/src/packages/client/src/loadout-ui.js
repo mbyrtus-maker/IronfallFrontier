@@ -149,6 +149,13 @@ exports.LOADOUT_ICONS = {
         + `<path ${F} d="M24 18h16l-1 3H25z"/><path ${F} d="M25 21h4l-3 6 2 4h-6l-1-4zM39 21h-4l3 6-2 4h6l1-4z"/><path ${D} d="M20 31h9v2h-9zM35 31h9v2h-9z"/>`),
 };
 exports.LOADOUT_ICONS["rocket-tube"] = exports.LOADOUT_ICONS.heavy;
+// designer 22 Nov: the batch 1 weapons
+exports.LOADOUT_ICONS.pistol = S(`<path class="f" d="M14 12h30l2 3v4H30l-2 3h-6l-2 9h-7l2-9-3-1v-6z"/><path class="s" d="M44 13h8v3h-8z"/><path d="M24 22q3 0 3 3" stroke-opacity="0.7"/><path d="M17 15h20" stroke-opacity="0.5"/>`);
+exports.LOADOUT_ICONS.trooper = S(`<path class="f" d="M6 14h10l3-3h22v6h12v3H41l-3 3h-6l-2 7h-6l2-7H19l-4 5H6l4-7H6z"/><path class="s" d="M22 8h10v3H22z"/><path d="M30 20q-1 6 3 8" stroke-width="1.6"/><path d="M53 15.5h6" stroke-opacity="0.6"/>`);
+exports.LOADOUT_ICONS.antimateriel = S(`<path class="f" d="M2 15h12l4-3h26v5h10v2H44l-4 3h-8l-2 6h-5l1-6H16l-4 5H3l4-6H2z"/><path class="s" d="M20 7h14v4H20z"/><path class="f" d="M54 13h6v8h-6z"/><path d="M38 22l-3 9M42 22l3 9" stroke-opacity="0.6"/>`);
+exports.LOADOUT_ICONS.demo = S(`<path class="f" d="M18 12h28v18H18z"/><path d="M18 18h28M18 24h28" stroke-opacity="0.5"/><path class="s" d="M28 15h8v12h-8z"/><path d="M32 12V6q0-3 4-3h6" stroke-dasharray="2 1.5"/><circle class="s" cx="44" cy="3" r="1.6"/>`);
+exports.LOADOUT_ICONS["pilot-rail-driver"] = S(`<path class="f" d="M4 13h40v3H4zM4 21h40v3H4z"/><path class="s" d="M12 16h4v5h-4zM22 16h4v5h-4zM32 16h4v5h-4z"/><path class="f" d="M40 10h10l4 8-4 8H40z"/><path d="M44 18h18" stroke-width="1.6"/><path d="M14 24v6h10v-6" stroke-opacity="0.7"/>`);
+exports.LOADOUT_ICONS["pilot-mortar"] = S(`<path class="f" d="M18 26l18-18 6 6-18 18z"/><path class="f" d="M34 6l4-4 8 8-4 4z"/><path d="M10 33h22M18 26l-6 7M24 30l2 3" stroke-width="1.6"/><path d="M48 4q6 2 8 8" stroke-dasharray="2 2"/>`);
 /** Short stats for a weapon id (weapons.json): damage, fire rate, range. */
 function weaponLine(data, id) {
     const w = data.weapons.find((x) => x.id === id);

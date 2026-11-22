@@ -9,6 +9,7 @@ exports.restoreFl = restoreFl;
 // the rules (FKit.R, refill, Lanes.rules' source, FlBots.opts) are rebuilt from the game data on the receiving side.
 const lanes_ts_1 = require("./lanes.js");
 const fkit_ts_1 = require("./fkit.js");
+const calls_ts_1 = require("./calls.js");
 const flbots_ts_1 = require("./flbots.js");
 const enemy_ai_ts_1 = require("./enemy-ai.js");
 const SKIP_FKIT = new Set(["sim", "R", "refill", "emptyW", "bots"]);
@@ -79,6 +80,13 @@ function restoreFl(sim, str) {
     for (const [k, v] of Object.entries(j.lanes))
         L[k] = de(v);
     sim.lanes = L;
+    // designer 22 Nov: the call rules with their Frontline overrides (the restored sim was made without the lanes, so its
+    // rules were compiled as for a non-Frontline match: minefield sizes, cooldowns and the like would differ from the host's)
+    if (sim.callRules) {
+        sim.callRules = (0, calls_ts_1.compileCallRules)(sim.data, sim.d.typeIds, sim.d.constants.tickRate, sim.d.planetId, true);
+        if (sim.calls)
+            sim.calls.rules = sim.callRules;
+    }
     // the commander is set up for the lanes' quartermaster teams when it is made (sim constructor): make it again
     sim.ai = new enemy_ai_ts_1.EnemyAi(sim, sim.data);
     if (j.fkit) {

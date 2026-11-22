@@ -805,6 +805,8 @@ class FKit {
     ptag = new Map();
     /** vehicle id -> {pid, until}: an AI pilot on its way to climb into an empty vehicle (one per vehicle). */
     claims = new Map();
+    /** The vehicle AI pilot pid is heading for (its live claim), or undefined. */
+    claimOf(sim, pid) { for (const [vid, c] of this.claims) if (c.pid === pid && c.until > sim.tick) return vid; return undefined; }
     playerTag(sim, vid) { this.ptag.set(vid, sim.tick + this.R.playerTagTicks); }
     isPlayerTagged(sim, vid) { const t = this.ptag.get(vid); return t !== undefined && t > sim.tick; }
     tagStep(sim) {
@@ -819,7 +821,7 @@ class FKit {
                 this.claims.delete(vid);
     }
     /** May an AI pilot of team take empty vehicle slot o (no player tag, not a Mule on ferry work, claimed by nobody else)? */
-    freeForAi(sim, o, team, pid, ground) {
+    freeForAi(sim, o, team, pid, ground, seeker) {
         const d = sim.d, t = sim.etype[o], vid = sim.eid[o];
         if (!sim.alive[o] || sim.team[o] !== team || sim.hp[o] <= d.tHp[t] * 0.3 || sim.critTick[o] >= 0 || sim.nOcc[o] !== 0)
             return false;
@@ -831,7 +833,13 @@ class FKit {
             if (f.mule === vid)
                 return false;
         const c = this.claims.get(vid);
-        return !c || c.pid === pid || c.until <= sim.tick;
+        if (!c || c.pid === pid || c.until <= sim.tick)
+            return true;
+        // another AI pilot is on its way: this one may take it only if clearly nearer (the claimer may be pinned down)
+        if (seeker === undefined)
+            return false;
+        const cp = sim.pilots.get(c.pid), cs = cp && cp.state === 1 ? sim.idToSlot.get(cp.entity) : undefined;
+        return cs === undefined || sim.gap(seeker, o) < sim.gap(cs, o) - 10;
     }
     /** The nearest empty vehicle slot within the empty-vehicle radius of body s that an AI pilot may take (claimed for it), or -1. */
     emptyFor(sim, s, team, pid, ground) {
@@ -840,13 +848,13 @@ class FKit {
             if (!sim.alive[o] || sim.team[o] !== team || sim.nOcc[o] !== 0 || sim.d.tDriverSeat[sim.etype[o]] < 0)
                 continue;
             const g = sim.gap(s, o);
-            if (g <= bg && this.freeForAi(sim, o, team, pid, ground)) {
+            if (g <= bg && this.freeForAi(sim, o, team, pid, ground, s)) {
                 bg = g;
                 best = o;
             }
         }
         if (best >= 0)
-            this.claims.set(sim.eid[best], { pid, until: sim.tick + 30 * sim.d.constants.tickRate });
+            this.claims.set(sim.eid[best], { pid, until: sim.tick + 20 * sim.d.constants.tickRate });
         return best;
     }
     step(sim) {

@@ -378,6 +378,8 @@ exports.c7a = {
             updateStartLine();
         return r;
     },
+    /** Test aid: give the profile Frontline unlocks without spending tokens. */
+    testGrant(pool, ids) { if (!store) return false; const u = store.profile.unlocks ??= {}; u[pool] = [...new Set([...(u[pool] ?? []), ...ids])]; if (flChanged) flChanged(); return true; },
     onFlChange(fn) { flChanged = fn; },
     /** Called once per page (main.ts). Never throws: progression is optional to the page. */
     install(h) {

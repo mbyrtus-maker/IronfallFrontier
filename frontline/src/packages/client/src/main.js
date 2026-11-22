@@ -194,13 +194,14 @@ const CONT_BEAM = cd.weaponIds.indexOf("pilot-laser-cannon"), CONT_BEAM_S = 0.16
 const PELLETS = cd.weaponIds.map((id) => data.weapons.find((w) => w.id === id)?.pellets ?? 1), pelletSnd = new Map();
 /** Frontline: weapons fired with a designer recording of their own (audio.ts weaponSample; the synth while not decoded). */
 const WSAMPLE = cd.weaponIds.map((id) => ({ "pilot-carbine": "carbine", "grenade-launcher": "grenadeLauncher", "heavy-grenade-launcher": { n: "grenadeLauncher", rate: 0.9 },
+    "pilot-trooper-rifle": { n: "rifle", rate: 1.12, len: 0.7 }, "pilot-amr": { n: "rifle", rate: 0.72, len: 1.6 }, "pilot-rail-driver": { n: "rifle", rate: 0.6, len: 1.8 }, // designer 22 Nov
     "marksman-rifle": { n: "rifle", rate: 1.06, len: 0.9 }, "pilot-long-rifle": "rifle", "trooper-rifle": { n: "rifle", rate: 1.04, len: 1.4 }, "anti-materiel-rifle": { n: "rifle", rate: 0.78 },
     "machine-pistol": "machinePistol", "machine-pistol-dual": { n: "machinePistol", rate: 1.04 },
     "rocket-tube": "rocket", "guided-missile-launcher": { n: "rocket", rate: 0.94 }, "gunship-rocket-pods": { n: "rocket", rate: 1.18, len: 0.32, lvl: 0.5 }, "mech-missile-pods": { n: "rocket", rate: 1.08, len: 0.6 } })[id]);
 const MINIGUN_W = new Set(["gunship-door-minigun", "salvo-minigun"].map((id) => cd.weaponIds.indexOf(id)).filter((w) => w >= 0));
 const isBeamW = (w) => WFAM[w] === "laser-cannon" || w === CONT_BEAM;
 /** P1g: hitscan rifles whose path lingers as a faint line (RIFLE_TRAIL_S). */
-const LINGER_W = new Set(["pilot-long-rifle", "anti-materiel-rifle", "marksman-rifle"].map((id) => cd.weaponIds.indexOf(id)).filter((w) => w >= 0));
+const LINGER_W = new Set(["pilot-long-rifle", "anti-materiel-rifle", "marksman-rifle", "pilot-amr", "pilot-rail-driver"].map((id) => cd.weaponIds.indexOf(id)).filter((w) => w >= 0));
 const RIFLE_TRAIL_S = 0.35;
 let muzzleGlows = [];
 let rifleTrails = [];
@@ -2179,7 +2180,7 @@ let flGrenadeUntil = 0;
 function flScopeKind() {
     if (!isFrontline())
         return kit === 1 ? "thermal" : null;
-    if (kit === 1 && flKit && flKit.role === "sniper")
+    if (kit === 1 && flKit && (flKit.role === "sniper" || flKit.role === "antimateriel")) // (designer 22 Nov: the Anti-materiel rifle's scope)
         return "thermal";
     if (kit === 0 && flKit && flKit.gun === "marksman")
         return "plain";
@@ -8355,23 +8356,25 @@ function flGunVm() {
     if (!isFrontline() || !flKit)
         return null;
     if (kit === 0) {
-        const g = { carbine: "carbine", dual: "pistol", shotgun: "shotgun", marksman: "marksman", launcher: "launcher" }[flKit.gun];
+        if (flKit.gun === "trooper")
+            return "vm-trooper"; // designer 22 Nov: one model for both types (the laser one glows in its tracers)
+        const g = { carbine: "carbine", dual: "pistol", pistol: "pistol", shotgun: "shotgun", marksman: "marksman", launcher: "launcher" }[flKit.gun];
         return g ? `vm-${g}-${flKit.laser ? "l" : "k"}` : null;
     }
     if (kit === 1)
-        return { sniper: "vm-longrifle", assault: "vm-hmg", heavy: "vm-tube", medic: "vm-medic" }[flKit.role] ?? null;
+        return { sniper: "vm-longrifle", assault: "vm-hmg", heavy: "vm-tube", medic: "vm-medic", antimateriel: "vm-amr" }[flKit.role] ?? null;
     return null;
 }
 /** Designer 21 Nov ("the flash on the machine pistols is below the barrel, check all guns"): the bore height of each
  * viewmodel (its muzzle, for the flash and the own tracers), in model metres; the rest keep the old per-slot heights. */
 const VM_BORE_Y = { "vm-pistol-k": 0.025, "vm-pistol-l": 0.025, "vm-tube": 0.02, "vm-carbine": 0.012, "vm-carbine-k": 0.012, "vm-carbine-l": 0.012, "vm-shotgun-k": 0.012, "vm-shotgun-l": 0.012,
     "vm-marksman-k": 0.012, "vm-marksman-l": 0.012, "vm-launcher-k": 0.012, "vm-launcher-l": 0.012, "vm-rifle": 0.006, "vm-longrifle": 0.006, "vm-hmg": 0.006, "vm-medic": 0.006,
-    "vm-amr": 0.004, "vm-lance": 0, "vm-lcannon": 0 };
+    "vm-amr": 0.004, "vm-lance": 0, "vm-lcannon": 0, "vm-trooper": 0.012, "vm-rail": 0.02, "vm-mortar": 0.02 }; // (designer 22 Nov: the batch 1 guns)
 function vmMuzzleY(name) { return VM_BORE_Y[name] ?? (kit === 1 ? 0.006 : kit === 0 ? 0.012 : 0); }
 function flPistols() {
     if (kit !== 0 || !isFrontline() || !flKit)
         return null;
-    return flKit.gun === "dual" ? "dual" : null;
+    return flKit.gun === "dual" ? "dual" : flKit.gun === "pistol" ? "single" : null; // (designer 22 Nov: the Pulse pistol, one in hand)
 }
 let lastCamYaw = 0, vmSwayZ = 0;
 /** P1g (designer playtest 15 Nov 18:34: "shots don't come out of the barrel"): the drawn barrel tip in viewmodel space (null: no gun drawn). */
@@ -11609,7 +11612,7 @@ let landed = [];
 const beaconPos = new Map();
 const heavyStats = { pickups: 0, near: 0 };
 /** F3: the held viewmodel of a pod heavy weapon. */
-const HEAVY_VM = { "rocket-tube": "vm-tube", "arc-lance": "vm-lance", "anti-materiel-rifle": "vm-amr", "pilot-laser-cannon": "vm-lcannon" };
+const HEAVY_VM = { "rocket-tube": "vm-tube", "arc-lance": "vm-lance", "anti-materiel-rifle": "vm-amr", "pilot-laser-cannon": "vm-lcannon", "pilot-amr": "vm-amr", "pilot-rail-driver": "vm-rail", "pilot-mortar": "vm-mortar" };
 function heavyVm(w) { return HEAVY_VM[cd.weaponIds[w]] ?? "vm-tube"; }
 let aimLines = 0, callFxStats = { shells: 0, lines: 0, sweeps: 0, emps: 0, mines: 0, pods: 0, podsFalling: 0, zones: 0, zoneDots: 0, sweptTags: 0, zoneTags: 0, pickups: 0 };
 let zonesNow = [];
@@ -13587,6 +13590,7 @@ G.__ironfall = {
     flShots() { return { own: playerShotsSeen, armed: !!armedCall, vm: vmInfo.kind }; },
     terrainLod(on) { R.terrainLod = !!on; return R.terrainLod; },
     cullStats() { return { terrainLod: [...R.terrainLodN], terrainCulled: R.terrainCulled, terrainChunks: R.terrainChunks?.length ?? 0, ...bigStats }; },
+    flTestGrant(pool, ids) { return progression_ui_ts_1.c7a.testGrant(pool, ids); }, // test aid: unlocks without tokens
     triBy(on) { if (on && !R.triBy) R.triBy = {}; return R.triBy ? { ...R.triBy } : null; }, // perf: triangles drawn per kind last frame
     flDropSlow(k) { flDropTimeK = k; return k; },
     /** Opening cinematic: state; seek to t (s, the music's clock: an offset added); clock speed; skip. */

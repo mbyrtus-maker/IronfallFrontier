@@ -32,6 +32,7 @@ exports.WEAPON_FAMILY = {
     "mule-chin-gun": "energy", "arc-lance": "beam", "arc-projector": "beam",
     "sapper-rocket": "rocket", "rocket-tube": "rocket", "dart-shadower": "missile", "salvo-missiles": "missile", "salvo-minigun": "kinetic-small", "wasp-rocket-pods": "rocket",
     "bastion-missile-pod": "missile", "missile-battery-aa": "missile",
+    "pilot-mortar": "mortar", "pilot-rail-driver": "kinetic-heavy", "pilot-amr": "kinetic-heavy", "pilot-trooper-rifle": "kinetic-small", // designer 22 Nov: the new Frontline weapons
     "hammer-mortar": "mortar", "strider-siege-gun": "artillery",
     "flak-gun": "flak", "strider-aa-turret": "flak",
     "gun-tower-autocannon": "turret", "sentry-turret-gun": "turret", "sentry-rocket-pod": "rocket", // ruling 130: the drop pod sentry's rocket pod
