@@ -1148,11 +1148,13 @@ function predictSnap(v) {
     }
     if (!predictor)
         predictor = new c7b_ts_1.OwnPredictor((0, predict_ts_1.pilotMoveRules)(data, PLANET, MAP_SIZE), (x, z) => (0, terrain_gen_ts_1.sampleHeight)(hm, x, z), (0, relief_ts_1.reliefStepRule)(data, PLANET, MAP_SIZE, cd.tArmour[PILOT_TYPE], (x, z) => (0, terrain_gen_ts_1.sampleHeight)(hm, x, z)));
-    if (isFrontline() && flKit && !predictor.flArmour) { // Frontline: the kit's armour moves the pilot faster or slower
+    if (isFrontline() && flKit && predictor.flArmour !== flKit.armour) { // Frontline: the kit's armour moves the pilot faster or slower (re-applied when it changes at the Core)
+        if (!predictor.flBase)
+            predictor.flBase = { speed: predictor.R.speed, jumpSpeed: predictor.R.jumpSpeed };
         const am = FL.armour[flKit.armour];
-        predictor.R.speed *= am.speedMul;
-        predictor.R.jumpSpeed *= am.jumpMul;
-        predictor.flArmour = true;
+        predictor.R.speed = predictor.flBase.speed * am.speedMul;
+        predictor.R.jumpSpeed = predictor.flBase.jumpSpeed * am.jumpMul;
+        predictor.flArmour = flKit.armour;
     }
     const R = predictor.R, x = p.kit.x, z = p.kit.z, e = v.entities.get(p.entity);
     predictor.reconcile({ x, y: (0, terrain_gen_ts_1.sampleHeight)(hm, x, z) + Math.max(0, e ? e.altitude : 0), z, airborne: p.airborne, jetFuel: p.jet * R.jetFreeBurn, energy: p.energy * CREW.energyMax }, p.inputSeq);
@@ -2734,12 +2736,15 @@ function flConfirmLoadout() {
         snd.ui("error");
         return;
     }
-    send({ t: "flKit", kit: flKit, confirm: true });
     notify(`LOADOUT CONFIRMED · ${flName(flWeapons().gun)} · ${flName(flWeapons().role)} · ${FL.armour[flKit.armour].name} armour`, "good");
     if (flPanelOpen)
         flTogglePanel();
+    else
+        send({ t: "flKit", kit: flKit, confirm: true });
 }
 function flTogglePanel() {
+    if (flPanelOpen && started && isFrontline() && flAtCore())
+        send({ t: "flKit", kit: flKit, confirm: true }); // designer 21 Nov: closing the loadout at the Core confirms it too (the waiting Mule leaves)
     flPanelOpen = !flPanelOpen;
     snd.ui("click");
     flRenderPanel();

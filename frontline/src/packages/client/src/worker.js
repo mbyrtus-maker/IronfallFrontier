@@ -235,8 +235,10 @@ function guestMsg(slot, m) {
         // guest's pilot and player slot (they were the host's only); lane requests and the priority are the team's
         case "flKit":
             if (s.fkit && m.kit && (!g.kitSet || m.confirm || flAtCore(s, g.pilotId))) { // the first kit (with the join) and the confirmed one at once; later ones at the Core
-                if (m.confirm)
+                if (m.confirm) {
                     g.kitConfirmed = true;
+                    s.fkit.ferryGo(g.pilotId); // the loadout is set: the waiting Mule takes off
+                }
                 if (s.fkit.setKit(s, g.slot, m.kit))
                     g.kitSet = true;
             }
@@ -992,6 +994,8 @@ ctx.onmessage = (ev) => {
             case "flKit": // Frontline: the player changed the kit (start card)
                 if (sim && sim.fkit && m.kit && (m.confirm || flAtCore(sim, scen.pilotId)))
                     sim.fkit.setKit(sim, 0, m.kit);
+                if (sim && sim.fkit && m.confirm)
+                    sim.fkit.ferryGo(scen.pilotId); // the loadout is set: the waiting Mule takes off
                 break;
             case "pctl":
                 ctl = m.input;

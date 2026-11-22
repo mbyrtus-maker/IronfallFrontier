@@ -418,9 +418,12 @@ class FKit {
                     sim.hp[ms] = 0;
                 continue;
             }
-            const drop = this.dropPoint(sim, p.team, lane);
-            sim.queueOrder(sim.tick + 1, [mule], { type: "move", x: drop[0], z: drop[1] }, p.team);
-            this.ferry.set(pid, { mule, drop, until: sim.tick + 120 * sim.d.constants.tickRate });
+            const drop = this.dropPoint(sim, p.team, lane), tr = sim.d.constants.tickRate;
+            // designer 21 Nov: a player's Mule waits at the Core while the loadout screen is up (ferryGo on its confirm, or 20 s)
+            const wait = p.player >= 0 && p.player < 100;
+            this.ferry.set(pid, { mule, drop, until: sim.tick + 120 * tr, go: !wait, waitUntil: sim.tick + 20 * tr });
+            if (!wait)
+                sim.queueOrder(sim.tick + 1, [mule], { type: "move", x: drop[0], z: drop[1] }, p.team);
                     }
         for (const [pid, f] of [...this.ferry]) {
             const p = sim.pilots.get(pid), ms = sim.idToSlot.get(f.mule);
@@ -428,6 +431,15 @@ class FKit {
                 this.ferry.delete(pid);
                 if (ms !== undefined && sim.alive[ms])
                     this.sendHome(sim, f.mule, p ? p.team : sim.team[ms]); // the rider got out early: the Mule still leaves
+                continue;
+            }
+            if (!f.go) {
+                if (sim.tick < f.waitUntil && !this.goNow.has(pid))
+                    continue;
+                this.goNow.delete(pid);
+                f.go = true;
+                f.until = sim.tick + 120 * sim.d.constants.tickRate;
+                sim.queueOrder(sim.tick + 1, [f.mule], { type: "move", x: f.drop[0], z: f.drop[1] }, p.team);
                 continue;
             }
             const dx = sim.x[ms] - f.drop[0], dz = sim.z[ms] - f.drop[1];
@@ -468,6 +480,10 @@ class FKit {
             sim.quietRemove(ms);
         }
     }
+    /** Pilots whose loadout was confirmed at the Core: their waiting ferry Mule takes off on the next step (21 Nov). */
+    goNow = new Set();
+    ferryGo(pilotId) { if (this.ferry.has(pilotId) && !this.ferry.get(pilotId).go)
+        this.goNow.add(pilotId); }
     /** mule id -> {x, z, until}: ferry Mules on their way back to the Core, removed there (21 Nov). */
     homebound = new Map();
     sendHome(sim, mule, team) {
