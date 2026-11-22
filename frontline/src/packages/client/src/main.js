@@ -8196,6 +8196,12 @@ function flGunVm() {
         return { sniper: "vm-longrifle", assault: "vm-hmg", heavy: "vm-tube", medic: "vm-medic" }[flKit.role] ?? null;
     return null;
 }
+/** Designer 21 Nov ("the flash on the machine pistols is below the barrel, check all guns"): the bore height of each
+ * viewmodel (its muzzle, for the flash and the own tracers), in model metres; the rest keep the old per-slot heights. */
+const VM_BORE_Y = { "vm-pistol-k": 0.025, "vm-pistol-l": 0.025, "vm-tube": 0.02, "vm-carbine": 0.012, "vm-carbine-k": 0.012, "vm-carbine-l": 0.012, "vm-shotgun-k": 0.012, "vm-shotgun-l": 0.012,
+    "vm-marksman-k": 0.012, "vm-marksman-l": 0.012, "vm-launcher-k": 0.012, "vm-launcher-l": 0.012, "vm-rifle": 0.006, "vm-longrifle": 0.006, "vm-hmg": 0.006, "vm-medic": 0.006,
+    "vm-amr": 0.004, "vm-lance": 0, "vm-lcannon": 0 };
+function vmMuzzleY(name) { return VM_BORE_Y[name] ?? (kit === 1 ? 0.006 : kit === 0 ? 0.012 : 0); }
 function flPistols() {
     if (kit !== 0 || !isFrontline() || !flKit)
         return null;
@@ -8294,7 +8300,7 @@ function drawViewModel(now, frameDt) {
     // converge on the point under the reticle (yaw only: the vertical offset is under 0.4 deg at 30 m)
     const D = (0, math_ts_1.clamp)(Math.hypot(aimPoint[0] - eye[0], aimPoint[1] - eye[1], aimPoint[2] - eye[2]) || 40, 6, 300);
     let yaw = Math.atan2(-z, D - x) - vmSprint * 0.3; // sprinting: lowered and turned in across the body
-    const pist = beacon || heavyHeld() ? null : flPistols(), psc = pist && name !== "vm-pistol-k" && name !== "vm-pistol-l" ? 0.62 : 1;
+    const pist = beacon || heavyHeld() ? null : flPistols(), psc = pist ? (name === "vm-pistol-k" || name === "vm-pistol-l" ? 0.72 : 0.62) : 1;
     if (pist) { // pistols are held higher and closer in, one in each hand for the dual pair
         x += 0.07;
         y += 0.045;
@@ -8311,17 +8317,17 @@ function drawViewModel(now, frameDt) {
     }
     const flash = beacon || kit === KIT_BUILD ? false : kit < 2 ? now - recoilAt < 50 && recoilAt > 0 : lmb && !!torchTarget() && !!me && me.energy > 0;
     {
-        const ax = meshes_ts_1.VIEWMODEL_AXIS[name], mz = ax[1] + 0.01, my = kit === 1 ? 0.006 : kit === 0 ? 0.012 : 0;
-        vmMuzzleVm = beacon || (kit >= 2 && !heavyHeld()) ? null : [x + Math.cos(yaw) * mz * psc, y + my, z + Math.sin(yaw) * mz * psc];
-        vmMuzzleVm2 = pist === "dual" ? [x + Math.cos(yaw2) * mz * psc, y + 0.004 + my, z2 + Math.sin(yaw2) * mz * psc] : null;
+        const ax = meshes_ts_1.VIEWMODEL_AXIS[name], mz = ax[1] + 0.01, my = vmMuzzleY(name);
+        vmMuzzleVm = beacon || (kit >= 2 && !heavyHeld()) ? null : [x + Math.cos(yaw) * mz * psc, y + my * psc, z + Math.sin(yaw) * mz * psc];
+        vmMuzzleVm2 = pist === "dual" ? [x + Math.cos(yaw2) * mz * psc, y + 0.004 + my * psc, z2 + Math.sin(yaw2) * mz * psc] : null;
     } // P1g: the barrel tip, for the own tracers
     if (flash) {
-        const ax = meshes_ts_1.VIEWMODEL_AXIS[name], mz = ax[1], my = kit === 1 ? 0.006 : kit === 0 ? 0.012 : 0;
+        const ax = meshes_ts_1.VIEWMODEL_AXIS[name], mz = ax[1], my = vmMuzzleY(name);
         const m2 = mz * psc;
-        putInst(vmFlashInst, 0, x + Math.cos(yaw) * m2, y + my, z + Math.sin(yaw) * m2, yaw, yaw, 0, 0, kit === 2 ? 1.6 : psc);
+        putInst(vmFlashInst, 0, x + Math.cos(yaw) * m2, y + my * psc, z + Math.sin(yaw) * m2, yaw, yaw, 0, 0, kit === 2 ? 1.6 : psc);
         parts.push({ name: "vm-flash", inst: vmFlashInst });
         if (pist === "dual") {
-            putInst(vmFlashInst2, 0, x + Math.cos(yaw2) * m2, y + 0.004 + my, z2 + Math.sin(yaw2) * m2, yaw2, yaw2, 0, 0, psc);
+            putInst(vmFlashInst2, 0, x + Math.cos(yaw2) * m2, y + 0.004 + my * psc, z2 + Math.sin(yaw2) * m2, yaw2, yaw2, 0, 0, psc);
             parts.push({ name: "vm-flash", inst: vmFlashInst2 });
         }
     }
