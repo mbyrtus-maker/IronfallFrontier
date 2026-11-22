@@ -3795,6 +3795,8 @@ class Sim {
             return this.rej("notOwner");
         if (p.state !== exports.P_SHELTER)
             return this.rej("notSeated");
+        if (this.fkit && this.fkit.dropping(pilotId))
+            return this.rej("dropping"); // Frontline: in the drop pod's rocket
         if (this.slotsLeft() < 1)
             return this.rej("entityCapacity");
         const vs = this.idToSlot.get(p.vehicle);
@@ -3804,6 +3806,15 @@ class Sim {
         const eid = this.shelterOut(p, vs !== undefined && this.alive[vs] ? vs : -1, false);
         this.events.push(events_ts_1.EV.SHELTER, this.tick, p.team, p.id, this.lastShelter, exports.SH_LEAVE, eid, 0, 0, events_ts_1.F_PLAYER | (gun ? exports.SHF_GUN : 0));
         return { ok: true, ids: [eid] };
+    }
+    /** Frontline drop pod (fkit.ts launchDrop): the pod has landed at (x, z): the pilot steps out there. */
+    dropOut(p, x, z) {
+        if (this.slotsLeft() < 1)
+            return;
+        p.lastX = this.clampMap(x);
+        p.lastZ = this.clampMap(z);
+        const eid = this.shelterOut(p, -1, false);
+        this.events.push(events_ts_1.EV.SHELTER, this.tick, p.team, p.id, this.lastShelter, exports.SH_LEAVE, eid, 0, 0, events_ts_1.F_PLAYER);
     }
     /** Scratch: the structure the last shelterOut left (event field). Not state. */
     lastShelter = 0;
@@ -3846,6 +3857,8 @@ class Sim {
         for (const p of this.pilots.values()) {
             if (p.state !== exports.P_SHELTER || p.vehicle !== id)
                 continue;
+            if (this.fkit && this.fkit.dropping(p.id))
+                continue; // already in the drop pod's rocket: it lands where it was sent
             if (this.slotsLeft() < 1) {
                 this.pilotDied(p, id, 0, this.x[s], this.z[s]);
                 continue;

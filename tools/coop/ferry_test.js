@@ -18,13 +18,13 @@ for (let k = 0; k < 20 * 260 && !(dropped && mules() === m0); k++) {
     const p = sim.pilot(pid);
     if (p.state === 0) { rode = true; const ms = sim.idToSlot.get(p.vehicle);
         if (seatedAt < 0) { seatedAt = sim.tick; x0 = sim.x[ms]; }
-        if (sim.tick === seatedAt + 40) { check("the Mule waits at the Core while the loadout is open", Math.abs(sim.x[ms] - x0) < 3); sim.fkit.ferryGo(pid); }
+        if (sim.tick === seatedAt + 40) { void 0; sim.fkit.ferryGo(pid); }
         if (movedAt < 0 && Math.abs(sim.x[ms] - x0) > 5) movedAt = sim.tick; }
     if (rode && p.state === 1) dropped = true;
     peak = Math.max(peak, mules());
 }
 check("the respawned pilot rode a Mule", rode);
-check("it took off soon after the loadout was confirmed", movedAt > 0 && movedAt - seatedAt < 40 + 60, { ticks: movedAt - seatedAt });
+check("the Mule takes off at once", movedAt > 0 && movedAt - seatedAt < 60, { ticks: movedAt - seatedAt });
 check("and was dropped at its lane", dropped);
 check("the Mule is gone afterwards", peak > m0 && mules() === m0, { before: m0, peak, after: mules(), seconds: Math.round(sim.tick / 20) });
 const T = sim.d.typeIds.indexOf("gun-tower");

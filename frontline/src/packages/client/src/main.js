@@ -849,6 +849,7 @@ function onWorkerMsg(ev) {
             break;
         case "snap":
             flGroundPods = m.fl ? m.fl.pods : [];
+            flDropsNow = m.fl?.drops ?? [];
             if (m.fl && m.fl.locks.length > flLocksNow.length)
                 snd.ui("confirm"); // a new missile lock: a tone
             flLocksNow = m.fl ? m.fl.locks : [];
@@ -859,6 +860,9 @@ function onWorkerMsg(ev) {
             flDownedEnts = new Set(flBotsNow.filter((q) => q[5] === "downed" && q[7]).map((q) => q[7])); // + downed human squadmates (flDownedFrame)
             onSnap(m);
             flDownedFrame(views[views.length - 1]);
+            break;
+        case "flDropRes":
+            flDropResult(m.reason);
             break;
         case "c9":
             c9OnSide(m, performance.now());
@@ -1184,7 +1188,6 @@ function applyPilot(p, now) {
         }
     }
     if (prev && prev.state === sim_ts_1.P_DEAD && p.state !== sim_ts_1.P_DEAD) {
-        flCorePickShown = false; // designer 21 Nov: the loadout screen again at the Core after a respawn
         deadSince = 0;
         lastCtl = "";
         camPitch = -0.05;
@@ -2182,6 +2185,8 @@ function flAmmoHtml(v, p) {
 }
 /** Frontline: is the player's pilot (on foot or in a vehicle) within 120 m of its own Command Core? */
 function flAtCore() {
+    if (flInsideCore())
+        return true;
     const b = bodyRender;
     if (!b)
         return false;
@@ -2417,6 +2422,10 @@ function flMapClick(e) {
 }
 /** Keys on the Frontline map: 1-3 request a lane; WASD / wheel / MMB move the camera as before. */
 function flMapKey(code) {
+    if (code === u1_loadout_ts_1.LOADOUT_KEY && flInsideCore()) { // inside the Core: K opens the loadout from the map too
+        flTogglePanel();
+        return;
+    }
     const d = /^Digit([1-3])$/.exec(code);
     if (d)
         flRequestLane(Number(d[1]) - 1);
@@ -2731,6 +2740,8 @@ function flCorePickFrame() {
         flTogglePanel();
 }
 function flConfirmLoadout() {
+    if (flDropStage === 1)
+        flDropStage = 2;
     if (!flAtCore()) {
         notify("LOADOUT · return to your Command Core to change it", "warn");
         snd.ui("error");
@@ -3024,7 +3035,7 @@ function shelterFrame() {
         const v = me ? ent(me.entity) : undefined;
         if (v)
             shelterName = (0, f3_citadel_ts_1.seatName)(SEAT_KINDS[v.type], typeName[v.type]);
-        const t = `INSIDE THE ${shelterName.toUpperCase()} · protected · F / Tab: leave`;
+        const t = flDropText() || `INSIDE THE ${shelterName.toUpperCase()} · protected · F / Tab: leave`;
         const el = bar.querySelector(".t");
         if (el.textContent !== t)
             el.textContent = t;
@@ -3494,6 +3505,10 @@ canvas.addEventListener("contextmenu", (e) => e.preventDefault());
 canvas.addEventListener("mousedown", (e) => {
     if (!started || matchLocked())
         return;
+    if (flDropStage === 2 && mode === "cmd" && e.button === 0) { // designer 21 Nov: pick the drop pod's landing spot
+        flDropClick();
+        return;
+    }
     if (mode === "fp") {
         if (!document.pointerLockElement)
             lockPointer();
@@ -4381,6 +4396,8 @@ function nearBuilding() {
     for (const e of rendered) {
         if (e.team !== 0 || !cd.tStructure[e.type] || cd.tProduces[e.type].length === 0)
             continue;
+        if (isFrontline() && cd.typeIds[e.type] === "command-core")
+            continue; // designer 21 Nov: no B at the Command Core in Frontline (go inside it: loadout and the drop pod)
         const gap = Math.hypot(e.x - bodyRender.x, e.z - bodyRender.z) - cd.tRadius[e.type] * e.scale;
         if (gap < bg) {
             bg = gap;
@@ -6686,6 +6703,7 @@ function assemble(now, frameDt) {
         selBuilding = 0;
     ringCount = nr;
     flCallMeshes(now, B, rt);
+    flDropMeshes(now, rt); // designer 21 Nov: the Core's drop pod rockets and pods
     if (cine)
         cineMeshes(now);
     turretLasersDrawn = 0;
@@ -11737,6 +11755,153 @@ function flCallMeshes(now, B, rt) {
             flCallStats.ground++;
         }
 }
+// ---- designer 21 Nov: the Command Core's drop pod. Inside the Core (F at its door): the loadout screen (K) comes up;
+// confirm it, then click a spot your side controls (within 100 m of an owned point or one of your buildings, green rings
+// on the map). A rocket leaves the silo on the back of the Core, climbs out of sight, and the pod comes down there
+// (sim: fkit.ts launchDrop / dropStep; the flight times come from the host's side state).
+let flDropStage = 0, flDropWasInside = false, flDropsNow = [], flDropPanned = -1;
+const flDropStats = { launched: 0, refused: 0, rockets: 0, pods: 0, zones: 0 };
+const FL_DROP_REACH = 100, FL_ROCKET_TICKS = 70, FL_POD_TICKS = 70;
+function flInsideCore() {
+    if (!sheltered() || !me)
+        return false;
+    const v = ent(me.entity);
+    return !!v && cd.typeIds[v.type] === "command-core";
+}
+function flMyDrop() { return flDropsNow.find((q) => q[0] === pilotId) ?? null; }
+/** The zones a pod may land in: [x, z, r] (owned points' areas and own buildings, each + 100 m). */
+function flDropZones() {
+    const out = [];
+    for (const s of ptStatics)
+        if (ptModels[s.index]?.owner === 0)
+            out.push([s.x, s.z, (s.radius ?? s.ring) + FL_DROP_REACH]);
+    for (const e of rendered)
+        if (e.team === 0 && cd.tStructure[e.type])
+            out.push([e.x, e.z, cd.tRadius[e.type] + FL_DROP_REACH]);
+    return out;
+}
+function flDropZoneOk(x, z) { return flDropZones().some(([zx, zz, r]) => Math.hypot(zx - x, zz - z) <= r); }
+function flDropText() {
+    if (!isFrontline() || !flInsideCore())
+        return "";
+    const d = flMyDrop();
+    if (d) {
+        const left = Math.max(0, Math.ceil((d[6] - renderTick(performance.now())) * dt));
+        return `DROP POD LAUNCHED · landing in ${left} s`;
+    }
+    if (flDropStage === 1)
+        return "LOADOUT · confirm it, then pick where your drop pod lands · Tab: leave";
+    if (flDropStage === 2)
+        return "DROP POD · click a spot your side controls (inside the green rings) · K: loadout · Tab: leave";
+    return "";
+}
+function flDropFrame(now) {
+    const inside = isFrontline() && started && flInsideCore();
+    if (inside && !flDropWasInside && !flMyDrop()) { // just went in: the loadout first
+        flDropStage = 1;
+        if (!flPanelOpen)
+            flTogglePanel();
+    }
+    if (!inside)
+        flDropStage = 0;
+    else if (flDropStage === 1 && !flPanelOpen)
+        flDropStage = 2; // the loadout screen was closed: on to the map
+    flDropWasInside = inside;
+    const mine = inside ? flMyDrop() : null;
+    if (mine && mode === "cmd") { // the map watches the rocket leave the silo, then follows the pod down to where it lands
+        const up = renderTick(now) - mine[5] < FL_ROCKET_TICKS * 0.75, dx = up ? mine[1] : mine[3], dz = up ? mine[2] : mine[4];
+        const jump = flDropPanned !== mine[5] || (!up && flDropPanned === mine[5] && Math.hypot(cmd.x - dx, cmd.z - dz) > 600);
+        if (jump) {
+            cmd.x = dx;
+            cmd.z = dz;
+            flDropPanned = up ? mine[5] : -2;
+        }
+        else {
+            cmd.x += (dx - cmd.x) * 0.12;
+            cmd.z += (dz - cmd.z) * 0.12;
+        }
+        cmd.dist += ((up ? 260 : 320) - cmd.dist) * 0.06;
+    }
+    // the landing zones on the map while choosing, and a marker under the cursor
+    if (flDropStage === 2 && mode === "cmd" && !mine) {
+        const k = Math.max(1.5, cmd.dist * 0.009);
+        let n = 0;
+        for (const [x, z, r] of flDropZones()) {
+            const steps = Math.max(16, Math.round(r / 9));
+            for (let i = 0; i < steps; i++) {
+                const a = (i / steps) * Math.PI * 2 + now / 4000, px = x + Math.cos(a) * r, pz = z + Math.sin(a) * r;
+                fx.dot(px, (0, terrain_gen_ts_1.sampleHeight)(hm, px, pz) + 1.5, pz, k * 0.7, [0.35, 1, 0.45], 0.55);
+            }
+            n++;
+        }
+        flDropStats.zones = n;
+        const g = groundAt(mouseX, mouseY);
+        if (g) {
+            const ok = flDropZoneOk(g[0], g[2]), col = ok ? [0.35, 1, 0.45] : [1, 0.3, 0.2];
+            for (let i = 0; i < 20; i++) {
+                const a = (i / 20) * Math.PI * 2, px = g[0] + Math.cos(a) * 14, pz = g[2] + Math.sin(a) * 14;
+                fx.dot(px, (0, terrain_gen_ts_1.sampleHeight)(hm, px, pz) + 1.5, pz, k * 0.9, col, 0.9);
+            }
+        }
+    }
+}
+function flDropClick() {
+    const g = groundAt(mouseX, mouseY);
+    if (!g)
+        return;
+    if (!flDropZoneOk(g[0], g[2])) {
+        notify("DROP POD · that ground is not yours: pick a spot inside the green rings", "warn");
+        snd.ui("error");
+        return;
+    }
+    send({ t: "flDrop", x: g[0], z: g[2] });
+    snd.ui("confirm");
+}
+function flDropResult(reason) {
+    if (!reason) {
+        flDropStage = 3;
+        flDropStats.launched++;
+        notify("DROP POD LAUNCHED · hold on", "good");
+        return;
+    }
+    flDropStats.refused++;
+    notify(reason === "notControlled" ? "DROP POD · that ground is not yours: pick a spot inside the green rings" : reason === "dropping" ? "DROP POD · already on its way" : `DROP POD · cannot launch (${reason})`, "warn");
+    snd.ui("error");
+}
+/** The rockets and pods in flight: up out of the silo (faster and faster, gone into the sky), then down at the spot. */
+function flDropMeshes(now, rt) {
+    flDropStats.rockets = flDropStats.pods = 0;
+    if (!isFrontline())
+        return;
+    for (const [, sx, sz, x, z, launch, land] of flDropsNow) {
+        const up = rt - launch, down = land - rt;
+        if (up >= 0 && up < FL_ROCKET_TICKS) {
+            const t = up * dt, gy = (0, terrain_gen_ts_1.sampleHeight)(hm, sx, sz), y = gy + 3 + 6 * t * t * t + 4 * t;
+            flInst("flrocket", sx, y, sz, 0, 0);
+            for (let i = 0; i < 10; i++) // the exhaust: a white-hot core, a long fading orange trail
+                fx.dot(sx, y - 0.5 - i * (1.2 + t * 2.2), sz, (2.4 - i * 0.18) * (i < 2 ? 1.2 : 1), i < 2 ? [1, 0.95, 0.8] : [1, 0.55 - i * 0.03, 0.18], 0.95 - i * 0.08);
+            if (t < 1.2) // smoke rolling off the pad
+                for (let i = 0; i < 6; i++) {
+                    const a = i * 1.047 + now / 300;
+                    fx.dot(sx + Math.cos(a) * (3 + t * 8), gy + 1.5, sz + Math.sin(a) * (3 + t * 8), 3.2, [0.72, 0.7, 0.66], 0.5 * (1.2 - t));
+                }
+            flDropStats.rockets++;
+        }
+        if (down >= -10 && down < FL_POD_TICKS) {
+            const k = Math.max(0, down) / FL_POD_TICKS, gy = (0, terrain_gen_ts_1.sampleHeight)(hm, x, z), y = gy + 650 * k * k;
+            flInst("flpod", x, y, z, 0.4, 0, 1.6);
+            const burn = y - gy < 120 ? 1 : 0.4;
+            for (let i = 0; i < 6; i++)
+                fx.dot(x, y - 0.6 - i * 1.8, z, (2.2 - i * 0.3) * burn, [1, 0.6 - i * 0.05, 0.2], 0.9 - i * 0.13);
+            if (down < 0) // touchdown: dust
+                for (let i = 0; i < 12; i++) {
+                    const a = i * 0.5236, r = 4 + (-down) * 1.2;
+                    fx.dot(x + Math.cos(a) * r, gy + 1, z + Math.sin(a) * r, 2.6, [0.7, 0.66, 0.58], 0.6 * (1 + down / 10));
+                }
+            flDropStats.pods++;
+        }
+    }
+}
 /**
  * Frontline: the shoulder laser cannon's beam is a thick glowing cone, as wide as the emitter at the muzzle and narrowing
  * to a point where it hits. The own beam keeps the emitter's on-screen width at the muzzle (its radius is an angle seen
@@ -12320,6 +12485,7 @@ function kitFrame() {
 }
 function c6Frame(now, frameDt) {
     shelterFrame(); // ruling 121
+    flDropFrame(now);
     kitFrame();
     routesFrame(now);
     unitFrame();
@@ -13259,6 +13425,8 @@ G.__ironfall = {
     cineSkip() { cineEnd(true); },
     cinePlay() { cineDone = false; if (!cine) cineStart(); },
     flTestCallAhead(call, k = 0.6) { const g = groundAt(cssW / 2, cssH * k); if (!g) return null; send({ t: "flTestCall", call, ax: g[0], az: g[2] }); return [Math.round(g[0]), Math.round(g[2])]; },
+    flTestCore() { send({ t: "flTestCore" }); return true; },
+    flDrop() { return { stage: flDropStage, inside: flInsideCore(), drops: flDropsNow.length, rt: renderTick(performance.now()), list: flDropsNow, ...flDropStats }; },
     flTestDown(name, near) { const g = near ? groundAt(cssW / 2, cssH * (near === 2 ? 0.74 : 0.62)) : null; send(g ? { t: "flTestDown", name, x: g[0], z: g[2] } : { t: "flTestDown", name }); return g ? [Math.round(g[0]), Math.round(g[2])] : true; },
     flTestBoom(k) { const a = snd.grenadeBooms ?? 0, b = snd.explSamples ?? 0; snd.explosion([eye[0] + 8, eye[1], eye[2]], k); return [(snd.grenadeBooms ?? 0) - a, (snd.explSamples ?? 0) - b]; },
     flTestWeapon(id) { const w = cd.weaponIds.indexOf(id), a = snd.weaponSamplesPlayed; return [JSON.stringify(WSAMPLE[w] ?? null), snd.weaponSample(WSAMPLE[w], [0, 0, 0], true), snd.weaponSamplesPlayed - a]; },

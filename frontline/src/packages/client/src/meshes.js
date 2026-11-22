@@ -466,7 +466,7 @@ function cupola(b, x, y, rad, part) {
 }
 exports.KINDS = ["bike", "light", "medium", "artillery", "flak", "heavy", "siege", "air", "infantry", "economy", "structure", "tower", "mast", "silo", "extractor", "gastank", "battery", "reactor",
     "core", "factory", "pad", "dome", "bay", "carrier", "dropship", "node", "bunker", "wall", "hauler", "constructor", "fbv",
-    "barracks", "armoury", "techlab", "refinery", "uplink", "massdriver", "depot", "bgun0", "bgun1", "bgun2", "bikewreck", "scout", "rockettank", "sleg", "droppod", "fbturret", "fbwall", "mech", "gunship", "mleg", "flpod", "flcrate", "fldrop", "fldropwall", "fldropbase"];
+    "barracks", "armoury", "techlab", "refinery", "uplink", "massdriver", "depot", "bgun0", "bgun1", "bgun2", "bikewreck", "scout", "rockettank", "sleg", "droppod", "fbturret", "fbwall", "mech", "gunship", "mleg", "flpod", "flcrate", "fldrop", "fldropwall", "fldropbase", "flrocket"];
 /** P3: a hover hull section (right half, bottom up): chamfered at the top, c the chamfer. */
 const hsec = (yb, ym, yt, wb, wm, wt, c) => [[yb, wb], [ym, wm], [yt - c, wt], [yt, wt - c]];
 /** P3: a dark hover nacelle along x at side z: tapered ends, round glow plates under it (the concept's hover engines). */
@@ -2286,6 +2286,77 @@ function core() {
             b.quad([x + sg * 0.03, 0.8, z * 1.4], [x + sg * 0.03, 0.8, z * 1.75], [x - sg * 0.17, 3.3, z * 1.75], [x - sg * 0.17, 3.3, z * 1.4], [0, 2, 0]);
     });
     G2(() => g2Core(b));
+    coreSilo(b);
+    return b.build([0, 0, 0], 0, 0);
+}
+/**
+ * Designer 21 Nov: the Frontline drop pod's rocket silo on the back of the Command Core (local -x; the sim's fkit.siloAt
+ * puts the launch point there: 1.9 x the Core's radius behind it at the drawn 1.2 scale): a concrete pad, a tall ribbed
+ * silo tube with an open hatch and the next rocket's nose showing, a service gantry with walkways, and warning lights.
+ */
+const SILO_X = -11.1;
+function coreSilo(b) {
+    const X = SILO_X;
+    b.set(CON2);
+    b.box(X, 0.25, 0, 3.6, 0.5, 3.6); // pad
+    b.set(HAZARD, 0);
+    b.mirrored((sg) => b.box(X, 0.76, sg * 3.45, 3.5, 0.02, 0.15));
+    b.set(CON);
+    b.cyl(X, 0.75, 0, 2.7, 2.5, 16.3, 16, "y", false); // silo tube
+    b.set(STEEL, 0);
+    for (const y of [3, 6.5, 10, 13.5, 16.6])
+        b.cyl(X, y, 0, 2.62, 2.58, 0.45, 16, "y", false); // ribs
+    b.set(DARK, 0);
+    b.disc(X, 17.06, 0, 2.45, 16, "y", 1); // the open mouth
+    b.set(STEEL, 0);
+    b.quad([X + 2.5, 17.05, -2.1], [X + 2.5, 17.05, 2.1], [X + 4.7, 19.2, 2.1], [X + 4.7, 19.2, -2.1], [X, 16.8, 0]); // hatch, swung open
+    // the next rocket's nose in the tube
+    b.set([0.86, 0.87, 0.84], 0);
+    b.cyl(X, 16.0, 0, 1.5, 1.5, 1.4, 16, "y", false);
+    b.cyl(X, 17.4, 0, 1.5, 0.15, 2.4, 16, "y", true);
+    b.set([0.8, 0.25, 0.15], 0);
+    b.cyl(X, 17.35, 0, 1.52, 1.52, 0.3, 16, "y", false); // red band
+    // gantry: two posts, cross bracing, walkways, a crane arm over the mouth
+    b.set(GUN, 0);
+    for (const z of [-3.2, -1.6])
+        b.cyl(X - 3.0, 0.75, z, 0.22, 0.22, 20, 6, "y", false);
+    for (let y = 2.2; y < 20; y += 3.1) {
+        b.box(X - 3.0, y, -2.4, 0.18, 0.12, 0.95); // rungs
+        b.set(STEEL, 0);
+        b.box(X - 1.7, y + 0.9, -2.4, 1.2, 0.06, 0.7); // walkway toward the tube
+        b.set(GUN, 0);
+    }
+    b.box(X - 1.4, 20.4, -2.4, 1.8, 0.18, 0.18); // crane arm
+    b.box(X - 0.2, 19.8, -2.4, 0.08, 0.6, 0.08);
+    b.set([1, 0.3, 0.15], 5);
+    b.ball(X - 3.0, 21.0, -2.4, 0.3, 0); // warning beacon
+    b.ball(X + 2.4, 1.2, 2.4, 0.22, 0);
+    b.set([1, 1, 1], 2);
+    b.cyl(X, 9.0, 0, 2.66, 2.66, 0.18, 16, "y", false); // a lit band
+}
+/**
+ * The launch rocket (Frontline drop pod): a slim white body with a black-and-red band, a capsule nose, four fins and an
+ * engine bell; drawn rising out of the silo (main.ts flDropFrame).
+ */
+function flRocket() {
+    const b = new MeshBuilder();
+    b.set([0.88, 0.89, 0.86], 0);
+    b.cyl(0, 1.2, 0, 1.4, 1.4, 9.5, 16, "y", false);
+    b.set([0.16, 0.17, 0.16], 0);
+    b.cyl(0, 6.0, 0, 1.42, 1.42, 1.2, 16, "y", false);
+    b.set([0.8, 0.25, 0.15], 0);
+    b.cyl(0, 10.4, 0, 1.43, 1.43, 0.35, 16, "y", false);
+    b.set([0.88, 0.89, 0.86], 0);
+    b.cyl(0, 10.7, 0, 1.4, 0.2, 3.4, 16, "y", true); // the capsule nose (it comes down as the pod)
+    b.set(STEEL, 0);
+    b.cyl(0, 0.0, 0, 0.7, 1.1, 1.2, 12, "y", true); // engine bell
+    b.set([0.8, 0.25, 0.15], 0);
+    for (let i = 0; i < 4; i++) {
+        const a = i * Math.PI / 2, c = Math.cos(a), sn = Math.sin(a);
+        const fin = [[c * 1.35, 1.2, sn * 1.35], [c * 2.6, 0.6, sn * 2.6], [c * 2.6, 2.4, sn * 2.6], [c * 1.35, 4.2, sn * 1.35]], tx = -sn, tz = c;
+        b.poly(fin, [c * 2 - tx, 2.1, sn * 2 - tz]); // both faces of the flat fin
+        b.poly(fin.slice().reverse(), [c * 2 + tx, 2.1, sn * 2 + tz]);
+    }
     return b.build([0, 0, 0], 0, 0);
 }
 /** Foundry (the concept's): a chamfered hall with a raised upper block, roof vents, a tall chimney, a big shuttered
@@ -6022,6 +6093,7 @@ function buildKindRaw(k) {
         case "sleg": return striderLeg();
         case "mleg": return mechLeg();
         case "flpod": return flPod();
+        case "flrocket": return flRocket();
         case "flcrate": return flCrate();
         case "fldrop": return flDrop();
         case "fldropwall": return flDropWall();
@@ -6185,7 +6257,7 @@ exports.MUZZLES = {
     uplink: [{ pts: [[-10.6, 10, 0]], turret: false }], massdriver: [{ pts: [[9.6, 7.4, 0]], turret: false }], depot: [{ pts: [[0, 4, 0]], turret: false }],
     sleg: [], // W1: a Strider leg (never fires)
     mleg: [], // Frontline: a mech leg
-    flpod: [], flcrate: [], fldrop: [], fldropwall: [], fldropbase: [], // Frontline: the call-down pod, its containers, the vehicle drop crate
+    flpod: [], flcrate: [], fldrop: [], fldropwall: [], fldropbase: [], flrocket: [], // Frontline: the call-down pod, its containers, the vehicle drop crate
     bgun0: [{ pts: [[4.6, 4.3, 0]], turret: true }], bgun1: [{ pts: [[4.2, 4.4, 2.2]], turret: true }], bgun2: [{ pts: [[3.6, 4.6, -2.2]], turret: true }],
     node: [{ pts: [[4.8, 9.3, 0.5], [4.8, 9.3, -0.5]], turret: true }], bunker: [{ pts: [[4.6, 4.3, 0]], turret: true }, { pts: [[4.2, 4.4, 2.2]], turret: true }, { pts: [[3.6, 4.77, -2.2], [3.6, 4.43, -2.2]], turret: true }], wall: [{ pts: [[0, 2.6, 0]], turret: false }],
 };
@@ -6218,7 +6290,7 @@ exports.COCKPITS = {
     structure: { driver: null }, tower: { driver: null }, mast: { driver: null },
     silo: { driver: null }, extractor: { driver: null }, gastank: { driver: null }, battery: { driver: null }, reactor: { driver: null },
     core: { driver: null }, factory: { driver: null }, pad: { driver: null }, dome: { driver: null }, bay: { driver: null },
-    node: { driver: null }, bunker: { driver: null }, wall: { driver: null }, bgun0: { driver: null }, bgun1: { driver: null }, bgun2: { driver: null }, sleg: { driver: null }, mleg: { driver: null }, flpod: { driver: null }, flcrate: { driver: null },
+    node: { driver: null }, bunker: { driver: null }, wall: { driver: null }, bgun0: { driver: null }, bgun1: { driver: null }, bgun2: { driver: null }, sleg: { driver: null }, mleg: { driver: null }, flpod: { driver: null }, flrocket: { driver: null }, flcrate: { driver: null },
     barracks: { driver: null }, armoury: { driver: null }, techlab: { driver: null }, refinery: { driver: null }, uplink: { driver: null }, massdriver: { driver: null }, depot: { driver: null },
     carrier: { driver: [0.15, 2.9 + CUPOLA_H / 2, 0] }, // C8: roof cupola at the data's driver zone
     dropship: { driver: [2.8, 1.7, 0] },

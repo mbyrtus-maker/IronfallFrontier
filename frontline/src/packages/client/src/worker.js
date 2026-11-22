@@ -268,6 +268,10 @@ function guestMsg(slot, m) {
             if (s.fkit)
                 s.fkit.setPriority(0, m.p);
             break;
+        case "flDrop": // designer 21 Nov: the Core's drop pod to a controlled spot
+            if (s.fkit)
+                ctx.postMessage({ t: "gout", slot: g.slot, m: { t: "flDropRes", reason: s.fkit.launchDrop(s, g.pilotId, m.x, m.z) } });
+            break;
     }
 }
 function guestSnapshots() {
@@ -967,10 +971,33 @@ ctx.onmessage = (ev) => {
                 }
                 break;
             }
+            case "flDrop": // designer 21 Nov: the Core's drop pod to a controlled spot
+                if (sim && sim.fkit)
+                    ctx.postMessage({ t: "flDropRes", reason: sim.fkit.launchDrop(sim, scen.pilotId, Number(m.x), Number(m.z)) });
+                break;
             case "flPriority": // Frontline 4a: the team's ore / gas priority for its AI commander
                 if (sim && sim.fkit)
                     sim.fkit.setPriority(0, String(m.p));
                 break;
+            case "flTestCore": { // test aid: the player's pilot steps to the Command Core's door and goes inside
+                const p = sim ? sim.pilot(scen.pilotId) : undefined;
+                if (!p)
+                    break;
+                if (p.state === 0)
+                    sim.exit(p.id, p.team);
+                let core = -1;
+                for (let o = 0; o < sim.hi; o++)
+                    if (sim.alive[o] && sim.team[o] === p.team && sim.d.typeIds[sim.etype[o]] === "command-core")
+                        core = o;
+                const b = sim.idToSlot.get(sim.pilot(scen.pilotId).entity);
+                if (core < 0 || b === undefined)
+                    break;
+                const off = sim.d.tRadius[sim.etype[core]] + 1.2;
+                sim.x[b] = sim.x[core] + sim.dirX[core] * off;
+                sim.z[b] = sim.z[core] + sim.dirZ[core] * off;
+                sim.enterShelter(p.id, sim.eid[core], p.team);
+                break;
+            }
             case "flTestDown": // test aid: down an AI pilot by name (on foot first)
                 if (sim && sim.fkit && sim.fkit.bots)
                     sim.fkit.bots.testDown(sim, String(m.name), m.x === undefined ? undefined : Number(m.x), Number(m.z));
@@ -1101,7 +1128,7 @@ function flWave(s) {
 /** Frontline HUD state for player pilot pilotId: resupply pods, its vehicle's missile locks, team 0's pings, the wave
  *  state and the AI pilots (the host's own snapshot message carries it; guests get it as "flside"). */
 function flSide(s, pilotId) {
-    return { pods: s.fkit.pods.map((q) => [q.x, q.z, q.team, q.left]), locks: flLocks(s, pilotId), pings: s.fkit.pingsOf(s, 0).map((q) => [Math.round(q.x), Math.round(q.z), q.kind, q.who, Math.ceil((q.until - s.tick) / s.d.constants.tickRate)]), wave: flWave(s), bots: s.fkit.bots ? s.fkit.bots.status(s).map((q) => [q.id, q.name, q.team, q.role, q.lane, q.state, q.mode, q.eid, q.hp, q.deaths, q.down, q.rev]) : [] };
+    return { drops: s.fkit.drops.map((q) => [q.pid, q.sx, q.sz, q.x, q.z, q.launch, q.land]), pods: s.fkit.pods.map((q) => [q.x, q.z, q.team, q.left]), locks: flLocks(s, pilotId), pings: s.fkit.pingsOf(s, 0).map((q) => [Math.round(q.x), Math.round(q.z), q.kind, q.who, Math.ceil((q.until - s.tick) / s.d.constants.tickRate)]), wave: flWave(s), bots: s.fkit.bots ? s.fkit.bots.status(s).map((q) => [q.id, q.name, q.team, q.role, q.lane, q.state, q.mode, q.eid, q.hp, q.deaths, q.down, q.rev]) : [] };
 }
 /** Frontline: the missile locks of the vehicle the player's pilot sits in (entity ids). */
 function flLocks(s, pilotId = scen.pilotId) {

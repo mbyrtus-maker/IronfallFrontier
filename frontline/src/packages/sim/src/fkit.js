@@ -420,7 +420,7 @@ class FKit {
             }
             const drop = this.dropPoint(sim, p.team, lane), tr = sim.d.constants.tickRate;
             // designer 21 Nov: a player's Mule waits at the Core while the loadout screen is up (ferryGo on its confirm, or 20 s)
-            const wait = p.player >= 0 && p.player < 100;
+            const wait = false; // (21 Nov, later) the loadout is changed inside the Core now (its drop pod): the Mule leaves at once
             this.ferry.set(pid, { mule, drop, until: sim.tick + 120 * tr, go: !wait, waitUntil: sim.tick + 20 * tr });
             if (!wait)
                 sim.queueOrder(sim.tick + 1, [mule], { type: "move", x: drop[0], z: drop[1] }, p.team);
@@ -479,6 +479,63 @@ class FKit {
             this.homebound.delete(mule);
             sim.quietRemove(ms);
         }
+    }
+    /**
+     * Designer 21 Nov: the Command Core's drop pod. A player pilot inside its own Core (sheltered) picks a spot on ground
+     * its team controls (within DROP_REACH m of an owned strategic point's area or of one of its structures); a rocket leaves
+     * the silo on the back of the Core, and DROP_TICKS later the pod lands there and lets the pilot out.
+     * drops: {pid, team, sx, sz (silo), x, z, launch, land}.
+     */
+    drops = [];
+    static DROP_REACH = 100;
+    static DROP_SECONDS = 6.5;
+    /** The silo on the back of Core slot cs (world x, z): the meshes put it there too (meshes.ts command-core). */
+    siloAt(sim, cs) {
+        const back = sim.d.tRadius[sim.etype[cs]] * 1.9;
+        return [sim.x[cs] - sim.dirX[cs] * back, sim.z[cs] - sim.dirZ[cs] * back];
+    }
+    /** May `team` drop a pod at (x, z)? */
+    dropOk(sim, team, x, z) {
+        if (!(x >= 0 && z >= 0 && x <= sim.mapSize && z <= sim.mapSize))
+            return false;
+        const R = FKit.DROP_REACH, P = sim.pts;
+        if (P)
+            for (let i = 0; i < P.n; i++)
+                if (P.owner[i] === team && Math.hypot(P.px[i] - x, P.pz[i] - z) <= P.area[i] + R)
+                    return true;
+        for (let o = 0; o < sim.hi; o++)
+            if (sim.alive[o] && sim.hp[o] > 0 && sim.team[o] === team && sim.d.tStructure[sim.etype[o]] && Math.hypot(sim.x[o] - x, sim.z[o] - z) <= sim.d.tRadius[sim.etype[o]] + R)
+                return true;
+        return false;
+    }
+    dropping(pilotId) { return this.drops.some((q) => q.pid === pilotId); }
+    /** Launch: pilot inside its own Command Core, a valid spot. Returns a reject reason or "". */
+    launchDrop(sim, pilotId, x, z) {
+        const p = sim.pilots.get(pilotId);
+        if (!p || p.player < 0 || p.state !== 4 || p.seat >= 0)
+            return "notSheltered";
+        const cs = sim.idToSlot.get(p.vehicle);
+        if (cs === undefined || !sim.alive[cs] || !(sim.tCore && sim.tCore[sim.etype[cs]]))
+            return "notAtCore";
+        if (this.dropping(pilotId))
+            return "dropping";
+        if (!this.dropOk(sim, p.team, x, z))
+            return "notControlled";
+        const [sx, sz] = this.siloAt(sim, cs), tr = sim.d.constants.tickRate;
+        this.drops.push({ pid: pilotId, team: p.team, sx, sz, x, z, launch: sim.tick, land: sim.tick + Math.round(FKit.DROP_SECONDS * tr) });
+        return "";
+    }
+    dropStep(sim) {
+        if (!this.drops.length)
+            return;
+        this.drops = this.drops.filter((q) => {
+            if (sim.tick < q.land)
+                return true;
+            const p = sim.pilots.get(q.pid);
+            if (p && p.state === 4)
+                sim.dropOut(p, q.x, q.z);
+            return false;
+        });
     }
     /** Pilots whose loadout was confirmed at the Core: their waiting ferry Mule takes off on the next step (21 Nov). */
     goNow = new Set();
@@ -687,6 +744,7 @@ class FKit {
         if (sim.tick % (5 * sim.d.constants.tickRate) === 0)
             this.exchangeStep(sim);
         this.ferryStep(sim);
+        this.dropStep(sim);
         this.podStep(sim);
         this.reinfStep(sim);
         this.siteStep(sim);

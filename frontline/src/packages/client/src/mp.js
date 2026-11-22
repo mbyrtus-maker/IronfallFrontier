@@ -76,6 +76,7 @@ class RemotePort {
             case "flSwap":
             case "flRequest":
             case "flPriority":
+            case "flDrop":
                 this.link?.sendR({ t: "g", m });
                 break;
             case "flKit": // kept: resent after a new match or a host handover (the new sim starts with the default kit)

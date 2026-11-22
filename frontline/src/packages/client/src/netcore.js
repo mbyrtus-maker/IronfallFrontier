@@ -321,6 +321,10 @@ function validateGuestMsg(raw) {
         // Frontline (21 Nov, Ace of the Airways co-op lessons: "every action a player can take must reach the host"): the
         // kit, the respawn lane, giving up while downed, the laser cell swap, lane requests and the resource priority
         // were page -> worker messages the guest's port dropped, so a guest played the default kit and could not choose
+        case "flDrop": { // designer 21 Nov: the Core's drop pod
+            const x = Number(m.x), z = Number(m.z);
+            return Number.isFinite(x) && Number.isFinite(z) ? { t: "flDrop", x, z } : null;
+        }
         case "flKit": {
             const k = m.kit;
             if (!k || typeof k !== "object")
