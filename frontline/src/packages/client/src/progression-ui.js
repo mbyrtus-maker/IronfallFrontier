@@ -176,7 +176,7 @@ function profileHtml() {
             const ms = Rr.milestones.filter((m) => m.rank === r).map((m) => MILESTONE_TEXT[m.unlocks] ?? m.unlocks);
             const flBonus = Rr.fl && Rr.fl.bonus.includes(r);
             const gives = Rr.fl
-                ? (r === 1 ? "start: every loadout option already in the game (new items unlock with tokens)" : `+${Rr.tokensPerRank + (flBonus ? 1 : 0)} unlock token${flBonus ? "s (bonus rank)" : ""}`)
+                ? (r === 1 ? "start: every loadout option already in the game (new items unlock with tokens)" : `+${(Rr.fl?.perRank ?? Rr.tokensPerRank) + (flBonus ? 1 : 0)} unlock tokens${flBonus ? " (bonus rank)" : ""}`)
                 : r === 1 ? `start: every vehicle · ${Rr.starting.calls.map(nm).join(", ")} · ${Rr.callSlots.base} call slots` : [`+${Rr.tokensPerRank} unlock token`, ...ms].join(" · ");
             h += `<tr class="${r === p.rank ? "me" : ""}"><td>${r}${r === p.rank ? " ◀" : ""}</td><td>${fmt((0, progression_ts_1.xpForRank)(Rr, r))}</td><td class="${r <= p.rank ? "" : "muted"}">${gives}</td></tr>`;
         }
@@ -194,7 +194,7 @@ function profileHtml() {
         else {
             // designer 22 Nov: the options that were already in the game stay free; only new items cost tokens. The
             // unlocks available now come first, then the planned list (it had vanished once any item had a price)
-            h += `<div class="muted">Spend tokens on new items: one token per rank, two at ranks ${Rr.fl.bonus.join(", ")}. Everything that was already in the game stays free. You can also unlock straight from the loadout (click a locked card twice).</div>`;
+            h += `<div class="muted">Spend tokens on new items: three tokens per rank, four at ranks ${Rr.fl.bonus.join(", ")}. Everything that was already in the game stays free. You can also unlock straight from the loadout (click a locked card twice).</div>`;
             h += `<h2>AVAILABLE NOW</h2>`;
             for (const pool of Object.keys(FL_POOL_TEXT))
                 for (const id of Rr.fl.pools[pool] ?? []) {

@@ -806,7 +806,7 @@ class Sim {
             const R = this.relief;
             this.nav.applySlopeCost((x, z) => ter.height(x, z), (k, g) => (0, relief_ts_1.slopeSpeedFactor)(R, k, g));
         }
-        this.callRules = (0, calls_ts_1.compileCallRules)(o.data, this.d.typeIds, c.tickRate, o.planetId);
+        this.callRules = (0, calls_ts_1.compileCallRules)(o.data, this.d.typeIds, c.tickRate, o.planetId, !!o.lanes);
         this.kitRules = (0, pilotkit_ts_1.compileKitRules)(this.d);
         this.stlRules = (0, stealth_ts_1.compileStealthRules)(this);
         { // ruling 41: low flight (constants.stealth.lowFlight*); all three or none

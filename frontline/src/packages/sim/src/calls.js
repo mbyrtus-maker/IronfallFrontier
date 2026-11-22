@@ -82,15 +82,17 @@ exports.CF_THROWN = 2;
 exports.TB_FLY = 0, exports.TB_ROLL = 1;
 const num = (v) => (typeof v === "number" ? v : 0);
 /** Compiles the support-call rules from data (null when the data has no supportCalls). typeIds: compiled type ids. */
-function compileCallRules(data, typeIds, tickRate, planetId) {
+function compileCallRules(data, typeIds, tickRate, planetId, frontline = false) {
     const sc = data.supportCalls;
     if (!sc || !Array.isArray(sc.calls))
         return null;
     const ids = sc.calls.map((c) => c.id);
     const raw = data;
-    const calls = sc.calls.map((c) => {
+    const calls = sc.calls.map((c0) => {
+        // designer 22 Nov: a call's frontline block (requires, timings, params) overrides it in a Frontline match
+        const c = frontline && c0.frontline ? { ...c0, ...c0.frontline, params: { ...(c0.params ?? {}), ...(c0.frontline.params ?? {}) } } : c0;
         const p = c.params ?? {};
-        let fx = FX_BY_ID[c.id] ?? exports.CALL_FX_NONE;
+        let fx = FX_BY_ID[c.id] ?? (p.deliversUnit ? exports.CALL_FX_DROP : exports.CALL_FX_NONE); // (designer 22 Nov: any call that delivers a unit is a vehicle drop)
         if (fx === exports.CALL_FX_STRIKE && !(typeof p.damage === "number" && typeof p.radius === "number"))
             fx = exports.CALL_FX_NONE;
         if (fx === exports.CALL_FX_DROP && typeIds.indexOf(p.deliversUnit ?? (c.id === "vehicle-drop" ? sc.sim?.vehicleDropUnit ?? "lancer" : "")) < 0)

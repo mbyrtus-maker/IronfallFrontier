@@ -2283,11 +2283,20 @@ function flAtCore() {
     return false;
 }
 /** A kit button was clicked (start card or the in-game panel). */
+/** Designer 22 Nov: the loadout's "Hide locked" filter (on by default, remembered). */
+let flHideLocked = (() => { try { return localStorage.getItem("ironfall.flHideLocked") !== "0"; } catch { return true; } })();
 function flPickerClick(e) {
     const b = e.target.closest("button[data-k]");
     if (!b)
         return;
     e.stopPropagation();
+    if (b.dataset.k === "ui" && b.dataset.v === "hideLocked") {
+        flHideLocked = !flHideLocked;
+        try { localStorage.setItem("ironfall.flHideLocked", flHideLocked ? "1" : "0"); } catch { }
+        flUnlockArmed = "";
+        flRenderPicker();
+        return;
+    }
     if (started && !flAtCore()) {
         notify("LOADOUT · return to your Command Core to change it", "warn");
         snd.ui("error");
@@ -2343,7 +2352,7 @@ function flPickerClick(e) {
 function flPickerHtml() {
     const w = flWeapons();
     flKitSanitize();
-    const lock = !progression_ui_ts_1.c7a.flAny() ? null : { owns: flOwns, cost: (key, val) => progression_ui_ts_1.c7a.flCost(FL_POOL[key], flPoolId(key, val)), tokens: progression_ui_ts_1.c7a.flTokens(), armed: flUnlockArmed, pool: (key, val) => `${FL_POOL[key]}:${flPoolId(key, val)}` };
+    const lock = !progression_ui_ts_1.c7a.flAny() ? null : { owns: flOwns, cost: (key, val) => progression_ui_ts_1.c7a.flCost(FL_POOL[key], flPoolId(key, val)), tokens: progression_ui_ts_1.c7a.flTokens(), hide: flHideLocked, armed: flUnlockArmed, pool: (key, val) => `${FL_POOL[key]}:${flPoolId(key, val)}` };
     return (0, loadout_ui_ts_1.loadoutHtml)(FL, flKit, data, lock) // designer 19 Nov: numbered steps in groups, icon cards (no Role: slot 2 is chosen); locked cards: token unlocks
         + (started ? `<div class="battleSub">1 ${flName(w.gun)} · 2 ${flName(w.role)} · G ${flName(w.grenade)} · ${FL.armour[flKit.armour].name} armour</div>` : ""); // designer 20 Nov: the start card's picker already shows the kit
 }

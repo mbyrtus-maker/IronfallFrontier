@@ -529,7 +529,7 @@ class FlBots {
         // a ground vehicle (never more than one alive: callRefusal)
         const early = sim.tick < (90 + b.i * 25) * tr; // pacing: no armour in the opening minute and a half, then staggered
         for (const id of ["tank-drop", "mech-drop"])
-            if (!early && kitCalls.includes(id) && ready(id) >= 0 && b.mode !== "retreat") {
+            if (!early && sim.d.raw.constants.frontline?.aiVehicleDrops !== false && kitCalls.includes(id) && ready(id) >= 0 && b.mode !== "retreat") { // (designer 22 Nov: vehicle drops are player only)
                 const a = (b.i * 1.7 + sim.tick * 0.001) % (Math.PI * 2);
                 call(id, x + Math.cos(a) * 16, z + Math.sin(a) * 16);
                 return;

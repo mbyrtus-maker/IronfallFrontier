@@ -64,6 +64,14 @@ exports.CALL_CODES = {
     "slot3-drop": ["D", "D", "L", "L"],
     "repair-resupply": ["D", "D", "R", "L"], // designer 21 Nov
     "flak-turret": ["D", "U", "R", "R"], // designer 21 Nov
+    // designer 22 Nov: the vehicle drops (supply: D D ...)
+    "wasp-drop": ["D", "D", "U", "D"],
+    "hammer-drop": ["D", "D", "U", "L"],
+    "salvo-drop": ["D", "D", "D", "U"],
+    "flak-drop": ["D", "D", "D", "D"],
+    "strider-drop": ["D", "D", "D", "L"],
+    "lancer-drop": ["D", "D", "D", "R"],
+    "carrier-drop": ["D", "D", "L", "D"],
 };
 const codeText = (c) => c.map((d) => exports.DIR_ARROW[d]).join(" ");
 exports.codeText = codeText;

@@ -92,11 +92,11 @@ function flRules(F) {
     const pools = {};
     for (const pool of new Set([...Object.keys(F.start ?? {}), ...Object.keys(F.cost)]))
         pools[pool] = [...(F.start?.[pool] ?? []), ...Object.keys(F.cost[pool] ?? {})];
-    return { start: F.start ?? {}, cost: F.cost, pools, bonus: F.bonusTokenRanks ?? [] };
+    return { start: F.start ?? {}, cost: F.cost, pools, bonus: F.bonusTokenRanks ?? [], perRank: F.tokensPerRank ?? null };
 }
-/** Frontline: tokens earned by a rank (1 per rank above 1, +1 at each bonus rank reached). */
+/** Frontline: tokens earned by a rank (frontline.tokensPerRank per rank above 1, +1 at each bonus rank reached). */
 function flTokensEarned(R, rank) {
-    return (rank - 1) * R.tokensPerRank + (R.fl ? R.fl.bonus.filter((r) => rank >= r).length : 0);
+    return (rank - 1) * (R.fl?.perRank ?? R.tokensPerRank) + (R.fl ? R.fl.bonus.filter((r) => rank >= r).length : 0); // (designer 22 Nov: Frontline 3 a rank)
 }
 /** Frontline: does the profile own item id of pool (a starting item, or unlocked)? */
 function flOwns(R, profile, pool, id) {
@@ -162,7 +162,7 @@ function applyBattle(R, profile, result, o = {}) {
     p.xp += xp;
     const rank = rankForXp(R, p.xp);
     if (rank > p.rank)
-        p.tokens += (rank - p.rank) * R.tokensPerRank + (R.fl ? R.fl.bonus.filter((r) => r > p.rank && r <= rank).length : 0);
+        p.tokens += (rank - p.rank) * (R.fl?.perRank ?? R.tokensPerRank) + (R.fl ? R.fl.bonus.filter((r) => r > p.rank && r <= rank).length : 0);
     p.rank = rank;
     const frac = result.victory ? 1 : R.defeatXp;
     for (const [k, v] of Object.entries(result.mastery)) {

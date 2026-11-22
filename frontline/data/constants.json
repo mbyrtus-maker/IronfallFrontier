@@ -1198,7 +1198,22 @@
       "repair-resupply",
       "tank-drop",
       "gunship-drop",
-      "mech-drop"
+      "mech-drop",
+      "smoke-screen",
+      "sensor-sweep",
+      "recon-drone",
+      "minefield",
+      "emp-burst",
+      "strafing-run",
+      "bomb-run",
+      "scout-drop",
+      "wasp-drop",
+      "hammer-drop",
+      "salvo-drop",
+      "flak-drop",
+      "strider-drop",
+      "lancer-drop",
+      "carrier-drop"
     ],
     "laserGuns": [
       "pulse-carbine",
@@ -1284,6 +1299,8 @@
     },
     "aiEmptyVehicleRadiusMetres": 120,
     "playerVehicleTagSeconds": 45,
-    "_emptyVehiclesNote": "Designer 22 Nov: AI pilots of both sides man an empty vehicle within aiEmptyVehicleRadiusMetres before running back to base (or one they pass); a vehicle a player summoned or was in is left alone until playerVehicleTagSeconds after the player was last aboard."
+    "_emptyVehiclesNote": "Designer 22 Nov: AI pilots of both sides man an empty vehicle within aiEmptyVehicleRadiusMetres before running back to base (or one they pass); a vehicle a player summoned or was in is left alone until playerVehicleTagSeconds after the player was last aboard.",
+    "aiVehicleDrops": false,
+    "_aiVehicleDropsNote": "Designer 22 Nov: every vehicle drop is player only (the AI pilots man empty vehicles instead)."
   }
 }

@@ -35,6 +35,12 @@
       "cooldownSeconds": 90,
       "params": {
         "deliversUnit": "dart"
+      },
+      "frontline": {
+        "requires": [],
+        "delaySeconds": 8,
+        "cooldownSeconds": 150,
+        "_note": "Designer 22 Nov: Frontline values (no relay tower or air pad to hold; tuned for pilot-scale fights)"
       }
     },
     {
@@ -122,6 +128,15 @@
         "mineDamage": 500,
         "damageType": "explosive",
         "triggeredBy": "vehicles"
+      },
+      "frontline": {
+        "requires": [],
+        "cooldownSeconds": 120,
+        "params": {
+          "radius": 16,
+          "mines": 10
+        },
+        "_note": "Designer 22 Nov: Frontline values (no relay tower or air pad to hold; tuned for pilot-scale fights)"
       }
     },
     {
@@ -133,7 +148,9 @@
       "cooldownSeconds": 120,
       "params": {
         "radius": 18,
-        "durationSeconds": 30, "projector": "shield-pod", "hp": 1000,
+        "durationSeconds": 30,
+        "projector": "shield-pod",
+        "hp": 1000,
         "blocksShots": true,
         "blocksUnits": false
       }
@@ -149,6 +166,11 @@
         "lineLength": 40,
         "durationSeconds": 15,
         "breaksDetection": true
+      },
+      "frontline": {
+        "requires": [],
+        "cooldownSeconds": 75,
+        "_note": "Designer 22 Nov: Frontline values (no relay tower or air pad to hold; tuned for pilot-scale fights)"
       }
     },
     {
@@ -161,6 +183,15 @@
       "params": {
         "radius": 200,
         "durationSeconds": 10
+      },
+      "frontline": {
+        "requires": [],
+        "cooldownSeconds": 90,
+        "params": {
+          "radius": 150,
+          "durationSeconds": 8
+        },
+        "_note": "Designer 22 Nov: Frontline values (no relay tower or air pad to hold; tuned for pilot-scale fights)"
       }
     },
     {
@@ -205,6 +236,15 @@
         "radius": 40,
         "durationSeconds": 8,
         "affectsBothSides": true
+      },
+      "frontline": {
+        "requires": [],
+        "cooldownSeconds": 150,
+        "params": {
+          "radius": 30,
+          "durationSeconds": 6
+        },
+        "_note": "Designer 22 Nov: Frontline values (no relay tower or air pad to hold; tuned for pilot-scale fights)"
       }
     },
     {
@@ -223,6 +263,18 @@
         "roundDamage": 40,
         "damageType": "explosive",
         "lineLength": 80
+      },
+      "frontline": {
+        "requires": [
+          "atmosphere"
+        ],
+        "usesBeforeRearm": 0,
+        "cooldownSeconds": 150,
+        "_note": "Designer 22 Nov: Frontline values (no relay tower or air pad to hold; tuned for pilot-scale fights)",
+        "params": {
+          "rounds": 48,
+          "roundDamage": 90
+        }
       }
     },
     {
@@ -241,6 +293,18 @@
         "bombDamage": 250,
         "damageType": "explosive",
         "lineLength": 80
+      },
+      "frontline": {
+        "requires": [
+          "atmosphere"
+        ],
+        "usesBeforeRearm": 0,
+        "cooldownSeconds": 210,
+        "_note": "Designer 22 Nov: Frontline values (no relay tower or air pad to hold; tuned for pilot-scale fights)",
+        "params": {
+          "bombs": 8,
+          "bombDamage": 700
+        }
       }
     },
     {
@@ -253,6 +317,15 @@
       "params": {
         "radius": 120,
         "durationSeconds": 30
+      },
+      "frontline": {
+        "requires": [],
+        "cooldownSeconds": 120,
+        "params": {
+          "radius": 110,
+          "durationSeconds": 25
+        },
+        "_note": "Designer 22 Nov: Frontline values (no relay tower or air pad to hold; tuned for pilot-scale fights)"
       }
     },
     {
@@ -346,6 +419,90 @@
       "params": {
         "deliversUnit": "mech"
       }
+    },
+    {
+      "id": "wasp-drop",
+      "name": "Wasp drop",
+      "category": "supply",
+      "requires": [],
+      "delaySeconds": 10,
+      "cooldownSeconds": 300,
+      "params": {
+        "deliversUnit": "wasp"
+      },
+      "_note": "Designer 22 Nov: a Frontline vehicle drop (player only: the AI pilots never call vehicle drops)"
+    },
+    {
+      "id": "hammer-drop",
+      "name": "Hammer drop",
+      "category": "supply",
+      "requires": [],
+      "delaySeconds": 10,
+      "cooldownSeconds": 300,
+      "params": {
+        "deliversUnit": "hammer"
+      },
+      "_note": "Designer 22 Nov: a Frontline vehicle drop (player only: the AI pilots never call vehicle drops)"
+    },
+    {
+      "id": "salvo-drop",
+      "name": "Salvo drop",
+      "category": "supply",
+      "requires": [],
+      "delaySeconds": 10,
+      "cooldownSeconds": 300,
+      "params": {
+        "deliversUnit": "salvo"
+      },
+      "_note": "Designer 22 Nov: a Frontline vehicle drop (player only: the AI pilots never call vehicle drops)"
+    },
+    {
+      "id": "flak-drop",
+      "name": "Flak drop",
+      "category": "supply",
+      "requires": [],
+      "delaySeconds": 10,
+      "cooldownSeconds": 300,
+      "params": {
+        "deliversUnit": "flak"
+      },
+      "_note": "Designer 22 Nov: a Frontline vehicle drop (player only: the AI pilots never call vehicle drops)"
+    },
+    {
+      "id": "strider-drop",
+      "name": "Strider drop",
+      "category": "supply",
+      "requires": [],
+      "delaySeconds": 10,
+      "cooldownSeconds": 300,
+      "params": {
+        "deliversUnit": "strider"
+      },
+      "_note": "Designer 22 Nov: a Frontline vehicle drop (player only: the AI pilots never call vehicle drops)"
+    },
+    {
+      "id": "lancer-drop",
+      "name": "Lancer drop",
+      "category": "supply",
+      "requires": [],
+      "delaySeconds": 10,
+      "cooldownSeconds": 300,
+      "params": {
+        "deliversUnit": "lancer"
+      },
+      "_note": "Designer 22 Nov: a Frontline vehicle drop (player only: the AI pilots never call vehicle drops)"
+    },
+    {
+      "id": "carrier-drop",
+      "name": "Carrier drop",
+      "category": "supply",
+      "requires": [],
+      "delaySeconds": 10,
+      "cooldownSeconds": 300,
+      "params": {
+        "deliversUnit": "carrier"
+      },
+      "_note": "Designer 22 Nov: a Frontline vehicle drop (player only: the AI pilots never call vehicle drops)"
     }
   ],
   "sim": {

@@ -115,6 +115,29 @@ exports.LOADOUT_ICONS = {
     "resupply-pod": S(`<path ${F} d="M24 10h16l4 6v14H20V16z"/><path d="M20 16h24"/><path ${F} d="M27 19h10v8H27z"/><path d="M27 23h10M32 19v8" stroke-opacity="0.6"/>`
         + `<path ${D} d="M22 30h4v3h-4zM38 30h4v3h-4z"/><path d="M28 10l-4-8M36 10l4-8M32 10V2" stroke-opacity="0.55"/><path ${D} d="M20 1h24v2H20z"/>`
         + `<path d="M10 8v10M7 15l3 3 3-3M54 8v10M51 15l3 3 3-3"/>`),
+    // designer 22 Nov, batch 1: the new call-downs
+    "smoke-screen": S(`<path ${D} d="M6 30h52v3H6z"/><path ${D} d="M30 24h4v6h-4z"/>`
+        + `<path ${F} d="M8 22q-2-6 4-7q0-6 7-5q3-5 8-1q5-4 9 1q6-2 7 4q6 0 6 6q4 2 2 6H8q-4-2 0-4z" fill-opacity="0.35"/><path d="M14 16q3-2 6 0M30 12q3-2 6 0M44 17q3-2 6 0" stroke-opacity="0.55"/>`),
+    "sensor-sweep": S(`<circle cx="32" cy="20" r="14" stroke-opacity="0.45"/><circle cx="32" cy="20" r="8" stroke-opacity="0.7"/><path ${F} d="M32 20L44 11a15 15 0 0 1 2 9z" fill-opacity="0.45"/>`
+        + `<circle ${D} cx="32" cy="20" r="1.6"/><circle ${D} cx="41" cy="15" r="1.3"/><circle ${D} cx="23" cy="26" r="1.3"/><path d="M14 34h36" stroke-opacity="0.5"/>`),
+    "recon-drone": S(`<ellipse cx="32" cy="29" rx="20" ry="4" stroke-dasharray="2 2" stroke-opacity="0.6"/><path ${F} d="M26 10h12l3 4H23z"/><path d="M14 8h14M36 8h14" stroke-width="1.8"/>`
+        + `<path d="M21 8v3M43 8v3"/><circle ${D} cx="32" cy="16" r="2"/><path d="M32 18l-8 10M32 18l8 10" stroke-opacity="0.4"/>`),
+    minefield: S(`${[[12, 26], [30, 30], [48, 25], [22, 18], [42, 15]].map(([x, y]) => `<path ${F} d="M${x - 5} ${y}h10l-2-3h-6z"/><circle ${D} cx="${x}" cy="${y - 4}" r="1.2"/>`).join("")}<path d="M2 33h60" stroke-opacity="0.5"/>`),
+    "emp-burst": S(`<circle cx="32" cy="18" r="15" stroke-opacity="0.35"/><circle cx="32" cy="18" r="9" stroke-opacity="0.6"/><path ${D} d="M34 7l-8 12h6l-3 10 9-13h-6z"/>`
+        + `<path d="M10 10l4 3-3 2 4 3M54 10l-4 3 3 2-4 3" stroke-opacity="0.7"/>`),
+    "strafing-run": S(`<path ${F} d="M40 6l14 3-14 3-6 6h-4l3-6-11-1-3 2h-3l2-4-2-4h3l3 2 11-1-3-6h4z"/>`
+        + `${[8, 18, 28, 38, 48].map((x) => `<path d="M${x} 30l2-5" stroke-width="1.6"/><circle cx="${x}" cy="31" r="1" stroke-opacity="0.6"/>`).join("")}<path d="M4 33h56" stroke-opacity="0.5"/>`),
+    "bomb-run": S(`<path ${F} d="M40 4l14 3-14 3-6 6h-4l3-6-11-1-3 2h-3l2-4-2-4h3l3 2 11-1-3-6h4z"/>`
+        + `${[[14, 18], [24, 22], [34, 26]].map(([x, y]) => `<path ${F} d="M${x} ${y}q-2-3 0-6q2 3 0 6z"/>`).join("")}<path ${F} d="M40 33q2-6 6-5q3-4 6 0q4-1 5 5z"/><path d="M2 33.5h60" stroke-opacity="0.5"/>`),
+    "scout-drop": S(`<path ${F} d="M14 22h30l8 4-2 4H12l-2-4z"/><path ${F} d="M22 22l3-5h12l3 5z"/><circle ${D} cx="18" cy="30" r="2.4"/><circle ${D} cx="44" cy="30" r="2.4"/><path d="M40 18h14" stroke-width="1.8"/>`
+        + `<path d="M26 3l5 4 5-4M26 8l5 4 5-4" stroke-opacity="0.6"/>`),
+    "wasp-drop": S(`<path ${F} d="M8 16h22l10-6h8l6 4-6 4 6 4-6 4h-8l-10-6H8l-4-2z"/><path ${D} d="M40 14h6v4h-6z"/><path d="M14 26h16M18 22v4" stroke-opacity="0.6"/><path d="M50 3l4 4 4-4M50 8l4 4 4-4" stroke-opacity="0.6"/>`),
+    "hammer-drop": S(`<path ${F} d="M4 22h46l-3 9H8z"/><path ${F} d="M10 22l4-8h28l4 8z"/><path ${F} d="M20 14v-4h14v4z"/><path d="M34 11h12" stroke-width="2"/><circle ${D} cx="14" cy="27" r="1.6"/><circle ${D} cx="40" cy="27" r="1.6"/><path d="M50 3l4 4 4-4M50 8l4 4 4-4" stroke-opacity="0.6"/>`),
+    "salvo-drop": S(`<path ${F} d="M4 24h44l-3 7H8z"/><path ${F} d="M10 24l2-5h30l2 5z"/><path ${F} d="M16 19l16-10 4 4-16 9z"/><path d="M22 14l14-8M26 17l14-8" stroke-opacity="0.7"/><circle ${D} cx="14" cy="28" r="1.5"/><circle ${D} cx="38" cy="28" r="1.5"/><path d="M50 3l4 4 4-4M50 8l4 4 4-4" stroke-opacity="0.6"/>`),
+    "flak-drop": S(`<path ${F} d="M4 24h44l-3 7H8z"/><path ${F} d="M12 24l3-6h22l3 6z"/><path d="M28 18l14-12M31 19l14-12" stroke-width="1.8"/><circle cx="45" cy="4" r="1.2"/><circle ${D} cx="14" cy="28" r="1.5"/><circle ${D} cx="38" cy="28" r="1.5"/><path d="M50 3l4 4 4-4M50 8l4 4 4-4" stroke-opacity="0.6"/>`),
+    "strider-drop": S(`<path ${F} d="M14 8h24l3 8H11z"/><path ${D} d="M40 10h8v3h-8z"/><path d="M16 16l-6 8 4 9M36 16l6 8-4 9M24 16l-2 17M30 16l2 17" stroke-width="1.6"/><path d="M50 3l4 4 4-4M50 8l4 4 4-4" stroke-opacity="0.6"/>`),
+    "lancer-drop": S(`<path ${F} d="M4 24h44l-3 7H8z"/><path ${F} d="M12 24l3-6h22l3 6z"/><path ${F} d="M18 18l2-4h12l2 4z"/><path d="M32 15h16" stroke-width="2.2"/><path d="M48 15h3" stroke-opacity="0.6" stroke-dasharray="1 1"/><circle ${D} cx="14" cy="28" r="1.5"/><circle ${D} cx="38" cy="28" r="1.5"/><path d="M50 3l4 4 4-4M50 8l4 4 4-4" stroke-opacity="0.6"/>`),
+    "carrier-drop": S(`<path ${F} d="M4 14h42l4 6v10H4z"/><path d="M4 20h46" stroke-opacity="0.6"/><path ${D} d="M10 16h6v3h-6zM20 16h6v3h-6zM30 16h6v3h-6z"/><circle ${D} cx="11" cy="31" r="2.4"/><circle ${D} cx="25" cy="31" r="2.4"/><circle ${D} cx="39" cy="31" r="2.4"/><path d="M50 3l4 4 4-4M50 8l4 4 4-4" stroke-opacity="0.6"/>`),
     "tank-drop": S(`<path ${F} d="M6 24h50l-4 8H10z"/><circle ${D} cx="14" cy="28" r="1.4"/><circle ${D} cx="22" cy="28" r="1.4"/><circle ${D} cx="30" cy="28" r="1.4"/><circle ${D} cx="38" cy="28" r="1.4"/><circle ${D} cx="46" cy="28" r="1.4"/>`
         + `<path ${F} d="M10 24l3-6h34l4 6z"/><path ${F} d="M20 18l2-5h16l3 5z"/><path ${F} d="M40 14h20v2.6H40z"/><path ${D} d="M58 13h4v4.6h-4z"/>`
         + `<path d="M25 3l5 4 5-4M25 7l5 4 5-4" stroke-opacity="0.6"/>`),
@@ -148,9 +171,14 @@ const title = (s) => String(s).replace(/\b\w/g, (c) => c.toUpperCase());
  * Returns the HTML of the three groups and their numbered steps.
  */
 function loadoutHtml(FL, kit, data, lock = null) {
+    let hidden = 0;
     const card = (k, v, on, icon, name, line, badge = "") => {
         // token unlocks (designer 19 Nov): a locked card shows its cost; armed (clicked once) it asks for the second click
         const locked = lock && !lock.owns(k, k === "laser" ? v === "1" : v), cost = locked ? lock.cost(k, k === "laser" ? v === "1" : v) : 0;
+        if (locked && lock.hide && !on) { // designer 22 Nov: the "hide locked" filter (on by default)
+            hidden++;
+            return "";
+        }
         const armed = locked && lock.armed === lock.pool(k, k === "laser" ? v === "1" : v);
         const lockLine = armed ? (lock.tokens >= cost ? `click again: ${cost} token${cost === 1 ? "" : "s"}` : `need ${cost} · have ${lock.tokens}`) : `locked · ${cost} token${cost === 1 ? "" : "s"}`;
         return `<button data-k="${k}" data-v="${esc(v)}" class="lo-card${on ? " on" : ""}${locked ? " locked" : ""}${armed ? " armed" : ""}" title="${esc(name)}${line ? ` · ${esc(line)}` : ""}">`
@@ -178,7 +206,7 @@ function loadoutHtml(FL, kit, data, lock = null) {
     const callName = (id) => data.supportCalls.calls.find((c) => c.id === id)?.name ?? id;
     const calls = (FL.frontlineCalls ?? []).map((id) => {
         const c = data.supportCalls.calls.find((x) => x.id === id), i = kit.calls.indexOf(id);
-        return card("calls", id, i >= 0, id, callName(id), c?.cooldownSeconds ? `cooldown ${c.cooldownSeconds} s` : "", i >= 0 ? "✓" : ""); // designer 21 Nov: a plain select / deselect tick, no pick-order numbers
+        return card("calls", id, i >= 0, id, callName(id), (c?.frontline?.cooldownSeconds ?? c?.cooldownSeconds) ? `cooldown ${c?.frontline?.cooldownSeconds ?? c.cooldownSeconds} s` : "", i >= 0 ? "✓" : ""); // designer 21 Nov: a plain select / deselect tick, no pick-order numbers
     }).join("");
     const roleW = data.weapons.find((x) => x.id === FL.roles[kit.role]?.weapon);
     return `<div class="lo">`
@@ -188,6 +216,6 @@ function loadoutHtml(FL, kit, data, lock = null) {
             + step(4, "Armour", `${FL.armour[kit.armour]?.name ?? ""} armour`, arm))
         + group("Support", step(5, "Slot 3 · call-down weapon", FL.slot3?.[kit.slot3] ?? "", s3, "dropped in a pod when you call it")
             + step(6, `Call-downs`, `${kit.calls.length} of 4 selected`, calls, "click to select or deselect · up to four"))
-        + (lock ? `<div class="lo-tokens"><b>${lock.tokens}</b> unlock token${lock.tokens === 1 ? "" : "s"} · one per rank (two at every fifth) · click a locked option twice to unlock it</div>` : "")
+        + (lock ? `<div class="lo-tokens"><button data-k="ui" data-v="hideLocked" class="lo-filter${lock.hide ? " on" : ""}" title="show or hide the options you have not unlocked yet">${lock.hide ? "☑" : "☐"} Hide locked${lock.hide && hidden ? ` (${hidden})` : ""}</button> <b>${lock.tokens}</b> unlock token${lock.tokens === 1 ? "" : "s"} · three per rank (four at every fifth)${lock.hide ? "" : " · click a locked option twice to unlock it"}</div>` : "")
         + `</div>`;
 }

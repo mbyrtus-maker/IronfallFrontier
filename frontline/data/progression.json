@@ -196,7 +196,7 @@
     "larger-reserve"
   ],
   "frontline": {
-    "_note": "Designer 21 Nov: every loadout option that existed before stays free; only new items are token unlocks (Flak turret 1, Shield barrier 2). Tokens: 1 per rank, +1 at each bonusTokenRanks.",
+    "_note": "Designer 22 Nov: unlocks for new items only (everything already in the game is free); 3 tokens a rank (+1 at each bonusTokenRanks: 93 by rank 30, the whole list costs about 80). Med beacon and Ammo cache dropped from the plan; the Carrier is not a spawn point.",
     "bonusTokenRanks": [
       5,
       10,
@@ -209,7 +209,22 @@
     "cost": {
       "flCalls": {
         "flak-turret": 1,
-        "shield-bubble": 2
+        "shield-bubble": 2,
+        "smoke-screen": 1,
+        "sensor-sweep": 1,
+        "scout-drop": 1,
+        "recon-drone": 1,
+        "minefield": 2,
+        "emp-burst": 2,
+        "strafing-run": 2,
+        "bomb-run": 3,
+        "wasp-drop": 2,
+        "hammer-drop": 2,
+        "salvo-drop": 2,
+        "flak-drop": 1,
+        "strider-drop": 2,
+        "lancer-drop": 2,
+        "carrier-drop": 3
       }
     },
     "_shelved": {
@@ -285,59 +300,9 @@
           "name": "Call-downs",
           "items": [
             {
-              "name": "Smoke screen",
-              "what": "A wall of smoke that blocks sight lines",
-              "cost": 1
-            },
-            {
-              "name": "Sensor sweep",
-              "what": "Reveals enemies in an area for a few seconds",
-              "cost": 1
-            },
-            {
-              "name": "Scout drop",
-              "what": "A light scout vehicle beside you",
-              "cost": 1
-            },
-            {
-              "name": "Recon drone",
-              "what": "Circles and spots for your team",
-              "cost": 1
-            },
-            {
-              "name": "Minefield",
-              "what": "Seeds a lane with mines",
-              "cost": 2
-            },
-            {
-              "name": "EMP burst",
-              "what": "Stuns vehicles and turrets in an area",
-              "cost": 2
-            },
-            {
-              "name": "Strafing run",
-              "what": "An aircraft rakes a line with cannon fire",
-              "cost": 2
-            },
-            {
-              "name": "Bomb run",
-              "what": "A carpet of bombs along a line",
-              "cost": 3
-            },
-            {
               "name": "Orbital lance",
               "what": "A delayed, pin-point beam that one-shots a structure",
               "cost": 3
-            },
-            {
-              "name": "Med beacon",
-              "what": "Heals and speeds revives in a radius for 20 s",
-              "cost": 1
-            },
-            {
-              "name": "Ammo cache",
-              "what": "Refills slot 3 rounds",
-              "cost": 1
             }
           ]
         },
@@ -445,41 +410,6 @@
           "name": "Vehicle drops",
           "items": [
             {
-              "name": "Wasp",
-              "what": "Light, fast attack aircraft",
-              "cost": 2
-            },
-            {
-              "name": "Hammer",
-              "what": "Heavy assault vehicle",
-              "cost": 2
-            },
-            {
-              "name": "Salvo",
-              "what": "Rocket artillery",
-              "cost": 2
-            },
-            {
-              "name": "Flak",
-              "what": "Mobile anti-air",
-              "cost": 1
-            },
-            {
-              "name": "Strider",
-              "what": "Walker",
-              "cost": 2
-            },
-            {
-              "name": "Lancer",
-              "what": "Laser tank",
-              "cost": 2
-            },
-            {
-              "name": "Carrier",
-              "what": "Troop carrier: your squad spawns at it",
-              "cost": 3
-            },
-            {
               "name": "Mech variant",
               "what": "Twin arc lances instead of the autocannon",
               "cost": 1
@@ -582,6 +512,7 @@
           ]
         }
       ]
-    }
+    },
+    "tokensPerRank": 3
   }
 }
