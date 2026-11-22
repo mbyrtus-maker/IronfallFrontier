@@ -466,7 +466,7 @@ function cupola(b, x, y, rad, part) {
 }
 exports.KINDS = ["bike", "light", "medium", "artillery", "flak", "heavy", "siege", "air", "infantry", "economy", "structure", "tower", "mast", "silo", "extractor", "gastank", "battery", "reactor",
     "core", "factory", "pad", "dome", "bay", "carrier", "dropship", "node", "bunker", "wall", "hauler", "constructor", "fbv",
-    "barracks", "armoury", "techlab", "refinery", "uplink", "massdriver", "depot", "bgun0", "bgun1", "bgun2", "bikewreck", "scout", "rockettank", "sleg", "droppod", "fbturret", "fbwall", "mech", "gunship", "mleg", "flpod", "flcrate", "fldrop", "fldropwall", "fldropbase", "flrocket"];
+    "barracks", "armoury", "techlab", "refinery", "uplink", "massdriver", "depot", "bgun0", "bgun1", "bgun2", "bikewreck", "scout", "rockettank", "sleg", "droppod", "fbturret", "fbwall", "mech", "gunship", "mleg", "flpod", "flcrate", "fldrop", "fldropwall", "fldropbase", "flrocket", "rrstation"];
 /** P3: a hover hull section (right half, bottom up): chamfered at the top, c the chamfer. */
 const hsec = (yb, ym, yt, wb, wm, wt, c) => [[yb, wb], [ym, wm], [yt - c, wt], [yt, wt - c]];
 /** P3: a dark hover nacelle along x at side z: tapered ends, round glow plates under it (the concept's hover engines). */
@@ -2384,6 +2384,77 @@ function flRocket() {
         b.poly(fin, [c * 2 - tx, 2.1, sn * 2 - tz]); // both faces of the flat fin
         b.poly(fin.slice().reverse(), [c * 2 + tx, 2.1, sn * 2 + tz]);
     }
+    return b.build([0, 0, 0], 0, 0);
+}
+/**
+ * Designer 21 Nov: the Repair & Resupply call-down: a drop capsule landed on its pad with its four petals folded open,
+ * ammo crates and fuel drums stacked on them, a crane arm with a welding lamp, a lit green cross, and a beacon mast.
+ */
+function rrStation() {
+    const b = new MeshBuilder();
+    b.set(CON2);
+    b.cyl(0, 0, 0, 4.2, 4.2, 0.35, 8, "y", true, Math.PI / 8); // pad
+    b.set(HAZARD, 0);
+    b.cyl(0, 0.36, 0, 4.25, 4.25, 0.06, 8, "y", false, Math.PI / 8);
+    // the capsule
+    b.set(STEEL, 0);
+    b.cyl(0, 0.35, 0, 1.55, 1.45, 2.6, 12, "y", false);
+    b.cyl(0, 2.95, 0, 1.45, 0.5, 1.2, 12, "y", true);
+    b.set(DARK, 0);
+    for (const y of [0.9, 2.0])
+        b.cyl(0, y, 0, 1.58, 1.58, 0.16, 12, "y", false);
+    b.set([0.86, 0.87, 0.85], 0);
+    b.box(1.5, 1.6, 0, 0.06, 0.55, 0.55); // panel for the cross
+    b.set([0.35, 1, 0.45], 4);
+    b.box(1.57, 1.6, 0, 0.02, 0.42, 0.12);
+    b.box(1.57, 1.6, 0, 0.02, 0.12, 0.42); // green cross
+    b.mirrored((sd) => { b.box(-1.5, 1.6, sd * 0.0, 0.06, 0.55, 0.55); });
+    b.set([0.35, 1, 0.45], 4);
+    b.box(-1.57, 1.6, 0, 0.02, 0.42, 0.12);
+    b.box(-1.57, 1.6, 0, 0.02, 0.12, 0.42);
+    // four petals folded open onto the pad, carrying the supplies
+    for (let i = 0; i < 4; i++) {
+        const a = i * Math.PI / 2 + Math.PI / 4, c = Math.cos(a), sn = Math.sin(a), tx = -sn, tz = c;
+        const P = (r, h, w) => [c * r + tx * w, h, sn * r + tz * w];
+        b.set(STEEL, 0);
+        b.poly([P(1.5, 0.45, -0.9), P(3.7, 0.4, -1.2), P(3.7, 0.4, 1.2), P(1.5, 0.45, 0.9)], [c * 2.6, -1, sn * 2.6]);
+        b.set(DARK, 0);
+        b.poly([P(1.5, 0.38, -0.9), P(3.7, 0.37, -1.2), P(3.7, 0.37, 1.2), P(1.5, 0.38, 0.9)], [c * 2.6, 2, sn * 2.6]);
+        // stacked crates on two petals, fuel drums on the others
+        if (i % 2 === 0) {
+            b.set(OLIVE, 0);
+            b.box(c * 2.6, 0.75, sn * 2.6, 0.5, 0.32, 0.4);
+            b.box(c * 2.6 + tx * 0.2, 1.38, sn * 2.6 + tz * 0.2, 0.42, 0.3, 0.34);
+            b.set([0.9, 0.75, 0.2], 0);
+            b.box(c * 2.6, 0.75, sn * 2.6, 0.51, 0.06, 0.41); // band
+            b.set([0.86, 0.87, 0.85], 0);
+            b.box(c * 3.0, 0.75 , sn * 3.0, 0.08, 0.2, 0.2); // stencil plate
+        }
+        else {
+            b.set([0.7, 0.18, 0.12], 0);
+            for (const w of [-0.4, 0.4])
+                b.cyl(c * 2.7 + tx * w, 0.45, sn * 2.7 + tz * w, 0.3, 0.3, 0.95, 10, "y", true);
+            b.set(DARK, 0);
+            for (const w of [-0.4, 0.4])
+                b.cyl(c * 2.7 + tx * w, 0.95, sn * 2.7 + tz * w, 0.31, 0.31, 0.06, 10, "y", false);
+        }
+    }
+    // the repair crane: a post, a boom over the pad, a hanging welding head with a lit lamp
+    b.set(GUN, 0);
+    b.cyl(-2.3, 0.4, 2.3, 0.14, 0.12, 4.8, 6, "y", false);
+    rod(b, [-2.3, 5.1, 2.3], [2.6, 4.4, 2.1], 0.11, 6);
+    b.set(DARK, 0);
+    b.cyl(2.6, 3.3, 2.1, 0.03, 0.03, 1.1, 4, "y", false); // cable
+    b.box(2.6, 3.15, 2.1, 0.18, 0.15, 0.18); // welding head
+    b.set([1, 0.82, 0.4], 4);
+    b.ball(2.6, 2.98, 2.1, 0.09, 0);
+    // beacon mast
+    b.set(GUN, 0);
+    b.cyl(0.6, 3.6, -0.6, 0.05, 0.05, 2.0, 6, "y", false);
+    b.set([0.35, 1, 0.45], 5);
+    b.ball(0.6, 5.7, -0.6, 0.16, 0);
+    b.set([1, 1, 1], 2);
+    b.cyl(0, 2.55, 0, 1.47, 1.47, 0.1, 12, "y", false); // team band
     return b.build([0, 0, 0], 0, 0);
 }
 /** Foundry (the concept's): a chamfered hall with a raised upper block, roof vents, a tall chimney, a big shuttered
@@ -6176,6 +6247,7 @@ function buildKindRaw(k) {
         case "massdriver": return massdriver();
         case "depot": return depot();
         case "droppod": return dropPod();
+        case "rrstation": return rrStation();
         case "fbturret": return fbTurret();
         case "fbwall": return fbWall();
     }
@@ -6193,6 +6265,7 @@ function kindFor(typeId, armourClass, structure) {
         // C9: fix-qa2 point structures
         ["control-node", "node"], ["bunker", "bunker"], ["barricade", "wall"],
         ["drop-pod-sentry", "droppod"], // ruling 130
+        ["resupply-station", "rrstation"], // designer 21 Nov: Repair & Resupply call-down
         ["fb-turret", "fbturret"], ["fb-barricade", "fbwall"], // ruling 132
         ["mech", "mech"], // Frontline: the bipedal mech
         ["gunship", "gunship"], // Frontline: the rocket gunship
@@ -6295,6 +6368,7 @@ function ringMesh() {
 const TT = (px, py, r, h, L) => [px + r * 1.3 + L * 1.12, py + h * 0.55, 0]; // tankTurret barrel tip
 exports.MUZZLES = {
     fbturret: [{ pts: [[2.72, exports.FBT.gunY - 0.12, 0.88], [2.72, exports.FBT.gunY - 0.12, -0.88]], turret: true }, { pts: [[4.1, exports.FBT.gunY, 0]], turret: true }], fbwall: [], // ruling 132; designer 21 Nov: machine guns, cannon
+    rrstation: [],
     droppod: [{ pts: [[exports.DP.gunTip, exports.DP.gunY, exports.DP.gunZ], [exports.DP.gunTip, exports.DP.gunY, -exports.DP.gunZ]], turret: true }, { pts: [[2.98, 5.12, exports.DP.podZ]], turret: true }], // ruling 130: twin guns; designer 21 Nov: a cannon (was 4 rocket tubes)
     bike: [{ pts: [[2.3, 0.45, 0.42], [2.3, 0.45, -0.42]], turret: false }, { pts: [[0.45, 1.4, 0]], turret: false }],
     bikewreck: [], // wrecks: never fire
@@ -6362,7 +6436,7 @@ exports.COCKPITS = {
     barracks: { driver: null }, armoury: { driver: null }, techlab: { driver: null }, refinery: { driver: null }, uplink: { driver: null }, massdriver: { driver: null }, depot: { driver: null },
     carrier: { driver: [0.15, 2.9 + CUPOLA_H / 2, 0] }, // C8: roof cupola at the data's driver zone
     dropship: { driver: [2.8, 1.7, 0] },
-    droppod: { driver: null }, fbturret: { driver: null }, fbwall: { driver: null },
+    droppod: { driver: null }, rrstation: { driver: null }, fbturret: { driver: null }, fbwall: { driver: null },
 };
 // ---------------------------------------------------------------- first-person viewmodels (slice 3b, item 13)
 /**

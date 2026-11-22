@@ -6547,6 +6547,14 @@ class Sim {
             e.ids.push(id);
             r = id;
         }
+        else if (fx === calls_ts_1.CALL_FX_DEPOT) { // designer 21 Nov: the Repair & Resupply station
+            if (this.slotsLeft() < 1)
+                return -1;
+            const id = this.spawnUnit(d.typeIds[def.profile], b.team, b.x, b.z, { crew: "none" }), s = this.idToSlot.get(id);
+            this.hp[s] = def.hp;
+            e.ids.push(id);
+            r = id;
+        }
         else if (fx === calls_ts_1.CALL_FX_MINES) {
             // doc 15: params.mines hidden mines spread over the params.radius disk; they stay until set off. ids[k] = the field's
             // mine key while mine k is live (0 once set off). The key is drawn from the sim's seeded PRNG (QA1 bug 2): the spots
@@ -6589,6 +6597,34 @@ class Sim {
     }
     /** One tick of a lasting effect; false when it is over. */
     callZoneStep(e, fx) {
+        if (fx === calls_ts_1.CALL_FX_DEPOT) { // the station repairs friendly vehicles and buildings around it (pilots: fkit refill)
+            const s = this.idToSlot.get(e.ids[0]);
+            if (s === undefined || !this.alive[s] || this.hp[s] <= 0)
+                return false;
+            if (this.tick >= e.end) {
+                this.destroy(e.ids[0]);
+                return false;
+            }
+            if (this.tick % 10 === 0) {
+                const def = this.calls.rules.calls[e.call], d = this.d, amt = def.repair * 10;
+                for (let k = 0; k < this.nLive; k++) {
+                    const o = this.live[k], t = this.etype[o];
+                    if (o === s || !this.alive[o] || this.team[o] !== e.team || this.hp[o] <= 0 || this.critTick[o] >= 0 || !(d.tVehicle[t] || d.tStructure[t]))
+                        continue;
+                    if (this.callSentry && this.callSentry(o))
+                        continue;
+                    const lim = def.radius + d.tRadius[t], dx = this.x[o] - this.x[s], dz = this.z[o] - this.z[s];
+                    if (dx * dx + dz * dz > lim * lim)
+                        continue;
+                    const max = this.maxHull(o);
+                    if (this.hp[o] < max)
+                        this.hp[o] = Math.min(max, this.hp[o] + amt);
+                    if (d.tVehicle[t] && this.tick % 100 === 0)
+                        (0, s15_ts_1.ammoOnSpawn)(this, o); // aircraft rearm
+                }
+            }
+            return true;
+        }
         if (fx === calls_ts_1.CALL_FX_SENTRY) {
             const s = this.idToSlot.get(e.ids[0]);
             if (s === undefined || !this.alive[s] || this.hp[s] <= 0)

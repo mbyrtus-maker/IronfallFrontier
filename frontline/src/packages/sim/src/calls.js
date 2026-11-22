@@ -30,6 +30,8 @@ exports.CALL_FX_NONE = 0, exports.CALL_FX_STRIKE = 1, exports.CALL_FX_RESUPPLY =
 exports.CALL_FX_SENTRY = 7, exports.CALL_FX_MINES = 8, exports.CALL_FX_SMOKE = 9, exports.CALL_FX_SHIELD = 10, exports.CALL_FX_EMP = 11, exports.CALL_FX_POD = 12;
 /** Ruling 121 (designer 16 Nov): repair beacon (lasting zone), supply drop (instant ore / gas). The recon drone is a sweep. */
 exports.CALL_FX_REPAIR = 13, exports.CALL_FX_SUPPLY = 14;
+/** Designer 21 Nov: Repair & Resupply: a station building (params.building) that repairs and refills around it for params.durationSeconds. */
+exports.CALL_FX_DEPOT = 15;
 /** CALL_EFFECT sub-kinds (event flags & 15). */
 exports.CE_SHELL = 0, exports.CE_LINE = 1;
 /** w2a CALL_EFFECT sub-kinds: a lasting effect started (d: sentry entity id / mines laid / entities disabled), ended,
@@ -66,6 +68,7 @@ const FX_BY_ID = { "precision-strike": exports.CALL_FX_STRIKE, "resupply-pod": e
     "sentry-gun": exports.CALL_FX_SENTRY, "minefield": exports.CALL_FX_MINES, "smoke-screen": exports.CALL_FX_SMOKE, "shield-bubble": exports.CALL_FX_SHIELD,
     "emp-burst": exports.CALL_FX_EMP, "heavy-weapon-pod": exports.CALL_FX_POD,
     "recon-drone": exports.CALL_FX_SWEEP, "supply-drop": exports.CALL_FX_SUPPLY, // ruling 121
+    "repair-resupply": exports.CALL_FX_DEPOT, // designer 21 Nov
     "rocket-tube-drop": exports.CALL_FX_POD, // ruling 133: the fixed anti-armour slot (a one-weapon pod)
     // Frontline: vehicle drops, the slot 3 weapon pod, reinforcements flown in by Mule (fkit.ts)
     "tank-drop": exports.CALL_FX_DROP, "gunship-drop": exports.CALL_FX_DROP, "mech-drop": exports.CALL_FX_DROP, "slot3-drop": exports.CALL_FX_POD,
@@ -96,6 +99,8 @@ function compileCallRules(data, typeIds, tickRate, planetId) {
         const choices = Array.isArray(p.weaponChoices) ? p.weaponChoices.map(wIdx).filter((i) => i >= 0) : [];
         const trig = num(sc.sim?.mineTriggerRadiusMetres), width = num(sc.sim?.smokeWidthMetres);
         if (fx === exports.CALL_FX_SENTRY && (prof < 0 || sw < 0 || !(num(p.hp) > 0) || !(num(p.durationSeconds) > 0)))
+            fx = exports.CALL_FX_NONE;
+        if (fx === exports.CALL_FX_DEPOT && !(typeIds.indexOf(p.building ?? "") >= 0 && num(p.hp) > 0 && num(p.durationSeconds) > 0))
             fx = exports.CALL_FX_NONE;
         if (fx === exports.CALL_FX_MINES && !(trig > 0 && num(p.mines) > 0))
             fx = exports.CALL_FX_NONE;
@@ -128,7 +133,7 @@ function compileCallRules(data, typeIds, tickRate, planetId) {
             rate: num(p.shellsPerSecond), lineLength: num(p.lineLength), uses: num(c.usesBeforeRearm),
             unitType: typeIds.indexOf(p.deliversUnit ?? (c.id === "vehicle-drop" ? sc.sim?.vehicleDropUnit ?? "lancer" : "")),
             fromReserve: num(p.vehiclesFromReserve),
-            weapon: sw, weapon2: wIdx(p.rocketWeapon), deployTicks: Math.round(num(p.deploySeconds) * tickRate), hp: num(p.hp), profile: prof, choices, trigger: trig, infantry: p.triggeredBy === "all", width,
+            weapon: sw, weapon2: wIdx(p.rocketWeapon), deployTicks: Math.round(num(p.deploySeconds) * tickRate), hp: num(p.hp), profile: fx === exports.CALL_FX_DEPOT ? typeIds.indexOf(p.building) : prof, choices, trigger: trig, infantry: p.triggeredBy === "all", width,
             repair: num(p.repairPerSecond) / tickRate, ore: num(p.ore), gas: num(p.gas), hullRepair: num(p.hullRepairFraction), mannable: p.mannable === true };
     });
     const sim = sc.sim ?? {};

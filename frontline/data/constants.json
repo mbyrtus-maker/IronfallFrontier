@@ -1194,6 +1194,7 @@
       "barrage",
       "reinforcements",
       "resupply-pod",
+      "repair-resupply",
       "tank-drop",
       "gunship-drop",
       "mech-drop"

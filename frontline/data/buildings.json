@@ -573,5 +573,6 @@
     "buildTime": 1,
     "effects": { "pointStructure": true },
     "notes": "Ruling 132 (FB1): one fold-up armour barricade segment of a forward base's arc, facing the likeliest approach (points.forwardBase.defences). Never built. Hull PROPOSED."
-  }
+  },
+  {"id": "resupply-station", "name": "Repair & Resupply station", "tier": 0, "cost": {"ore": 0, "gas": 0}, "power": 0, "hp": 1600, "shield": 0, "baseType": "standard", "sensorRange": 120, "buildTime": 1, "weapons": [], "defence": false, "effects": {"pointStructure": true, "pilotEnergyRefill": true, "pilotKitResupply": true}, "notes": "Designer 21 Nov: the Repair & Resupply call-down's body: an orbital drop capsule that unfolds into a field station; repairs friendly vehicles and buildings around it and refills pilots' ammo, heat cells, energy and jetpack. Never built (placed by the sim)."}
 ]

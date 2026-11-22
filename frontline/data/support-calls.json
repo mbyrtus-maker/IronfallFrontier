@@ -66,6 +66,21 @@
       }
     },
     {
+      "id": "repair-resupply",
+      "name": "Repair & Resupply",
+      "category": "supply",
+      "requires": [],
+      "delaySeconds": 5,
+      "cooldownSeconds": 150,
+      "params": {
+        "durationSeconds": 90,
+        "building": "resupply-station",
+        "hp": 1600,
+        "radius": 30,
+        "repairPerSecond": 45
+      }
+    },
+    {
       "id": "sentry-gun",
       "name": "Sentry gun",
       "category": "defensive",
