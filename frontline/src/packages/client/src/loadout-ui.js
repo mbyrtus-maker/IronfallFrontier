@@ -150,7 +150,7 @@ function loadoutHtml(FL, kit, data, lock = null) {
         return `<button data-k="${k}" data-v="${esc(v)}" class="lo-card${on ? " on" : ""}${locked ? " locked" : ""}${armed ? " armed" : ""}" title="${esc(name)}${line ? ` · ${esc(line)}` : ""}">`
             + `${badge ? `<b class="lo-badge">${badge}</b>` : ""}${locked ? `<b class="lo-lock">${LOCK_SVG}</b>` : ""}<span class="lo-ic">${exports.LOADOUT_ICONS[icon] ?? ""}</span><span class="lo-n">${esc(name)}</span><span class="lo-s">${esc(locked ? lockLine : line)}</span></button>`;
     };
-    const step = (n, label, chosen, cards, hint = "", extra = "") => `<div class="lo-step"><div class="lo-h"><span class="lo-num">${n}</span><span class="lo-l">${label}</span><span class="lo-c">${esc(chosen)}</span>${hint ? `<span class="lo-hint">${hint}</span>` : ""}${extra}</div><div class="lo-row">${cards}</div></div>`;
+    const step = (n, label, chosen, cards, hint = "", extra = "") => `<div class="lo-step"><div class="lo-h"><span class="lo-l">${label}</span><span class="lo-c">${esc(chosen)}</span>${hint ? `<span class="lo-hint">${hint}</span>` : ""}${extra}</div><div class="lo-row">${cards}</div></div>`;
     const group = (name, steps) => `<div class="lo-group"><div class="lo-g">${name}</div>${steps}</div>`;
     const gun = FL.guns[kit.gun], laser = !!kit.laser;
     const slot1 = Object.entries(FL.guns).map(([k, g]) => card("gun", k, kit.gun === k, k, g.name, weaponLine(data, laser ? g.laser : g.kinetic))).join("");
@@ -172,7 +172,7 @@ function loadoutHtml(FL, kit, data, lock = null) {
     const callName = (id) => data.supportCalls.calls.find((c) => c.id === id)?.name ?? id;
     const calls = (FL.frontlineCalls ?? []).map((id) => {
         const c = data.supportCalls.calls.find((x) => x.id === id), i = kit.calls.indexOf(id);
-        return card("calls", id, i >= 0, id, callName(id), c?.cooldownSeconds ? `cooldown ${c.cooldownSeconds} s` : "", i >= 0 ? String(i + 1) : "");
+        return card("calls", id, i >= 0, id, callName(id), c?.cooldownSeconds ? `cooldown ${c.cooldownSeconds} s` : "", i >= 0 ? "✓" : ""); // designer 21 Nov: a plain select / deselect tick, no pick-order numbers
     }).join("");
     const roleW = data.weapons.find((x) => x.id === FL.roles[kit.role]?.weapon);
     return `<div class="lo">`
@@ -181,7 +181,7 @@ function loadoutHtml(FL, kit, data, lock = null) {
         + group("Gear", step(3, "Grenade", FL.grenades[kit.grenade]?.name ?? "", nades)
             + step(4, "Armour", `${FL.armour[kit.armour]?.name ?? ""} armour`, arm))
         + group("Support", step(5, "Slot 3 · call-down weapon", FL.slot3?.[kit.slot3] ?? "", s3, "dropped in a pod when you call it")
-            + step(6, `Call-downs`, `${kit.calls.length} of 4`, calls, "pick up to four · a fifth replaces your first"))
+            + step(6, `Call-downs`, `${kit.calls.length} of 4 selected`, calls, "click to select or deselect · up to four"))
         + (lock ? `<div class="lo-tokens"><b>${lock.tokens}</b> unlock token${lock.tokens === 1 ? "" : "s"} · one per rank (two at every fifth) · click a locked option twice to unlock it</div>` : "")
         + `</div>`;
 }

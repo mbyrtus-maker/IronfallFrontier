@@ -554,7 +554,7 @@
   .lo-g { font-family: var(--mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cyan); margin: 0 0 4px; }
   .lo-step { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 10px; align-items: center; padding: 6px 0; border-top: 1px solid rgba(255,255,255,0.05); }
   .lo-step:first-of-type { border-top: 0; }
-  .lo-h { display: grid; grid-template-columns: 24px 1fr; column-gap: 8px; align-items: baseline; }
+  .lo-h { display: grid; grid-template-columns: 1fr; column-gap: 8px; align-items: baseline; }
   .lo-num { grid-row: span 3; display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--cyan); color: var(--cyan); font: 600 12px var(--mono); }
   .lo-l { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); }
   .lo-c { font-size: 15px; color: var(--text); font-weight: 600; }
@@ -630,7 +630,7 @@
   .lo-group { padding: 4px 8px 6px; }
   .lo-g { margin: 0 0 1px; font-size: 10px; }
   .lo-step { grid-template-columns: 146px minmax(0, 1fr); gap: 8px; padding: 3px 0; }
-  .lo-h { grid-template-columns: 20px 1fr; column-gap: 6px; }
+  .lo-h { grid-template-columns: 1fr; column-gap: 6px; }
   .lo-num { width: 18px; height: 18px; font-size: 10px; }
   .lo-l { font-size: 9.5px; }
   .lo-c { font-size: 13px; line-height: 1.2; }
@@ -807,7 +807,7 @@
       <div class="diffRow"><span class="label">Enemy</span><button data-diff="easy">EASY</button><button data-diff="normal">NORMAL</button><button data-diff="hard">HARD</button></div></div>
     <div class="stSec"><div class="stH"><span>2</span>Pilot</div>
       <div class="mpRow stLeft"><span class="label">Callsign</span><input id="mpName" maxlength="16" placeholder="your callsign" autocomplete="off"></div>
-      <div class="mpRow stLeft"><span class="label">Squad</span><input id="mpCode" maxlength="24" placeholder="room code" autocomplete="off"><button id="mpBtn">HOST / JOIN</button></div>
+      <div class="mpRow stLeft"><span class="label">Squad</span><input id="mpCode" maxlength="24" placeholder="room code" autocomplete="off"><button id="mpBtn" title="Uses the loadout below">CONFIRM LOADOUT · HOST / JOIN</button></div>
       <div class="stNote">optional · up to 4 players type the same code; the first one in hosts</div>
       <div id="mpStat"></div>
       <div id="mpList"></div><div id="stSquad"></div></div>

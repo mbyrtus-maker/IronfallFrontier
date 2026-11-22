@@ -2222,14 +2222,17 @@ function flPickerClick(e) {
         notify(`UNLOCKED · ${b.querySelector(".lo-n")?.textContent ?? id}`, "info");
     }
     flUnlockArmed = "";
-    if (key === "calls") { // pick up to 4 call-downs (a fifth replaces the oldest pick)
+    if (key === "calls") { // designer 21 Nov: select / deselect, up to 4 (a fifth is refused: nothing changes behind the player's back)
         const c = flKit.calls.slice(), i = c.indexOf(val);
         if (i >= 0)
             c.splice(i, 1);
         else {
+            if (c.length >= 4) {
+                notify("FOUR CALL-DOWNS SELECTED · deselect one first", "warn");
+                snd.ui("error");
+                return;
+            }
             c.push(val);
-            if (c.length > 4)
-                c.shift();
         }
         flKit.calls = c;
     }
@@ -3615,7 +3618,7 @@ function startWith(c) {
     ready = false;
     scenMap = (0, scenario_ts_1.mapFor)(config.scenario, config.units, config.battle);
     ptStatics = (0, c2_ts_1.pointStatics)(scenMap, RING_R);
-    readyWaiters.push(() => { go(); if (mp.role === "host") mp.rejoinAll(); }); // 21 Nov: squadmates who joined while the host was still on the start card join the battle it loaded
+    readyWaiters.push(go);
     sendInit();
 }
 /**
@@ -10666,12 +10669,10 @@ const mp = new mp_ts_1.Mp(NETCFG, {
             return;
         }
         readyWaiters.push(() => res(pilotId));
-        awaitLoadout("CONFIRM LOADOUT · HOST", "your squad joins you in the battle", () => { // 21 Nov: the host confirms the kit first
-            const before = ready;
-            startWith({ ...URL_CONFIG, battle: chosenBattle });
-            if (started && before && sameConfig({ ...URL_CONFIG, battle: chosenBattle }, config))
-                res(pilotId); // same battle already loaded: started at once
-        });
+        const before = ready;
+        startWith(URL_CONFIG);
+        if (started && before && sameConfig(URL_CONFIG, config))
+            res(pilotId); // same battle already loaded: started at once
     }),
     welcomeInfo: () => ({ terrainSeed: SEED, simSeed, difficulty: runningDifficulty, cfg: { ...config } }),
     beginGuest: (port, w) => {
@@ -10702,10 +10703,9 @@ const mp = new mp_ts_1.Mp(NETCFG, {
         ready = true;
         started = false;
         notify(`Joined “${mp.code}” as player ${w.slot + 1}. The host runs the battle.`, "good");
-        if (isFrontline()) // 21 Nov: the guest confirms its loadout before it drops in
-            awaitLoadout("CONFIRM LOADOUT · JOIN", `player ${w.slot + 1} in “${mp.code}” · in a Dart at the Command Core`, () => { send({ t: "flKit", kit: flKit, confirm: true }); startWith(config); });
-        else
-            startWith(config);
+        if (isFrontline()) // the kit picked (and confirmed with HOST / JOIN) goes to the host with the start
+            send({ t: "flKit", kit: flKit, confirm: true });
+        startWith(config);
     },
     becomeHostFrom: (init) => {
         const w = makeWorker();
