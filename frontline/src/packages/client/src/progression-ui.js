@@ -176,7 +176,7 @@ function profileHtml() {
             const ms = Rr.milestones.filter((m) => m.rank === r).map((m) => MILESTONE_TEXT[m.unlocks] ?? m.unlocks);
             const flBonus = Rr.fl && Rr.fl.bonus.includes(r);
             const gives = Rr.fl
-                ? (r === 1 ? "start: the standard kit (carbine, heavy MG, HE grenade, medium armour, rocket launcher, strike / resupply / sentry / tank drop)" : `+${Rr.tokensPerRank + (flBonus ? 1 : 0)} unlock token${flBonus ? "s (bonus rank)" : ""}`)
+                ? (r === 1 ? "start: every loadout option already in the game (new items unlock with tokens)" : `+${Rr.tokensPerRank + (flBonus ? 1 : 0)} unlock token${flBonus ? "s (bonus rank)" : ""}`)
                 : r === 1 ? `start: every vehicle · ${Rr.starting.calls.map(nm).join(", ")} · ${Rr.callSlots.base} call slots` : [`+${Rr.tokensPerRank} unlock token`, ...ms].join(" · ");
             h += `<tr class="${r === p.rank ? "me" : ""}"><td>${r}${r === p.rank ? " ◀" : ""}</td><td>${fmt((0, progression_ts_1.xpForRank)(Rr, r))}</td><td class="${r <= p.rank ? "" : "muted"}">${gives}</td></tr>`;
         }
@@ -191,10 +191,26 @@ function profileHtml() {
                     h += `<span class="item lock" title="${esc(it.what)}">${esc(it.name)} · ${it.cost} token${it.cost === 1 ? "" : "s"} <span class="muted">· ${esc(it.what)}</span></span>`;
             }
         }
-        else
-            h += `<div class="muted">Spend tokens on loadout options: one token per rank, two at ranks ${Rr.fl.bonus.join(", ")}. Side-grades cost 1, the strongest picks 2 or 3. You can also unlock straight from the loadout on the start screen (click a locked card twice).</div>`;
+        else {
+            // designer 22 Nov: the options that were already in the game stay free; only new items cost tokens. The
+            // unlocks available now come first, then the planned list (it had vanished once any item had a price)
+            h += `<div class="muted">Spend tokens on new items: one token per rank, two at ranks ${Rr.fl.bonus.join(", ")}. Everything that was already in the game stays free. You can also unlock straight from the loadout (click a locked card twice).</div>`;
+            h += `<h2>AVAILABLE NOW</h2>`;
+            for (const pool of Object.keys(FL_POOL_TEXT))
+                for (const id of Rr.fl.pools[pool] ?? []) {
+                    if (!Rr.fl.cost[pool] || Rr.fl.cost[pool][id] === undefined)
+                        continue;
+                    const own = (0, progression_ts_1.flOwns)(Rr, p, pool, id), c = (0, progression_ts_1.flCost)(Rr, pool, id);
+                    h += `<span class="item ${own ? "own" : "lock"}">${esc(flNm(pool, id))} <span class="muted">· ${FL_POOL_TEXT[pool].toLowerCase()}</span> · ${own ? "owned" : `${c} token${c === 1 ? "" : "s"} <button data-c7a="unlock" data-pool="${pool}" data-id="${id}" ${tok(p) >= c ? "" : "disabled"}>UNLOCK</button>`}</span>`;
+                }
+            for (const g of planned) {
+                h += `<h2>${esc(g.name).toUpperCase()} <span class="muted">· coming soon</span></h2>`;
+                for (const it of g.items)
+                    h += `<span class="item lock" title="${esc(it.what)}">${esc(it.name)} · ${it.cost} token${it.cost === 1 ? "" : "s"} <span class="muted">· ${esc(it.what)}</span></span>`;
+            }
+        }
         for (const pool of Object.keys(FL_POOL_TEXT)) {
-            if (!Rr.fl.pools[pool])
+            if (!Rr.fl.pools[pool] || Object.keys(Rr.fl.cost).length)
                 continue;
             h += `<h2>${FL_POOL_TEXT[pool].toUpperCase()}</h2>`;
             for (const id of Rr.fl.pools[pool]) {
