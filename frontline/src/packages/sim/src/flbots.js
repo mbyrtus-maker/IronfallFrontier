@@ -20,13 +20,13 @@ const pilotkit_ts_1 = require("./pilotkit.js");
 exports.BOT_PLAYER_MIN = 100;
 function isBotPlayer(player) { return player >= exports.BOT_PLAYER_MIN; }
 const ROSTER = [
-    { team: 0, player: 100, name: "Vance", lane: 0, kit: { role: "sniper", gun: "marksman", laser: false, grenade: "sticky", armour: "light", calls: ["precision-strike", "resupply-pod", "sentry-gun", "tank-drop"] } },
-    { team: 0, player: 101, name: "Okoro", lane: 1, kit: { role: "heavy", gun: "shotgun", laser: false, grenade: "he", armour: "heavy", calls: ["barrage", "resupply-pod", "mech-drop", "reinforcements"] } },
-    { team: 0, player: 102, name: "Reyes", lane: 2, kit: { role: "medic", gun: "carbine", laser: true, grenade: "area", armour: "medium", calls: ["resupply-pod", "sentry-gun", "precision-strike", "tank-drop"] } },
-    { team: 1, player: 110, name: "Kade", lane: 0, kit: { role: "assault", gun: "carbine", laser: false, grenade: "he", armour: "medium", calls: ["precision-strike", "resupply-pod", "sentry-gun", "tank-drop"] } },
-    { team: 1, player: 111, name: "Morrow", lane: 1, kit: { role: "heavy", gun: "shotgun", laser: false, grenade: "sticky", armour: "heavy", calls: ["barrage", "resupply-pod", "mech-drop", "reinforcements"] } },
-    { team: 1, player: 112, name: "Ishi", lane: 2, kit: { role: "sniper", gun: "marksman", laser: true, grenade: "seeker", armour: "light", calls: ["precision-strike", "sentry-gun", "resupply-pod", "tank-drop"] } },
-    { team: 1, player: 113, name: "Brask", lane: 1, kit: { role: "medic", gun: "carbine", laser: false, grenade: "area", armour: "medium", calls: ["resupply-pod", "barrage", "sentry-gun", "mech-drop"] } },
+    { team: 0, player: 100, name: "Vance", lane: 0, kit: { role: "sniper", gun: "marksman", laser: false, grenade: "sticky", armour: "light", calls: ["precision-strike", "repair-resupply", "sentry-gun", "tank-drop"] } },
+    { team: 0, player: 101, name: "Okoro", lane: 1, kit: { role: "heavy", gun: "shotgun", laser: false, grenade: "he", armour: "heavy", calls: ["barrage", "shield-bubble", "mech-drop", "reinforcements"] } },
+    { team: 0, player: 102, name: "Reyes", lane: 2, kit: { role: "medic", gun: "carbine", laser: true, grenade: "area", armour: "medium", calls: ["repair-resupply", "sentry-gun", "precision-strike", "flak-turret"] } },
+    { team: 1, player: 110, name: "Kade", lane: 0, kit: { role: "assault", gun: "carbine", laser: false, grenade: "he", armour: "medium", calls: ["precision-strike", "repair-resupply", "sentry-gun", "tank-drop"] } },
+    { team: 1, player: 111, name: "Morrow", lane: 1, kit: { role: "heavy", gun: "shotgun", laser: false, grenade: "sticky", armour: "heavy", calls: ["barrage", "shield-bubble", "mech-drop", "reinforcements"] } },
+    { team: 1, player: 112, name: "Ishi", lane: 2, kit: { role: "sniper", gun: "marksman", laser: true, grenade: "seeker", armour: "light", calls: ["precision-strike", "sentry-gun", "repair-resupply", "tank-drop"] } },
+    { team: 1, player: 113, name: "Brask", lane: 1, kit: { role: "medic", gun: "carbine", laser: false, grenade: "area", armour: "medium", calls: ["repair-resupply", "barrage", "flak-turret", "mech-drop"] } },
 ];
 const THINK = 20; // ticks between decisions per bot (staggered)
 class FlBots {
@@ -484,12 +484,27 @@ class FlBots {
                 return;
             }
         }
-        // resupply when a weapon is under a third
-        if (kitCalls.includes("resupply-pod") && ready("resupply-pod") >= 0 && lowAmmo(sim, s)) {
-            call("resupply-pod", x + 6, z + 4);
+        // designer 21 Nov: a Repair & Resupply station when a weapon is under a third
+        if (kitCalls.includes("repair-resupply") && ready("repair-resupply") >= 0 && lowAmmo(sim, s)) {
+            call("repair-resupply", x + 6, z + 4);
             return;
         }
         const foes = countFoes(sim, team, x, z, 140);
+        // a Flak turret when enemy aircraft are about; a Shield barrier when pressed by several foes
+        if (kitCalls.includes("flak-turret") && ready("flak-turret") >= 0) {
+            let air = false;
+            for (let o = 0; o < sim.hi && !air; o++)
+                if (sim.alive[o] && sim.hp[o] > 0 && sim.team[o] !== team && sim.team[o] < 4 && sim.d.tAir[sim.etype[o]] && Math.hypot(sim.x[o] - x, sim.z[o] - z) < 420)
+                    air = true;
+            if (air) {
+                call("flak-turret", x - 6, z + 6);
+                return;
+            }
+        }
+        if (kitCalls.includes("shield-bubble") && ready("shield-bubble") >= 0 && foes >= 3) {
+            call("shield-bubble", x, z);
+            return;
+        }
         // a ground vehicle (never more than one alive: callRefusal)
         const early = sim.tick < (90 + b.i * 25) * tr; // pacing: no armour in the opening minute and a half, then staggered
         for (const id of ["tank-drop", "mech-drop"])

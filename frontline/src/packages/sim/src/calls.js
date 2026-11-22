@@ -69,6 +69,7 @@ const FX_BY_ID = { "precision-strike": exports.CALL_FX_STRIKE, "resupply-pod": e
     "emp-burst": exports.CALL_FX_EMP, "heavy-weapon-pod": exports.CALL_FX_POD,
     "recon-drone": exports.CALL_FX_SWEEP, "supply-drop": exports.CALL_FX_SUPPLY, // ruling 121
     "repair-resupply": exports.CALL_FX_DEPOT, // designer 21 Nov
+    "flak-turret": exports.CALL_FX_DEPOT, // designer 21 Nov: a station body with its own guns (anti-air)
     "rocket-tube-drop": exports.CALL_FX_POD, // ruling 133: the fixed anti-armour slot (a one-weapon pod)
     // Frontline: vehicle drops, the slot 3 weapon pod, reinforcements flown in by Mule (fkit.ts)
     "tank-drop": exports.CALL_FX_DROP, "gunship-drop": exports.CALL_FX_DROP, "mech-drop": exports.CALL_FX_DROP, "slot3-drop": exports.CALL_FX_POD,
@@ -133,7 +134,7 @@ function compileCallRules(data, typeIds, tickRate, planetId) {
             rate: num(p.shellsPerSecond), lineLength: num(p.lineLength), uses: num(c.usesBeforeRearm),
             unitType: typeIds.indexOf(p.deliversUnit ?? (c.id === "vehicle-drop" ? sc.sim?.vehicleDropUnit ?? "lancer" : "")),
             fromReserve: num(p.vehiclesFromReserve),
-            weapon: sw, weapon2: wIdx(p.rocketWeapon), deployTicks: Math.round(num(p.deploySeconds) * tickRate), hp: num(p.hp), profile: fx === exports.CALL_FX_DEPOT ? typeIds.indexOf(p.building) : prof, choices, trigger: trig, infantry: p.triggeredBy === "all", width,
+            weapon: sw, weapon2: wIdx(p.rocketWeapon), deployTicks: Math.round(num(p.deploySeconds) * tickRate), hp: num(p.hp), profile: fx === exports.CALL_FX_DEPOT ? typeIds.indexOf(p.building) : fx === exports.CALL_FX_SHIELD ? typeIds.indexOf(p.projector ?? "") : prof, choices, trigger: trig, infantry: p.triggeredBy === "all", width,
             repair: num(p.repairPerSecond) / tickRate, ore: num(p.ore), gas: num(p.gas), hullRepair: num(p.hullRepairFraction), mannable: p.mannable === true };
     });
     const sim = sc.sim ?? {};

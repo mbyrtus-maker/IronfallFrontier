@@ -466,7 +466,7 @@ function cupola(b, x, y, rad, part) {
 }
 exports.KINDS = ["bike", "light", "medium", "artillery", "flak", "heavy", "siege", "air", "infantry", "economy", "structure", "tower", "mast", "silo", "extractor", "gastank", "battery", "reactor",
     "core", "factory", "pad", "dome", "bay", "carrier", "dropship", "node", "bunker", "wall", "hauler", "constructor", "fbv",
-    "barracks", "armoury", "techlab", "refinery", "uplink", "massdriver", "depot", "bgun0", "bgun1", "bgun2", "bikewreck", "scout", "rockettank", "sleg", "droppod", "fbturret", "fbwall", "mech", "gunship", "mleg", "flpod", "flcrate", "fldrop", "fldropwall", "fldropbase", "flrocket", "rrstation"];
+    "barracks", "armoury", "techlab", "refinery", "uplink", "massdriver", "depot", "bgun0", "bgun1", "bgun2", "bikewreck", "scout", "rockettank", "sleg", "droppod", "fbturret", "fbwall", "mech", "gunship", "mleg", "flpod", "flcrate", "fldrop", "fldropwall", "fldropbase", "flrocket", "rrstation", "aapod", "shieldpod"];
 /** P3: a hover hull section (right half, bottom up): chamfered at the top, c the chamfer. */
 const hsec = (yb, ym, yt, wb, wm, wt, c) => [[yb, wb], [ym, wm], [yt - c, wt], [yt, wt - c]];
 /** P3: a dark hover nacelle along x at side z: tapered ends, round glow plates under it (the concept's hover engines). */
@@ -2502,6 +2502,249 @@ function rrStation() {
             b.ball(Wr[0], Wr[1] - 0.8, Wr[2], 0.1, 0);
         }
         b.rotY(m, Math.PI / 4 + k * Math.PI / 2);
+    }
+    return b.build([0, 0, 0], 0, 0);
+}
+/** Flak turret: the gun trunnion (x, y) and the muzzle the barrels end on (MUZZLES.aapod, buildings.json: [3.3, 4.9, +-0.32]). */
+const AAP = { tx: 0.5, ty: 3.56, mx: 3.3, my: 4.9, gz: 0.32 };
+/**
+ * Designer 21 Nov: the Flak turret call-down. A small drop capsule standing on its pad (heat-shield skirt, 12-sided
+ * team-tinted body with ablative streaks, four legs, four retro bells, a hazard deck) carrying a turning head (part 1):
+ * a low slab between two armour cheeks, a twin flak mount on trunnions pitched up at the sky (cradle, mantlet, cooling
+ * jackets, recuperator, a tracking dish; the barrels with their brakes and flash hiders are part 2 and recoil), an
+ * ammunition drum on each trunnion, and a rear housing with a search-radar panel on a mast.
+ */
+function aaPod() {
+    const b = new MeshBuilder();
+    b.grit = exports.GRIT;
+    const R8 = Math.PI / 8, capR = (y) => 1.75 - ((y - 0.8) / 1.8) * 0.35, BRASS = [0.72, 0.56, 0.22], ARRAY = [0.13, 0.17, 0.2];
+    b.set(CON2);
+    b.cyl(0, 0, 0, 3.2, 3.2, 0.35, 8, "y", true, R8); // pad
+    b.set(HAZARD, 0);
+    b.cyl(0, 0.2, 0, 3.24, 3.24, 0.15, 8, "y", false, R8);
+    // the capsule: scorched heat shield, ablative lip, body, team band, deck with a hazard rim, the turret ring
+    b.set(SCORCH, 0);
+    b.cyl(0, 0.35, 0, 2.0, 1.9, 0.4, 12, "y", true, R12);
+    b.set(ABLATE, 0);
+    b.cyl(0, 0.73, 0, 1.9, 1.82, 0.1, 12, "y", false, R12);
+    b.set(P2, 1);
+    b.cyl(0, 0.8, 0, 1.75, 1.4, 1.8, 12, "y", false, R12);
+    b.set(SCORCH2, 0);
+    for (let i = 0; i < 12; i++) {
+        const h = 0.14 + 0.2 * ((Math.sin(i * 12.9898) * 43758.5453) % 1 + 1) % 1;
+        decal(b, fq(12, R12, 1.75, 1.4, 0.8, 1.8, i, 0.0, 1.0, 0, h), 0.012);
+    }
+    b.set([1, 1, 1], 2);
+    b.cyl(0, 2.18, 0, capR(2.18) + 0.02, capR(2.32) + 0.02, 0.14, 12, "y", false, R12);
+    b.set(GUN, 0);
+    b.cyl(0, 2.6, 0, 1.54, 1.48, 0.15, 12, "y", true, R12);
+    for (let i = 0; i < 12; i++)
+        chevrons(b, fq(12, R12, 1.54, 1.48, 2.6, 0.15, i, 0.03, 0.97, 0.1, 0.9), 2);
+    b.set(DARK, 0);
+    b.cyl(0, 2.75, 0, 1.22, 1.22, 0.13, 12, "y", false, R12);
+    // access panels, vents and hatches on the faces between the thruster housings (face i is centred on 30 (i + 1) degrees)
+    for (const i of [0, 3, 6, 9]) {
+        b.set(P3, 1);
+        panel(b, fq(12, R12, 1.75, 1.4, 0.8, 1.8, i, 0.16, 0.84, 0.36, 0.7), 0.04, 0.12);
+    }
+    for (const i of [1, 7])
+        grille(b, fq(12, R12, 1.75, 1.4, 0.8, 1.8, i, 0.2, 0.8, 0.4, 0.68), 3);
+    b.set(BLACK, 0);
+    for (const i of [4, 10])
+        decal(b, fq(12, R12, 1.75, 1.4, 0.8, 1.8, i, 0.3, 0.7, 0.42, 0.66), 0.014);
+    for (let k = 0; k < 4; k++) {
+        // on the axes: a retro-thruster housing and bell, a marker stripe on the pad
+        let m = b.mark();
+        b.set(GUN, 0);
+        b.box(1.98, 1.2, 0, 0.42, 0.22, 0.25);
+        b.set(STEEL, 0);
+        b.cyl(2.3, 0.4, 0, 0.34, 0.2, 0.58, 6, "y", false);
+        b.set(HAZARD, 0);
+        b.quad([2.69, 0.362, -0.6], [2.87, 0.362, -0.6], [2.87, 0.362, 0.6], [2.69, 0.362, 0.6], [2.78, 0, 0]);
+        b.rotY(m, k * Math.PI / 2);
+        // on the diagonals: a landing leg, its brace and foot
+        m = b.mark();
+        b.set(GUN, 0);
+        rod(b, [1.5, 1.85, 0], [2.42, 0.5, 0], 0.14, 4);
+        rod(b, [1.85, 0.95, 0], [2.36, 0.62, 0], 0.07, 3);
+        b.box(1.5, 1.85, 0, 0.2, 0.2, 0.22);
+        b.set(DARK, 0);
+        b.cyl(2.46, 0.35, 0, 0.42, 0.34, 0.18, 6, "y", true);
+        b.rotY(m, Math.PI / 4 + k * Math.PI / 2);
+    }
+    // ready ammunition on the pad: a crate stack and a rack of shells
+    let m = b.mark();
+    b.set(OLIVE, 0);
+    b.box(2.4, 0.6, 0, 0.3, 0.25, 0.42);
+    b.box(2.38, 1.03, 0.05, 0.24, 0.18, 0.3);
+    b.rotY(m, Math.PI * 1.125);
+    m = b.mark();
+    b.set(DARK, 0);
+    b.box(2.42, 0.5, 0, 0.2, 0.15, 0.46);
+    for (const z of [-0.24, 0.24]) {
+        b.set(BRASS, 0);
+        b.cyl(2.42, 0.65, z, 0.13, 0.13, 0.42, 5, "y", false);
+        b.set([0.75, 0.2, 0.14], 0);
+        b.cyl(2.42, 1.07, z, 0.13, 0.02, 0.28, 5, "y", false);
+    }
+    b.rotY(m, -Math.PI * 0.625);
+    // ---- the turning head (part 1)
+    b.part = 1;
+    b.set(GUN, 0, 1);
+    b.cyl(0, 2.88, 0, 1.15, 1.1, 0.17, 12, "y", true, R12);
+    b.set(P2, 1, 1);
+    b.hull([[-1.3, 3.05], [1.1, 3.05], [1.32, 3.3], [-1.3, 3.3]], 0.8, 0.8); // slab
+    b.hull([[-1.3, 3.3], [-0.52, 3.3], [-0.52, 4.2], [-1.0, 4.35], [-1.45, 3.9]], 0.64, 0.54); // rear housing
+    b.mirrored((s) => b.hull([[-0.5, 3.3], [1.15, 3.3], [1.05, 3.85], [0.7, 4.15], [0.0, 4.15], [-0.5, 3.85]], 0.07, 0.07, s * 0.74)); // armour cheeks
+    chevrons(b, qx(-1.3, -0.6, 0.6, 3.08, 3.27, -1), 5);
+    // the ammunition drums on the trunnions, a lit hub on each
+    b.mirrored((s) => {
+        const z0 = s > 0 ? 0.81 : -1.19;
+        b.set(OLIVE, 0, 1);
+        b.cyl(AAP.tx, AAP.ty, z0, 0.44, 0.44, 0.38, 8, "z", true);
+        b.set(DARK, 0, 1);
+        b.cyl(AAP.tx, AAP.ty, z0 + 0.13, 0.47, 0.47, 0.12, 8, "z", false);
+        b.cyl(AAP.tx, AAP.ty, s > 0 ? 1.19 : -1.25, 0.2, 0.2, 0.06, 6, "z", true);
+        b.set([1, 1, 1], 2, 1);
+        b.disc(AAP.tx, AAP.ty, s * 1.262, 0.12, 6, "z", s);
+    });
+    // the search radar on the housing: pedestal, mast, a tilted array panel with a brace and an IFF bar
+    b.set(GUN, 0, 1);
+    b.cyl(-0.85, 4.2, 0, 0.2, 0.16, 0.36, 6, "y", true);
+    b.cyl(-0.85, 4.5, 0, 0.07, 0.07, 0.7, 6, "y", false);
+    m = b.mark();
+    b.set(DARK, 0, 1);
+    b.box(-0.85, 5.5, 0, 0.07, 0.36, 0.72);
+    b.box(-0.96, 5.5, 0, 0.05, 0.2, 0.3);
+    b.box(-0.85, 5.92, 0, 0.04, 0.06, 0.5);
+    b.set(ARRAY, 0, 1);
+    decal(b, qx(-0.78, -0.66, 0.66, 5.2, 5.8), 0.012);
+    b.set(STEEL, 0, 1);
+    for (const z of [-0.33, 0, 0.33])
+        seam(b, [-0.78, 5.2, z], [-0.78, 5.8, z], [1, 0, 0], 0.04, 0.022);
+    seam(b, [-0.78, 5.5, -0.66], [-0.78, 5.5, 0.66], [1, 0, 0], 0.04, 0.022);
+    b.rotZ(m, 0.3, -0.85, 5.3);
+    beacon(b, -1.25, 4.22, 0.38, AMBER, 0.1, 1);
+    whip(b, -1.2, 4.2, -0.4, 1.3, RED, 1);
+    // the twin flak mount, built level along +x from the trunnion and then pitched up so the barrels end on the muzzles
+    const L = Math.hypot(AAP.mx - AAP.tx, AAP.my - AAP.ty), EL = Math.atan2(AAP.my - AAP.ty, AAP.mx - AAP.tx), X = AAP.tx, Y = AAP.ty;
+    m = b.mark();
+    b.set(STEEL, 0, 1);
+    b.box(X + 0.15, Y, 0, 0.6, 0.22, 0.56); // cradle
+    b.set(DARK, 0, 1);
+    b.box(X + 0.79, Y, 0, 0.04, 0.34, 0.62); // mantlet
+    b.cyl(X, Y, -0.67, 0.15, 0.15, 1.34, 8, "z", false); // trunnion
+    b.set(GUN, 0, 1);
+    b.cyl(X + 0.83, Y + 0.2, 0, 0.09, 0.09, 0.75, 6, "x", true); // recuperator
+    b.box(X - 0.05, Y + 0.32, 0, 0.07, 0.1, 0.07);
+    b.cyl(X - 0.06, Y + 0.55, 0, 0.08, 0.3, 0.16, 8, "x", false); // tracking dish
+    b.set([0.62, 0.64, 0.62], 0, 1);
+    b.disc(X + 0.1, Y + 0.55, 0, 0.3, 8, "x", 1);
+    b.set(DARK, 0, 1);
+    b.cyl(X + 0.1, Y + 0.55, 0, 0.05, 0.03, 0.12, 4, "x", false);
+    b.mirrored((s) => {
+        const z = s * AAP.gz;
+        b.set(DARK, 0, 1);
+        b.cyl(X + 0.83, Y, z, 0.17, 0.17, 0.8, 6, "x", true); // cooling jacket
+        b.set(STEEL, 0, 1);
+        b.cyl(X + 1.2, Y, z, 0.195, 0.195, 0.1, 6, "x", false);
+        b.set(GUN, 0, 2);
+        b.cyl(X + 1.4, Y, z, 0.1, 0.09, L - 1.7, 6, "x", false); // barrel
+        b.set(DARK, 0, 2);
+        b.cyl(X + L - 0.74, Y, z, 0.15, 0.15, 0.3, 6, "x", true); // brake
+        b.cyl(X + L - 0.3, Y, z, 0.09, 0.18, 0.3, 6, "x", false); // flash hider
+        b.set(BLACK, 0, 2);
+        b.disc(X + L, Y, z, 0.18, 6, "x", 1);
+    });
+    b.rotZ(m, EL, X, Y);
+    b.part = 0;
+    return b.build([0, 0, 0], 0, 0, 0.15);
+}
+/**
+ * Designer 21 Nov: the Shield barrier's projector (the dome itself is drawn by the effects layer, radius 18 m). A squat
+ * drop capsule on its pad (heat-shield skirt, team-tinted body, four armoured buttresses with lit slits, four legs, a
+ * hazard deck) carrying the emitter: a coil stack of lit rings up a mast to a glowing core, inside a crown of six
+ * projector vanes that curl up around it (lit inner edges, team-lit tips).
+ */
+function shieldPod() {
+    const b = new MeshBuilder();
+    b.grit = exports.GRIT;
+    const R8 = Math.PI / 8, BLUE = [0.45, 0.85, 1], capR = (y) => 1.42 - ((y - 0.7) / 1.2) * 0.32;
+    b.set(CON2);
+    b.cyl(0, 0, 0, 2.4, 2.4, 0.3, 8, "y", true, R8); // pad
+    b.set(HAZARD, 0);
+    b.cyl(0, 0.16, 0, 2.44, 2.44, 0.14, 8, "y", false, R8);
+    // the capsule
+    b.set(SCORCH, 0);
+    b.cyl(0, 0.3, 0, 1.62, 1.54, 0.35, 12, "y", true, R12);
+    b.set(ABLATE, 0);
+    b.cyl(0, 0.63, 0, 1.54, 1.48, 0.1, 12, "y", false, R12);
+    b.set(P2, 1);
+    b.cyl(0, 0.7, 0, 1.42, 1.1, 1.2, 12, "y", false, R12);
+    b.set(SCORCH2, 0);
+    for (let i = 0; i < 12; i++) {
+        const h = 0.12 + 0.2 * ((Math.sin(i * 12.9898) * 43758.5453) % 1 + 1) % 1;
+        decal(b, fq(12, R12, 1.42, 1.1, 0.7, 1.2, i, 0.0, 1.0, 0, h), 0.012);
+    }
+    b.set([1, 1, 1], 2);
+    b.cyl(0, 1.58, 0, capR(1.58) + 0.02, capR(1.7) + 0.02, 0.12, 12, "y", false, R12);
+    b.set(GUN, 0);
+    b.cyl(0, 1.9, 0, 1.24, 1.18, 0.14, 12, "y", true, R12);
+    for (let i = 0; i < 12; i++)
+        chevrons(b, fq(12, R12, 1.24, 1.18, 1.9, 0.14, i, 0.03, 0.97, 0.1, 0.9), 2);
+    for (const i of [0, 3, 6, 9])
+        grille(b, fq(12, R12, 1.42, 1.1, 0.7, 1.2, i, 0.2, 0.8, 0.36, 0.66), 3);
+    for (let k = 0; k < 4; k++) {
+        // on the axes: an armoured buttress with a lit slit, a power cable to the emitter collar, a pad stripe
+        let m = b.mark();
+        b.set(P3, 1);
+        b.hull([[1.15, 0.65], [1.95, 0.65], [1.95, 0.98], [1.32, 2.04], [1.05, 2.04]], 0.34, 0.26);
+        b.set(BLUE, 4);
+        seam(b, [1.83, 1.18, 0], [1.44, 1.84, 0], [1.06, 0.63, 0], 0.16, 0.014);
+        b.set(BLACK, 0);
+        rod(b, [1.2, 2.02, 0], [0.74, 2.2, 0], 0.055, 3);
+        b.set(HAZARD, 0);
+        b.quad([2.01, 0.312, -0.45], [2.15, 0.312, -0.45], [2.15, 0.312, 0.45], [2.01, 0.312, 0.45], [2.08, 0, 0]);
+        b.rotY(m, k * Math.PI / 2);
+        // on the diagonals: a short landing leg and foot
+        m = b.mark();
+        b.set(GUN, 0);
+        rod(b, [1.12, 1.5, 0], [1.8, 0.42, 0], 0.12, 4);
+        b.set(DARK, 0);
+        b.cyl(1.84, 0.3, 0, 0.32, 0.26, 0.15, 6, "y", true);
+        b.rotY(m, Math.PI / 4 + k * Math.PI / 2);
+    }
+    beacon(b, -0.62, 2.04, 0.9, AMBER, 0.09, 0);
+    // the emitter: collar, mast with a stack of lit coils, the cup and the core
+    b.set(DARK, 0);
+    b.cyl(0, 2.04, 0, 0.8, 0.7, 0.22, 8, "y", true, R8);
+    b.set(GUN, 0);
+    b.cyl(0, 2.26, 0, 0.26, 0.26, 1.3, 6, "y", false);
+    for (let j = 0; j < 3; j++) {
+        b.set(BLUE, 4);
+        b.cyl(0, 2.42 + j * 0.36, 0, 0.46, 0.46, 0.14, 6, "y", true);
+        b.set(DARK, 0);
+        b.cyl(0, 2.56 + j * 0.36, 0, 0.36, 0.3, 0.1, 6, "y", false);
+    }
+    b.set(STEEL, 0);
+    b.cyl(0, 3.52, 0, 0.3, 0.56, 0.22, 8, "y", true, R8);
+    b.set(BLUE, 4);
+    b.ball(0, 3.98, 0, 0.44, 0);
+    // the crown: six projector vanes curling up around the core, tied by a ring at the elbow
+    const E = 1.36, at = (a) => [Math.cos(a) * E, 3.2, Math.sin(a) * E];
+    for (let k = 0; k < 6; k++) {
+        const m = b.mark(), a = Math.PI / 6 + k * Math.PI / 3;
+        b.set(STEEL, 0);
+        b.hull([[0.8, 2.1], [1.1, 2.1], [1.48, 3.2], [1.24, 3.2]], 0.13, 0.13);
+        b.set(P2, 1);
+        b.hull([[1.24, 3.2], [1.48, 3.2], [1.0, 4.52], [0.86, 4.46]], 0.13, 0.09);
+        b.set(BLUE, 4);
+        seam(b, [1.2, 3.34, 0], [0.9, 4.34, 0], [-1, -0.3, 0], 0.11, 0.014);
+        b.set([1, 1, 1], 2);
+        b.box(0.93, 4.53, 0, 0.09, 0.05, 0.1);
+        b.rotY(m, a);
+        b.set(GUN, 0);
+        rod(b, at(a), at(a + Math.PI / 3), 0.05, 3);
     }
     return b.build([0, 0, 0], 0, 0);
 }
@@ -6296,6 +6539,8 @@ function buildKindRaw(k) {
         case "depot": return depot();
         case "droppod": return dropPod();
         case "rrstation": return rrStation();
+        case "aapod": return aaPod();
+        case "shieldpod": return shieldPod();
         case "fbturret": return fbTurret();
         case "fbwall": return fbWall();
     }
@@ -6314,6 +6559,7 @@ function kindFor(typeId, armourClass, structure) {
         ["control-node", "node"], ["bunker", "bunker"], ["barricade", "wall"],
         ["drop-pod-sentry", "droppod"], // ruling 130
         ["resupply-station", "rrstation"], // designer 21 Nov: Repair & Resupply call-down
+        ["flak-turret-pod", "aapod"], ["shield-pod", "shieldpod"], // designer 21 Nov: Flak turret, Shield barrier projector
         ["fb-turret", "fbturret"], ["fb-barricade", "fbwall"], // ruling 132
         ["mech", "mech"], // Frontline: the bipedal mech
         ["gunship", "gunship"], // Frontline: the rocket gunship
@@ -6416,7 +6662,8 @@ function ringMesh() {
 const TT = (px, py, r, h, L) => [px + r * 1.3 + L * 1.12, py + h * 0.55, 0]; // tankTurret barrel tip
 exports.MUZZLES = {
     fbturret: [{ pts: [[2.72, exports.FBT.gunY - 0.12, 0.88], [2.72, exports.FBT.gunY - 0.12, -0.88]], turret: true }, { pts: [[4.1, exports.FBT.gunY, 0]], turret: true }], fbwall: [], // ruling 132; designer 21 Nov: machine guns, cannon
-    rrstation: [],
+    rrstation: [], shieldpod: [],
+    aapod: [{ pts: [[3.3, 4.9, 0.32], [3.3, 4.9, -0.32]], turret: true }], // designer 21 Nov: twin flak barrels (keep in step with buildings.json flak-turret-pod muzzles)
     droppod: [{ pts: [[exports.DP.gunTip, exports.DP.gunY, exports.DP.gunZ], [exports.DP.gunTip, exports.DP.gunY, -exports.DP.gunZ]], turret: true }, { pts: [[2.98, 5.12, exports.DP.podZ]], turret: true }], // ruling 130: twin guns; designer 21 Nov: a cannon (was 4 rocket tubes)
     bike: [{ pts: [[2.3, 0.45, 0.42], [2.3, 0.45, -0.42]], turret: false }, { pts: [[0.45, 1.4, 0]], turret: false }],
     bikewreck: [], // wrecks: never fire
@@ -6484,7 +6731,7 @@ exports.COCKPITS = {
     barracks: { driver: null }, armoury: { driver: null }, techlab: { driver: null }, refinery: { driver: null }, uplink: { driver: null }, massdriver: { driver: null }, depot: { driver: null },
     carrier: { driver: [0.15, 2.9 + CUPOLA_H / 2, 0] }, // C8: roof cupola at the data's driver zone
     dropship: { driver: [2.8, 1.7, 0] },
-    droppod: { driver: null }, rrstation: { driver: null }, fbturret: { driver: null }, fbwall: { driver: null },
+    droppod: { driver: null }, rrstation: { driver: null }, aapod: { driver: null }, shieldpod: { driver: null }, fbturret: { driver: null }, fbwall: { driver: null },
 };
 // ---------------------------------------------------------------- first-person viewmodels (slice 3b, item 13)
 /**

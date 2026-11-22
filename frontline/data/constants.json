@@ -1165,7 +1165,7 @@
       "slot3": "rocket-tube",
       "calls": [
         "precision-strike",
-        "resupply-pod",
+        "repair-resupply",
         "sentry-gun",
         "tank-drop"
       ]
@@ -1190,10 +1190,11 @@
     },
     "frontlineCalls": [
       "sentry-gun",
+      "flak-turret",
+      "shield-bubble",
       "precision-strike",
       "barrage",
       "reinforcements",
-      "resupply-pod",
       "repair-resupply",
       "tank-drop",
       "gunship-drop",

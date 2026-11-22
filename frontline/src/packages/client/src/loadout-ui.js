@@ -98,6 +98,10 @@ exports.LOADOUT_ICONS = {
         + `<path ${F} d="M47 2l4 5v15h-8V7z"/><path ${D} d="M43 18l-3 4h3zM51 18l3 4h-3z"/><path d="M45 25l-1 3M47 25v4M49 25l1 3" stroke-opacity="0.7"/>`
         + `<path d="M31 18h7" stroke-dasharray="1.5 2"/>`),
     // ---- call-downs
+    "flak-turret": S(`<path ${F} d="M18 32l4-12h20l4 12z"/><path ${F} d="M24 14h16v6H24z"/><path d="M38 15l14-11M38 18l14-11" stroke-width="2"/>`
+        + `<circle cx="54" cy="5" r="1.5"/><circle cx="58" cy="10" r="1.2"/><circle cx="50" cy="2" r="1"/><path d="M26 14q-6-6 0-10" stroke-opacity="0.7"/>`),
+    "shield-bubble": S(`<path ${F} d="M8 32a24 24 0 0 1 48 0z" fill-opacity="0.18"/><path d="M8 32a24 24 0 0 1 48 0"/><path d="M14 32a18 18 0 0 1 36 0" stroke-opacity="0.45"/>`
+        + `<path ${F} d="M28 32v-8h8v8z"/><path d="M32 24v-4"/><circle ${D} cx="32" cy="19" r="2"/><path d="M2 33h60" stroke-opacity="0.5"/>`),
     "repair-resupply": S(`<path ${F} d="M22 12h20l3 5v15H19V17z"/><path d="M19 17h26"/><path ${D} d="M29 20h6v10h-6z"/><path ${D} d="M27 23h10v4H27z"/>`
         + `<path d="M50 4l6 6-12 12-4 1 1-4z"/><circle cx="53" cy="7" r="3"/><path d="M8 26v6M5 29h6" stroke-width="1.6"/><path d="M27 12l-3-8M37 12l3-8" stroke-opacity="0.55"/>`),
     "sentry-gun": S(`<path d="M24 32l7-10M40 32l-7-10M32 22v10" stroke-width="1.8"/><path ${F} d="M27 21h10l1 2H26z"/>`

@@ -90,6 +90,7 @@ exports.CALL_FX = {
     "heavy-weapon-pod": { beacon: "beacon", incoming: "pod-trail", impact: "pod-land", cmd: "pip" },
     "vehicle-drop": { beacon: "beacon", incoming: "pod-trail", impact: "pod-land", cmd: "pip" },
     "sentry-gun": { beacon: "beacon", incoming: "pod-trail", impact: "sentry-deploy", cmd: "pip" },
+    "flak-turret": { beacon: "beacon", incoming: "pod-trail", impact: "sentry-deploy", cmd: "pip" }, // designer 21 Nov
     "repair-resupply": { beacon: "beacon", incoming: "pod-trail", impact: "pod-land", cmd: "pip" }, // designer 21 Nov
     minefield: { beacon: "mine", impact: "mines-laid", zone: "mine-blink", cmd: "ring" },
     "shield-bubble": { beacon: "dome", impact: "dome-up", zone: "dome-surface", cmd: "ring" },

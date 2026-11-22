@@ -81,6 +81,19 @@
       }
     },
     {
+      "id": "flak-turret",
+      "name": "Flak turret",
+      "category": "defensive",
+      "requires": [],
+      "delaySeconds": 4,
+      "cooldownSeconds": 120,
+      "params": {
+        "durationSeconds": 75,
+        "building": "flak-turret-pod",
+        "hp": 1400
+      }
+    },
+    {
       "id": "sentry-gun",
       "name": "Sentry gun",
       "category": "defensive",
@@ -113,14 +126,14 @@
     },
     {
       "id": "shield-bubble",
-      "name": "Shield bubble",
+      "name": "Shield barrier",
       "category": "defensive",
       "requires": [],
       "delaySeconds": 3,
-      "cooldownSeconds": 90,
+      "cooldownSeconds": 120,
       "params": {
-        "radius": 10,
-        "durationSeconds": 20,
+        "radius": 18,
+        "durationSeconds": 30, "projector": "shield-pod", "hp": 1000,
         "blocksShots": true,
         "blocksUnits": false
       }

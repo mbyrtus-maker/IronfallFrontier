@@ -388,6 +388,7 @@ exports.CALL_SOUNDS = {
     "scout-drop": { queued: "beacon", incoming: "pod-whistle", impact: "pod-land" },
     "heavy-weapon-pod": { queued: "beacon", incoming: "pod-whistle", impact: "pod-land" },
     "vehicle-drop": { queued: "beacon", incoming: "pod-whistle", impact: "pod-land" },
+    "flak-turret": { queued: "beacon", incoming: "pod-reentry", impact: "sentry-deploy" }, // designer 21 Nov
     "repair-resupply": { queued: "beacon", incoming: "pod-reentry", impact: "pod-land" }, // designer 21 Nov
     "sentry-gun": { queued: "beacon", incoming: "pod-reentry", impact: "sentry-deploy" }, // ruling 130: + pod-retro (last 0.9 s), pod-thud
     minefield: { queued: "beacon", incoming: "shell-whistle", impact: "mines-laid", zone: "" },

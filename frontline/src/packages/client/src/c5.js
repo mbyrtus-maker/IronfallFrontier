@@ -63,6 +63,7 @@ exports.CALL_CODES = {
     "mech-drop": ["D", "R", "D", "L", "U"],
     "slot3-drop": ["D", "D", "L", "L"],
     "repair-resupply": ["D", "D", "R", "L"], // designer 21 Nov
+    "flak-turret": ["D", "U", "R", "R"], // designer 21 Nov
 };
 const codeText = (c) => c.map((d) => exports.DIR_ARROW[d]).join(" ");
 exports.codeText = codeText;

@@ -6555,6 +6555,13 @@ class Sim {
             e.ids.push(id);
             r = id;
         }
+        else if (fx === calls_ts_1.CALL_FX_SHIELD && def.profile >= 0 && def.hp > 0 && this.slotsLeft() >= 1) {
+            // designer 21 Nov: the Shield barrier's projector: the dome stands while it does
+            const id = this.spawnUnit(d.typeIds[def.profile], b.team, b.x, b.z, { crew: "none" }), s = this.idToSlot.get(id);
+            this.hp[s] = def.hp;
+            e.ids.push(id);
+            r = id;
+        }
         else if (fx === calls_ts_1.CALL_FX_MINES) {
             // doc 15: params.mines hidden mines spread over the params.radius disk; they stay until set off. ids[k] = the field's
             // mine key while mine k is live (0 once set off). The key is drawn from the sim's seeded PRNG (QA1 bug 2): the spots
@@ -6605,7 +6612,7 @@ class Sim {
                 this.destroy(e.ids[0]);
                 return false;
             }
-            if (this.tick % 10 === 0) {
+            if (this.tick % 10 === 0 && this.calls.rules.calls[e.call].repair > 0) {
                 const def = this.calls.rules.calls[e.call], d = this.d, amt = def.repair * 10;
                 for (let k = 0; k < this.nLive; k++) {
                     const o = this.live[k], t = this.etype[o];
@@ -6633,6 +6640,18 @@ class Sim {
                 this.destroy(e.ids[0]);
                 return false;
             } // its time is up
+            return true;
+        }
+        if (fx === calls_ts_1.CALL_FX_SHIELD && e.ids.length) { // the projector: destroyed, the dome falls; time up, it goes
+            const s = this.idToSlot.get(e.ids[0]);
+            if (s === undefined || !this.alive[s] || this.hp[s] <= 0) {
+                this.fxDirty = true;
+                return false;
+            }
+            if (this.tick >= e.end) {
+                this.destroy(e.ids[0]);
+                return false;
+            }
             return true;
         }
         if (fx === calls_ts_1.CALL_FX_MINES)
