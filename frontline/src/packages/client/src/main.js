@@ -3613,7 +3613,12 @@ canvas.addEventListener("wheel", (e) => {
     }
     // C4: on foot the wheel steps through the kit (carbine, long rifle, repair torch, build tool)
     if (started && mode === "fp" && onFoot() && !panelOpen() && !matchLocked() && e.deltaY !== 0) {
-        setKit((kit + (e.deltaY > 0 ? 1 : KIT_COUNT - 1)) % KIT_COUNT);
+        if (isFrontline()) { // designer 21 Nov: the wheel steps through the loadout only: slot 1, slot 2, slot 3 (once its pod weapon is in hand); not the torch or build tool
+            const slots = heavyNow() >= 0 ? [0, 1, 2] : [0, 1], i = slots.indexOf(kit);
+            setKit(slots[i < 0 ? 0 : (i + (e.deltaY > 0 ? 1 : slots.length - 1)) % slots.length]);
+        }
+        else
+            setKit((kit + (e.deltaY > 0 ? 1 : KIT_COUNT - 1)) % KIT_COUNT);
         e.preventDefault();
     }
 }, { passive: false });
@@ -6917,7 +6922,7 @@ function fpPose(now) {
  */
 const thermalStats = { raised: 0, pilots: 0, crews: 0, red: 0, green: 0, armoured: 0 };
 let thermalCv = null;
-function thermalFrame(on) {
+function thermalFrame(on, thermal = true) {
     if (!thermalCv)
         thermalCv = document.getElementById("thermal");
     const cv = thermalCv;
@@ -6961,6 +6966,19 @@ function thermalFrame(on) {
         const pr = (cd.tRadius[e.type] * focal) / tmp4[2];
         if (c[0] < -pr || c[0] > cssW + pr || c[1] < -pr || c[1] > cssH + pr)
             continue;
+        if (e.team === myTeam) { // designer 21 Nov: every ally in the sniper's sight is ringed green (pilots, troopers, sappers, vehicles)
+            const rr = crewable(e.type) ? (0, math_ts_1.clamp)(pr * 1.35, 9, 160) : (0, math_ts_1.clamp)(pr * 2.6, 8, 70);
+            g.globalCompositeOperation = "source-over";
+            g.strokeStyle = "rgba(90,255,120,0.95)";
+            g.lineWidth = 2;
+            g.beginPath();
+            g.arc(c[0], c[1], rr, 0, Math.PI * 2);
+            g.stroke();
+            g.globalCompositeOperation = "lighter";
+            thermalStats.allyRings = (thermalStats.allyRings ?? 0) + 1;
+        }
+        if (!thermal)
+            continue; // the marksman's plain scope: the rings only
         if (!crewable(e.type)) { // a pilot on foot or a soldier: a white-hot body
             blob(c[0], c[1], (0, math_ts_1.clamp)(pr * 2.2, 4, 60), "rgba(255,255,240,1)", "rgba(255,190,80,0.75)");
             np++;
@@ -9928,7 +9946,7 @@ function updateHud(now, frameDt) {
     const scopeOn = scoped && mode === "fp" && foot && wire < 0.5, thermalOn = scopeOn && flScopeKind() === "thermal";
     $("scope").style.display = scopeOn ? "block" : "none";
     document.body.classList.toggle("scoped", thermalOn); // the thermal look; the marksman's plain scope only zooms
-    thermalFrame(thermalOn);
+    thermalFrame(scopeOn, thermalOn); // the plain scope draws only the green ally rings
     const showVm = mode === "fp" && foot && !scopeOn && wire < 0.5 && !freeCam && !cine && started && !isDead;
     vmVisible = showVm;
     // ---- misc
