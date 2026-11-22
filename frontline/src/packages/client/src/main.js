@@ -2154,10 +2154,10 @@ function flKitSanitize() {
             flKit[key] = D[key];
     if (flKit.laser && !flOwns("laser", true))
         flKit.laser = false;
-    flKit.calls = (flKit.calls ?? []).filter((c) => flOwns("calls", c));
-    for (const c of D.calls)
-        if (flKit.calls.length < 4 && !flKit.calls.includes(c))
-            flKit.calls.push(c);
+    // designer 22 Nov: click to select, click to deselect, nothing else. The defaults fill only a kit that has no call
+    // list yet; before, every redraw topped the list back up to four, so a deselected call-down came straight back
+    const fresh = !Array.isArray(flKit.calls);
+    flKit.calls = (fresh ? D.calls.slice() : flKit.calls).filter((c, i, a) => flOwns("calls", c) && a.indexOf(c) === i).slice(0, 4);
 }
 let flUnlockArmed = "";
 /** Weapon index of the kit's slot 1 gun, slot 2 role weapon and grenade. */
