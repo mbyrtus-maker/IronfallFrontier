@@ -2915,8 +2915,8 @@ function gunSeatEye() {
         return null;
     const t = renderedById.get(me.entity);
     if (t && kindOfType[t.type] === "droppod")
-        return [t.x + Math.cos(camYaw) * 1.45, t.y + 5.55, t.z + Math.sin(camYaw) * 1.45]; // ruling 130: in the drop pod's head, behind the mantlet
-    return t ? [t.x - Math.cos(camYaw) * 0.5, t.y + 9.5, t.z - Math.sin(camYaw) * 0.5] : null;
+        return [t.x + Math.cos(camYaw) * 0.9, t.y + 6.15, t.z + Math.sin(camYaw) * 0.9]; // designer 21 Nov: over the head's roof, the guns below the sight (inside it the hull hid the view)
+    return t ? [t.x + Math.cos(camYaw) * 0.6, t.y + 10.95, t.z + Math.sin(camYaw) * 0.6] : null; // over the tower head's roof
 }
 /** Ruling 124: "CREW THIS": the nearest free AI pilot (on foot or from the reserve) walks to the own vehicle under the reticle. */
 function crewThis() {
@@ -5694,14 +5694,15 @@ const fbTr = new fb1_ts_1.FbDefenceTracker(); // ruling 132
 globalThis.__fb1 = fbTr; // QA screenshots: slow motion (fb1-screens.mjs)
 const fb1Stats = { drawn: 0, moving: 0, lastOpen: 1, minimap: 0, unfolds: 0, folds: 0 };
 const POD_ROCKET_W = cd.weaponIds.indexOf("sentry-rocket-pod");
-const POD_RELOAD_S = (() => { const w = data.weapons.find((x) => x.id === "sentry-rocket-pod"); return w && w.shotsPerSecond ? 1 / w.shotsPerSecond : 6; })();
+const POD_RELOAD_S = (() => { const w = data.weapons.find((x) => x.id === "sentry-cannon") ?? data.weapons.find((x) => x.id === "sentry-rocket-pod"); return w && w.shotsPerSecond ? 1 / w.shotsPerSecond : 6; })();
 const POD_SALVO = data.weapons.find((x) => x.id === "sentry-rocket-pod")?.salvo ?? 4;
 const SENTRY_CALL = (data.supportCalls?.calls ?? []).findIndex((c) => c.id === "sentry-gun");
 const podRocketN = new Map();
 const podStats = { falling: 0, drawn: 0, deploy: -1, salvos: 0, rockets: 0, whooshes: 0, bar: "" };
 /** Ruling 130: seconds until the manned pod's rocket pod is loaded (the station's mount cooldown, else the client's own count). */
+const POD_CANNON_W = cd.weaponIds.indexOf("sentry-cannon"); // designer 21 Nov: the sentry's cannon replaced its rocket pod
 function podReloadLeft(id, now) {
-    const pw = me?.weapons?.find((w) => w.weapon === POD_ROCKET_W);
+    const pw = me?.weapons?.find((w) => w.weapon === POD_CANNON_W || w.weapon === POD_ROCKET_W);
     return pw ? pw.cooldown * POD_RELOAD_S : podTr.reload(id, now, POD_RELOAD_S);
 }
 let shadowBuf = new Float32Array(render_ts_1.DISC_FLOATS * 256), ringBuf = new Float32Array(render_ts_1.DISC_FLOATS * 64);
@@ -5921,7 +5922,7 @@ function assemble(now, frameDt) {
         if (eb.id === myBody && mode === "fp" && host.controlled)
             ty = playerAimYaw;
         const prev = turret.get(eb.id);
-        const shown = prev === undefined ? ty : (0, math_ts_1.lerpAngle)(prev, ty, eb.id === myBody && mode === "fp" ? 1 : alpha);
+        const shown = eb.id === myBody && mode === "fp" && gunSeated() ? camYaw /* designer 21 Nov: the manned head follows the sight at once (a lagging head swung through the view) */ : prev === undefined ? ty : (0, math_ts_1.lerpAngle)(prev, ty, eb.id === myBody && mode === "fp" ? 1 : alpha);
         turret.set(eb.id, shown);
         const scale = cd.typeIds[t] === "command-core" ? 1.2 : 1;
         const phase = (eb.id * 1.7) % 6.28;

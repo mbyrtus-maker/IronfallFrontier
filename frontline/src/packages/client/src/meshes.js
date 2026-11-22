@@ -1910,7 +1910,7 @@ function forwardBase() {
 }
 /** P3: the gun tower's turret head (also the control node's): a chamfered head with a seam, a dark mantlet, a glass
  * sensor block, twin barrels with muzzle brakes (tips at x 4.8, y 9.3, z ±0.5, as before) and a team plate. */
-function towerHead(b) {
+function towerHead(b, cannon = false) {
     b.part = 1;
     b.set(P2, 1, 1);
     b.hull([[-1.8, 8.3], [1.4, 8.3], [2.0, 9.2], [1.4, 10.3], [-1.6, 10.3], [-2.0, 9.2]], 1.6, 1.3);
@@ -1920,11 +1920,38 @@ function towerHead(b) {
     b.box(1.85, 9.3, 0, 0.2, 0.42, 0.85); // mantlet
     b.set(GLASS, 0, 1);
     b.box(0.9, 10.42, -0.85, 0.3, 0.14, 0.22); // sensor block
-    b.set(GUN, 0, 2);
-    b.mirrored((s) => { b.cyl(1.8, 9.3, s * 0.5, 0.15, 0.13, 3.0, 6, "x", false); b.set(DARK, 0, 2); b.cyl(4.35, 9.3, s * 0.5, 0.22, 0.22, 0.45, 6, "x"); b.set(GUN, 0, 2); });
+    if (cannon) { // designer 21 Nov: the Gun Tower: a heavy cannon in the middle, a machine gun either side
+        b.set(GUN, 0, 2);
+        b.cyl(1.8, 9.3, 0, 0.24, 0.2, 3.5, 12, "x", false); // cannon barrel
+        b.set(DARK, 0, 2);
+        b.cyl(2.3, 9.3, 0, 0.3, 0.3, 0.5, 12, "x", false); // recoil sleeve
+        b.box(5.45, 9.3, 0, 0.18, 0.32, 0.32); // muzzle brake
+        b.set([0.08, 0.08, 0.08], 0, 2);
+        b.mirrored((sd) => b.box(5.45, 9.3, sd * 0.325, 0.1, 0.14, 0.01)); // its ports
+        for (const sd of [-1, 1]) {
+            b.set(DARK, 0, 2);
+            b.box(1.9, 9.0, sd * 1.85, 0.28, 0.16, 0.16); // MG receiver
+            b.cyl(2.1, 9.0, sd * 1.85, 0.11, 0.11, 1.1, 8, "x", false); // perforated jacket
+            b.set([0.06, 0.06, 0.06], 0, 2);
+            for (let i = 0; i < 5; i++)
+                b.box(2.25 + i * 0.2, 9.0 + 0.105, sd * 1.85, 0.04, 0.012, 0.05);
+            b.set(GUN, 0, 2);
+            b.cyl(3.2, 9.0, sd * 1.85, 0.055, 0.055, 0.45, 6, "x", false); // barrel
+            b.set(DARK, 0, 2);
+            b.cyl(3.6, 9.0, sd * 1.85, 0.08, 0.07, 0.12, 6, "x"); // flash hider
+            b.set(OLIVE, 0, 1);
+            b.box(1.6, 8.75, sd * 1.85, 0.2, 0.14, 0.12); // ammo box
+            b.set(P2, 1, 1);
+            b.box(1.2, 8.95, sd * 1.7, 0.45, 0.22, 0.2); // sponson bracket off the head
+        }
+    }
+    else {
+        b.set(GUN, 0, 2);
+        b.mirrored((s) => { b.cyl(1.8, 9.3, s * 0.5, 0.15, 0.13, 3.0, 6, "x", false); b.set(DARK, 0, 2); b.cyl(4.35, 9.3, s * 0.5, 0.22, 0.22, 0.45, 6, "x"); b.set(GUN, 0, 2); });
+    }
     b.set([1, 1, 1], 2, 1);
     b.quad([-1.95, 9.3, -0.9], [-1.95, 9.3, 0.9], [-1.95, 9.9, 0.9], [-1.95, 9.9, -0.9], [0, 9.6, 0]);
-    G2(() => g2TowerHead(b));
+    G2(() => g2TowerHead(b, cannon));
     b.part = 0;
 }
 // C4: structures the S8 construction makes buildable, each with its own silhouette
@@ -2042,7 +2069,7 @@ function tower() {
         const a = (i / 6) * Math.PI * 1.2 - 0.6 + Math.PI;
         b.ball(Math.cos(a) * 3.6, 1.0, Math.sin(a) * 3.6, 0.55, 0, 0.5);
     } // sandbags behind
-    towerHead(b);
+    towerHead(b, true);
     G2(() => g2Tower(b));
     return b.build([0, 8.3, 0], 0, 0, 0.4);
 }
@@ -3501,16 +3528,16 @@ function dropPod() {
     b.hull([[-1.0, 4.5], [1.05, 4.5], [1.3, 4.95], [1.05, 5.55], [-0.85, 5.6], [-1.1, 5.1]], 0.75, 0.62);
     b.set(DARK, 0, 1);
     b.box(1.32, exports.DP.gunY, 0, 0.12, 0.3, 0.55);
+    // designer 21 Nov: a cannon on the left of the head (it replaces the rocket pod): breech housing, barrel, muzzle brake
     b.set(STEEL, 0, 1);
-    b.box(0.15, 5.12, exports.DP.podZ, 0.8, 0.5, 0.3);
-    b.set(BLACK, 0, 1);
-    for (const t of DP_TUBES)
-        b.disc(t[0] - 0.01, t[1], t[2], 0.15, 6, "x", 1);
-    b.set([1, 0.6, 0.3], 3, 1);
-    for (const t of DP_TUBES)
-        b.disc(t[0] - 0.03, t[1], t[2], 0.08, 6, "x", 1);
+    b.box(0.15, 5.12, exports.DP.podZ, 0.75, 0.32, 0.26);
+    b.set(GUN, 0, 2);
+    b.cyl(0.9, 5.12, exports.DP.podZ, 0.15, 0.13, 1.85, 12, "x", false);
+    b.set(DARK, 0, 2);
+    b.cyl(1.0, 5.12, exports.DP.podZ, 0.2, 0.2, 0.3, 12, "x", false);
+    b.box(2.85, 5.12, exports.DP.podZ, 0.12, 0.2, 0.2);
     b.set([1, 1, 1], 2, 1);
-    b.box(-0.2, 5.63, exports.DP.podZ, 0.55, 0.015, 0.2); // team strip on the pod
+    b.box(-0.2, 5.45, exports.DP.podZ, 0.55, 0.015, 0.2); // team strip on the housing
     beacon(b, -0.62, 5.58, 0.32, AMBER, 0.11, 1);
     b.set(GUN, 0, 2);
     b.mirrored((s) => { b.cyl(1.3, exports.DP.gunY, s * exports.DP.gunZ, 0.1, 0.09, 0.8, 6, "x", false); b.set(DARK, 0, 2); b.cyl(2.05, exports.DP.gunY, s * exports.DP.gunZ, 0.14, 0.14, 0.2, 6, "x"); b.set(GUN, 0, 2); });
@@ -4923,9 +4950,23 @@ function g2Mule(b) {
 // ---------------------------------------------------------------- G2: building detail
 const R8 = Math.PI / 8, R6 = Math.PI / 6;
 /** Detail on the gun tower's / control node's turning head (parts 1 and 2). */
-function g2TowerHead(b) {
+function g2TowerHead(b, cannon = false) {
     b.part = 1;
+    if (cannon) { // the cannon's sleeve bands
+        b.set(STEEL, 0, 1);
+        b.cyl(1.9, 9.3, 0, 0.34, 0.3, 0.4, 12, "x", false);
+        b.set(DARK, 0, 2);
+        for (const x of [3.3, 4.3])
+            b.cyl(x, 9.3, 0, 0.235, 0.235, 0.12, 12, "x", false);
+    }
     b.mirrored((s) => {
+        if (cannon) {
+            b.set(P3, 1, 1);
+            panel(b, [[[-0.5, 8.6, s * 1.555], [1.1, 8.6, s * 1.555], [1.1, 10.0, s * 1.345], [-0.5, 10.0, s * 1.345]], [0, 9.3, 0]], 0.07, 0.1);
+            b.set(OLIVE, 0, 1);
+            b.cyl(-1.2, 9.0, s * 1.5, 0.4, 0.4, s * 0.35, 6, "z", true);
+            return;
+        }
         b.set(P3, 1, 1);
         panel(b, [[[-0.5, 8.6, s * 1.555], [1.1, 8.6, s * 1.555], [1.1, 10.0, s * 1.345], [-0.5, 10.0, s * 1.345]], [0, 9.3, 0]], 0.07, 0.1);
         b.set(OLIVE, 0, 1);
@@ -6227,7 +6268,7 @@ function ringMesh() {
 const TT = (px, py, r, h, L) => [px + r * 1.3 + L * 1.12, py + h * 0.55, 0]; // tankTurret barrel tip
 exports.MUZZLES = {
     fbturret: [{ pts: [[exports.FBT.gunTip, exports.FBT.gunY, exports.FBT.gunZ], [exports.FBT.gunTip, exports.FBT.gunY, -exports.FBT.gunZ]], turret: true }], fbwall: [], // ruling 132
-    droppod: [{ pts: [[exports.DP.gunTip, exports.DP.gunY, exports.DP.gunZ], [exports.DP.gunTip, exports.DP.gunY, -exports.DP.gunZ]], turret: true }, { pts: DP_TUBES, turret: true }], // ruling 130: twin guns, 4 rocket tubes
+    droppod: [{ pts: [[exports.DP.gunTip, exports.DP.gunY, exports.DP.gunZ], [exports.DP.gunTip, exports.DP.gunY, -exports.DP.gunZ]], turret: true }, { pts: [[2.98, 5.12, exports.DP.podZ]], turret: true }], // ruling 130: twin guns; designer 21 Nov: a cannon (was 4 rocket tubes)
     bike: [{ pts: [[2.3, 0.45, 0.42], [2.3, 0.45, -0.42]], turret: false }, { pts: [[0.45, 1.4, 0]], turret: false }],
     bikewreck: [], // wrecks: never fire
     mech: [{ pts: [[3.6, 7.4, 2.45], [3.6, 7.4, 2.75]], turret: false }, { pts: [[1.05, 10.05, 2.3], [1.05, 10.55, -2.3], [1.05, 10.05, -1.95], [1.05, 10.55, 2.65]], turret: false }, { pts: [[3.1, 7.45, -2.6]], turret: false }], // Frontline: autocannon, shoulder missile pods
@@ -6245,7 +6286,7 @@ exports.MUZZLES = {
     economy: [{ pts: [[4.5, 1.05, 0]], turret: true }],
     hauler: [{ pts: [[3.7, 0.6, 0]], turret: false }], constructor: [{ pts: [[4.5, 1.05, 0]], turret: true }], fbv: [{ pts: [[3.7, 0.6, 0]], turret: false }],
     structure: [{ pts: [[0, 6.2, 0]], turret: false }],
-    tower: [{ pts: [[4.8, 9.3, 0.5], [4.8, 9.3, -0.5]], turret: true }],
+    tower: [{ pts: [[5.63, 9.3, 0]], turret: true }, { pts: [[3.72, 9.0, 1.85], [3.72, 9.0, -1.85]], turret: true }], // designer 21 Nov: cannon, twin machine guns
     mast: [{ pts: [[0, 13, 0]], turret: false }],
     silo: [{ pts: [[0, 9, 0]], turret: false }], extractor: [{ pts: [[0, 10, 0]], turret: false }], gastank: [{ pts: [[0, 8, 0]], turret: false }],
     battery: [{ pts: [[1.7, 4.75, -0.82], [1.7, 4.75, 0.82], [1.7, 5.5, -0.82], [1.7, 5.5, 0.82], [1.7, 4.75, 0], [1.7, 5.5, 0]], turret: true }],

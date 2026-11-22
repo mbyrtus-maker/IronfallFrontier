@@ -200,7 +200,8 @@
     "sensorRange": 300,
     "buildTime": 20,
     "weapons": [
-      "gun-tower-autocannon"
+      "gun-tower-cannon",
+      "gun-tower-mg"
     ],
     "defence": true,
     "pointTypes": [
@@ -215,11 +216,7 @@
       "rangeMultiplier": 1.2,
       "spreadMultiplier": 0.5
     },
-    "muzzle": [
-      4.8,
-      9.3,
-      0
-    ]
+    "muzzles": [[5.63, 9.3, 0], [3.72, 9.0, 1.85]]
   },
   {
     "id": "relay-tower",
@@ -540,8 +537,8 @@
     "baseType": "standard",
     "sensorRange": 300,
     "buildTime": 1,
-    "weapons": ["sentry-turret-gun", "sentry-rocket-pod"],
-    "muzzles": [[2.25, 5.0, 0], [0.97, 5.12, -1.08]],
+    "weapons": ["sentry-turret-gun", "sentry-cannon"],
+    "muzzles": [[2.25, 5.0, 0], [2.98, 5.12, -1.08]],
     "defence": true,
     "effects": { "pointStructure": true },
     "notes": "Ruling 130: the sentry-gun support call's body (supportCalls.sim.sentryProfile): an orbital drop capsule with a weapon head, twin rapid guns + rocket pod. Never built (point structure: placed by the sim)."

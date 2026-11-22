@@ -75,7 +75,7 @@
       "params": {
         "durationSeconds": 60,
         "weapon": "sentry-turret-gun",
-        "rocketWeapon": "sentry-rocket-pod",
+        "rocketWeapon": "sentry-cannon",
         "deploySeconds": 1.5,
         "hp": 1450,
         "mannable": true

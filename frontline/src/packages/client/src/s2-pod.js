@@ -80,9 +80,9 @@ exports.PodTracker = PodTracker;
 /** The bar while manning the drop pod sentry: both weapons and the rocket reload. */
 function podGunnerBar(reloadLeft, reloadS, salvo) {
     const rk = reloadLeft > 0.05
-        ? `ROCKETS <b>RELOADING ${reloadLeft.toFixed(1)} s</b> <span class="podbar"><i style="width:${Math.round(100 * (1 - reloadLeft / reloadS))}%"></i></span>`
-        : `ROCKETS <b>READY</b> · ${salvo}-rocket salvo`;
-    return `MANNING THE DROP POD SENTRY · <b>LMB</b> twin guns · <b>RMB</b> ${rk} · mouse aims (the head turns at its own speed) · F / E: leave (it goes back to automatic)`;
+        ? `CANNON <b>RELOADING ${reloadLeft.toFixed(1)} s</b> <span class="podbar"><i style="width:${Math.round(100 * (1 - reloadLeft / reloadS))}%"></i></span>`
+        : `CANNON <b>READY</b>`;
+    return `MANNING THE SENTRY · <b>LMB</b> machine guns · <b>RMB</b> ${rk} · mouse aims (the head turns at its own speed) · F / E: leave (it goes back to automatic)`;
 }
 /** Status line while manning. */
-exports.POD_STATUS = "inside the drop pod · LMB guns, RMB rockets · F / E leave";
+exports.POD_STATUS = "manning the sentry · LMB machine guns, RMB cannon · F / E leave";
